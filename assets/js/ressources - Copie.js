@@ -16,6 +16,8 @@ window.__RESSOURCES__ = {
     "JeuMotsMasques/Textes/NouveauxMots_10.xml"
   ],
   "puzzle": [
+    "JeuPuzzle/Images/Enneige.jpg",
+    "JeuPuzzle/Images/JFerry.jpg",
     "JeuPuzzle/Images/Rando01122025.JPG",
     "JeuPuzzle/Images/Rando01122025_1.jpg",
     "JeuPuzzle/Images/Rando01122025_2.jpeg",

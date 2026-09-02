@@ -1,6 +1,6 @@
 # Collection de jeux — page unique
 
-Six jeux HTML et trois éditeurs XML, lancés depuis un menu unique.
+Sept jeux HTML et cinq éditeurs XML, lancés depuis un menu unique.
 Fonctionne de deux façons, sans rien installer :
 
 - **en local** : ouvre `index.html` par un double-clic ;
@@ -23,10 +23,7 @@ Fonctionne de deux façons, sans rien installer :
      git push -u origin main
      ```
    - ou par le site : **Add file → Upload files**, puis glisse tous les
-     éléments du dossier (et pas le dossier). Le fichier `.nojekyll` est
-     masqué par la plupart des explorateurs : pense à l'inclure, ou crée-le
-     directement sur GitHub avec **Add file → Create new file**, nom `.nojekyll`,
-     contenu vide.
+     éléments du dossier (et pas le dossier).
 3. Dans le dépôt : **Settings → Pages**, source **Deploy from a branch**,
    branche `main`, dossier `/ (root)`, puis **Save**.
 4. Une à deux minutes plus tard, le site est à l'adresse
@@ -35,11 +32,21 @@ Fonctionne de deux façons, sans rien installer :
 Tous les chemins du site sont relatifs : l'adresse du dépôt n'a pas
 d'importance et le site marche aussi bien à la racine d'un domaine.
 
-### Pourquoi `.nojekyll`
+### Si le bouton « Choisir dans la bibliothèque du site » n'apparaît pas
 
-GitHub Pages fait passer les fichiers par Jekyll, qui ignore certains noms.
-Le fichier vide `.nojekyll` désactive ce traitement et garantit que tous les
-dossiers et fichiers sont publiés tels quels.
+Il n'apparaît qu'en `http://` ou `https://`, et seulement si les scripts du
+site ont bien été publiés. Dans l'ordre :
+
+1. Recharge en vidant le cache : **Ctrl + Maj + R** (⌘ + Maj + R sur Mac).
+2. Vérifie l'adresse `…/assets/js/bibliotheque.js` dans ton navigateur : elle
+   doit afficher du code, pas une page « 404 ». Si c'est un 404, le dossier
+   `assets/` n'a pas été envoyé, ou `index.html` n'est pas à la racine du
+   dépôt (il ne doit pas y avoir de dossier intermédiaire).
+3. Ouvre la console avec **F12**, onglet **Console** : les erreurs de
+   chargement y apparaissent.
+
+Aucun fichier `.nojekyll` n'est nécessaire : aucun dossier de ce site ne
+commence par `_` ou par un point, donc GitHub Pages publie tout tel quel.
 
 ---
 
@@ -62,18 +69,38 @@ Ce bouton n'apparaît qu'en `http://` ou `https://`. En ouverture locale
 reste alors le bon outil et rien ne change par rapport à avant.
 
 Il est présent dans : Puzzle (les deux versions), Taquin (thème « Image perso »),
-Anagrammes, Mots masqués, et les trois éditeurs XML.
+Jeu de Mot, Anagrammes, Mots masqués, et les cinq éditeurs XML.
 Le jeu de Mémoire n'utilise aucun fichier externe.
 
 ### Ajouter ou retirer une photo, une liste de mots
 
-1. Dépose ou supprime le fichier dans le dossier concerné
-   (`JeuPuzzle/Images`, `JeuAnagramme/Mots`, `JeuMotsMasques/Textes`).
-2. Regénère l'inventaire :
+Les fichiers proposés sont listés dans `assets/js/ressources.js`.
+
+**Supprimer un fichier : rien à faire.** À chaque ouverture, la bibliothèque
+vérifie que chaque fichier de l'inventaire est bien encore en ligne et écarte
+en silence ceux qui ne le sont plus. Un fichier effacé du dépôt disparaît donc
+tout seul de la liste.
+
+**Ajouter un fichier**, en revanche, demande de compléter l'inventaire :
+
+1. Dépose le fichier dans le dossier concerné (`JeuPuzzle/Images`,
+   `JeuDeMot/FichiersMots`, `JeuAnagramme/Mots`, `JeuMotsMasques/Textes`).
+2. Ajoute son chemin dans `assets/js/ressources.js` — c'est une simple liste,
+   éditable directement sur GitHub :
+   ```js
+   "puzzle": [
+     "JeuPuzzle/Images/Enneige.jpg",
+     "JeuPuzzle/Images/MaNouvellePhoto.jpg"
+   ],
+   ```
+   Ou, si tu travailles en local, laisse le script le faire :
    ```bash
    python3 assets/js/generer-ressources.py
    ```
 3. Recommite `assets/js/ressources.js`.
+
+Un inventaire qui contient des fichiers disparus n'est donc pas un problème :
+au pire il fait quelques vérifications inutiles à l'ouverture.
 
 Évite les accents, les espaces et les parenthèses dans les noms de fichiers :
 les serveurs web distinguent les majuscules des minuscules et supportent mal
@@ -96,7 +123,6 @@ exactement comme sur GitHub Pages.
 .
 ├── index.html                    ← LE MENU : point d'entrée unique
 ├── README.md
-├── .nojekyll
 ├── assets/
 │   ├── css/charte.css            charte graphique de référence
 │   ├── js/
@@ -104,7 +130,8 @@ exactement comme sur GitHub Pages.
 │   │   ├── ressources.js         inventaire des fichiers (généré)
 │   │   └── generer-ressources.py script de regénération
 │   └── favicons/
-│       ├── jeux.webp             partagée par 3 jeux + les 3 éditeurs
+│       ├── jeux.webp             partagée par 3 jeux + les 5 éditeurs
+│       ├── jeudemot.png
 │       ├── memoire.png
 │       └── taquin.png
 ├── JeuTaquin/JeuTaquin.html
@@ -113,6 +140,9 @@ exactement comme sur GitHub Pages.
 │   ├── JeuPuzzle60piecesMax.html
 │   └── Images/                   photos proposées par la bibliothèque
 ├── JeuMemoire/JeuMemoire.html
+├── JeuDeMot/
+│   ├── JeuDeMot.html
+│   └── FichiersMots/             200mots.xml + 2 éditeurs
 ├── JeuAnagramme/
 │   ├── JeuAnagramme.html
 │   └── Mots/                     listes XML + 1 éditeur
@@ -124,7 +154,7 @@ exactement comme sur GitHub Pages.
 ## Utilisation du menu
 
 - Une tuile par jeu, avec une illustration animée et le chemin du fichier lancé.
-- Touches **1** à **6** pour lancer un jeu directement.
+- Touches **1** à **7** pour lancer un jeu directement.
 - Case **« Ouvrir dans un nouvel onglet »**, mémorisée d'une visite à l'autre.
 - Sans cette option, le retour au menu se fait par le bouton **Précédent**.
 
@@ -139,8 +169,13 @@ exactement comme sur GitHub Pages.
 4. **Noms normalisés** pour un hébergement web : `JeuMotsMasqués` →
    `JeuMotsMasques`, `Enneigé.jpg` → `Enneige.jpg`,
    `NouveauxMots(10).xml` → `NouveauxMots_10.xml`.
-5. **Jeu Motus retiré** (le nom est une marque déposée), ainsi que ses deux
-   éditeurs et son dossier `FichiersMots`.
+5. **Jeu de Mot** : c'est l'ancien jeu « Motus », renommé. MOTUS est une marque
+   déposée par France Télévisions qui couvre explicitement les jeux de mots ;
+   la mécanique, elle, n'appartient à personne. Ont changé : le dossier, les
+   fichiers, les titres, les logos, le nom des sauvegardes (`…_JeuDeMot.json`)
+   et la balise racine des fichiers XML (`<motus>` → `<mots>`). Les anciennes
+   sauvegardes et les anciens fichiers de mots restent lisibles : les lecteurs
+   ne regardent que les balises `<mot>`.
 6. **Aucune autre modification du code des jeux.**
 
 ## Ajouter un jeu au menu
