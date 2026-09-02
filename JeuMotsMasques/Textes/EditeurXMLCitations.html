@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/webp" href="../../assets/favicons/jeux.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📖 Gestionnaire Citations v1.0</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a4a8a;--blue-mid:#2563eb;--blue-light:#3b82f6;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#86efac;
+  --red:#b91c1c;--red-bg:#fef2f2;--red-border:#fca5a5;
+  --orange:#c2410c;--orange-bg:#fff7ed;--orange-border:#fdba74;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
+  --gray-400:#94a3b8;--gray-600:#475569;--gray-700:#334155;--gray-900:#0f172a;
+  --white:#ffffff;--radius:10px;--radius-sm:6px;
+  --shadow:0 2px 8px rgba(0,0,0,.08);
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;color:var(--gray-900);background:var(--gray-100)}
+
+#app{display:flex;flex-direction:column;height:100vh}
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--blue);flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.app-title{font-weight:800;color:#fff;font-size:17px;margin-right:6px;white-space:nowrap;letter-spacing:-.3px}
+.toolbar-sep{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px}
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.statusbar{display:flex;align-items:center;gap:12px;padding:6px 16px;background:var(--white);border-top:2px solid var(--gray-200);font-size:13px;color:var(--gray-600);flex-shrink:0;flex-wrap:wrap}
+
+.btn{cursor:pointer;font-family:inherit;font-size:14px;border:2px solid transparent;border-radius:var(--radius-sm);padding:7px 15px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-white{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+.btn-white:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.6)}
+.btn-yellow{background:#fbbf24;color:#78350f;border-color:#f59e0b}
+.btn-yellow:hover{background:#f59e0b}
+.btn-green{background:#22c55e;color:#fff;border-color:#16a34a}
+.btn-green:hover{background:#16a34a}
+.btn-red{background:#ef4444;color:#fff;border-color:#dc2626}
+.btn-red:hover{background:#dc2626}
+.btn-gray{background:var(--white);color:var(--gray-700);border-color:var(--gray-300)}
+.btn-gray:hover{background:var(--gray-100)}
+.btn-blue{background:var(--blue-mid);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:var(--blue)}
+.btn-sm{font-size:12px;padding:5px 11px}
+.btn-lg{font-size:16px;padding:10px 22px;border-radius:var(--radius)}
+
+/* LIST */
+.list-section{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px 12px;min-height:0}
+.list-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap}
+.list-title{font-weight:700;font-size:14px;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px}
+.list-count{background:var(--blue-mid);color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}
+.list-filter{flex:1;max-width:280px;padding:6px 12px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:border .15s}
+.list-filter:focus{border-color:var(--blue-light)}
+
+/* STATS BAR */
+.stats-bar{display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);font-size:13px;color:var(--blue);font-weight:600;flex-shrink:0;margin-bottom:8px;flex-wrap:wrap}
+.stat-item{display:flex;align-items:center;gap:5px}
+.stat-sep{width:1px;height:16px;background:var(--blue-border)}
+.stat-chip{border-radius:20px;padding:1px 10px;font-size:12px;font-weight:700}
+.stat-chip.ok{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.stat-chip.warn{color:var(--orange);background:var(--orange-bg);border:1px solid var(--orange-border)}
+
+/* TABLE */
+.word-table-wrap{flex:1;overflow-y:auto;border:2px solid var(--gray-200);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow)}
+.word-table{width:100%;border-collapse:collapse}
+.word-table th{background:var(--blue);color:#fff;font-size:13px;font-weight:700;padding:10px 12px;text-align:left;position:sticky;top:0;z-index:2}
+.word-table th:last-child{text-align:center;width:130px}
+.word-table td{padding:9px 12px;border-bottom:1px solid var(--gray-100);font-size:14px;vertical-align:middle}
+.word-table tr:last-child td{border-bottom:none}
+.word-table tr:hover td{background:var(--blue-bg)}
+.word-table tr.expanded td{background:var(--blue-bg)}
+.td-id{font-weight:700;color:var(--blue-mid);width:60px}
+.td-cat span{background:var(--gray-100);border:1px solid var(--gray-200);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600}
+.td-mot{font-weight:700;color:var(--gray-900);font-size:15px}
+.td-action{text-align:center}
+.expand-btn{background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:5px 12px;font-size:13px;font-weight:700;color:var(--blue-mid);cursor:pointer;transition:all .15s}
+.expand-btn:hover{background:var(--blue-mid);color:#fff}
+.expand-btn.open{background:var(--blue-mid);color:#fff}
+
+/* EXPANDED DETAIL PANEL */
+.expanded-row td{padding:0}
+.expanded-panel{padding:16px 20px;background:linear-gradient(to bottom,var(--blue-bg),#fafcff);border-top:2px solid var(--blue-border);display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.detail-fields{flex:1;min-width:260px;display:grid;grid-template-columns:auto 1fr;gap:9px 14px;align-items:center}
+.df-label{font-size:12px;font-weight:700;color:var(--blue);text-align:right;white-space:nowrap;padding-right:2px}
+.df-value{background:var(--white);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:8px 13px;font-size:15px;font-weight:600;color:var(--gray-900);user-select:text;display:flex;align-items:center;min-height:40px}
+.df-value.df-id{color:var(--blue-mid);font-weight:800;font-size:16px}
+.df-value.df-cat .cat-badge{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:20px;padding:3px 13px;font-size:13px;font-weight:700;color:var(--blue)}
+.df-value.df-mot{font-size:18px;font-weight:800;letter-spacing:1.5px;color:var(--gray-900)}
+.expanded-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;justify-content:center;padding-top:4px}
+
+/* EMPTY */
+.empty-list{padding:40px;text-align:center;color:var(--gray-400)}
+.empty-list .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-list p{font-size:15px;line-height:1.6}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:16px 20px;background:var(--blue);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-header h2{color:#fff;font-size:17px;font-weight:800}
+.modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:background .15s}
+.modal-close:hover{background:rgba(255,255,255,.4)}
+.modal-body{overflow-y:auto;flex:1}
+.modal-footer{padding:14px 20px;border-top:2px solid var(--gray-100);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:var(--gray-50)}
+
+/* FORM */
+.form-body{padding:20px}
+.form-section{margin-bottom:18px}
+.form-section label{display:block;font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:6px}
+.form-section label .req{color:var(--red)}
+.form-section input[type="text"],.form-section select{width:100%;padding:10px 13px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;outline:none;transition:border .15s;color:var(--gray-900);background:var(--white)}
+.form-section input:focus,.form-section select:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.form-section input[readonly]{background:var(--gray-100);color:var(--gray-600)}
+.form-section .hint{font-size:12px;color:var(--gray-400);margin-top:4px}
+.char-counter{font-size:13px;font-weight:600;margin-top:5px}
+.char-counter.ok{color:var(--green)}
+.char-counter.warn{color:var(--orange)}
+.char-counter.over{color:var(--red)}
+.form-error{background:var(--red-bg);border:2px solid var(--red-border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--red);font-size:14px;font-weight:600;margin-top:8px}
+
+/* WIZARD */
+.wizard-steps{padding:0 20px 10px}
+.wizard-progress{display:flex;align-items:center;margin-bottom:20px;padding:16px 20px 0}
+.wiz-step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;transition:all .3s;border:3px solid var(--gray-200);color:var(--gray-400);background:var(--white)}
+.wiz-step-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.wiz-step-dot.current{background:var(--blue-mid);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-bg)}
+.wiz-connector{flex:1;height:3px;background:var(--gray-200)}
+.wiz-connector.done{background:var(--green)}
+.wiz-panel{display:none}
+.wiz-panel.active{display:block}
+.wiz-title{font-size:19px;font-weight:800;color:var(--blue);margin-bottom:6px}
+.wiz-sub{font-size:14px;color:var(--gray-600);margin-bottom:16px;line-height:1.6}
+.wiz-note{background:var(--orange-bg);border-left:4px solid var(--orange-border);padding:12px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--orange);line-height:1.6;margin-top:12px}
+.wiz-nav{display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:2px solid var(--gray-100);background:var(--gray-50)}
+.wiz-nav-counter{font-size:13px;color:var(--gray-400);flex:1}
+
+/* STATUS */
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-weight:700;padding:3px 10px;border-radius:20px;font-size:13px}
+.status-clean{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.status-dirty{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+
+/* WELCOME */
+.welcome-area{padding:16px 14px 8px;flex-shrink:0}
+.welcome-box{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-mid) 100%);border-radius:var(--radius);padding:14px 18px;color:#fff;display:flex;align-items:center;gap:14px}
+.welcome-box .wb-icon{font-size:36px;flex-shrink:0}
+.welcome-box h2{font-size:16px;font-weight:800;margin-bottom:3px}
+.welcome-box p{font-size:13px;opacity:.85;line-height:1.5}
+.welcome-box .wb-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* SAVE SUCCESS MODAL */
+.save-success-body{padding:24px;text-align:center}
+.save-success-icon{font-size:52px;margin-bottom:10px}
+.save-success-title{font-size:20px;font-weight:800;color:var(--green);margin-bottom:12px}
+.save-success-path{background:var(--green-bg);border:2px solid var(--green-border);border-radius:var(--radius);padding:14px 18px;font-size:14px;color:var(--green);font-weight:600;margin:10px 0;word-break:break-all;text-align:left;line-height:1.8}
+.save-success-path .path-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;display:block}
+.save-success-path .path-sub{font-size:12px;color:var(--gray-400);font-weight:400;display:block;margin-top:3px}
+.save-success-stats{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--blue);margin-top:10px;text-align:left}
+.save-success-note{font-size:13px;color:var(--gray-400);line-height:1.6;margin-top:10px}
+
+/* HELP */
+.help-section-block{margin-bottom:12px;background:var(--gray-50);border-radius:var(--radius);padding:14px 16px;border:1px solid var(--gray-200)}
+.help-section-block h4{font-size:15px;color:var(--blue);margin-bottom:8px;font-weight:800}
+.help-section-block p,.help-section-block li{font-size:14px;line-height:1.75;color:var(--gray-600)}
+.help-section-block ul{padding-left:20px;margin-top:4px}
+.help-section-block li{margin-bottom:3px}
+.help-tip{background:var(--orange-bg);border-left:4px solid var(--orange-border);padding:9px 13px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--orange);line-height:1.6;margin-top:8px}
+.help-danger{background:var(--red-bg);border-left:4px solid var(--red-border);padding:9px 13px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--red);line-height:1.6;margin-top:8px}
+.help-good{background:var(--green-bg);border-left:4px solid var(--green-border);padding:9px 13px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--green);line-height:1.6;margin-top:8px}
+.xml-demo{background:#f0f7ff;border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Courier New',monospace;font-size:13px;color:#1e3a5c;margin-top:8px;line-height:2}
+
+/* ===== TOAST ERREUR ===== */
+.toast-erreur{
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(1);
+  background:var(--red);color:#fff;
+  border-radius:var(--radius);
+  padding:16px 28px;
+  font-size:16px;font-weight:700;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  z-index:9999;
+  text-align:center;
+  max-width:340px;
+  line-height:1.5;
+  pointer-events:none;
+  animation:toastIn .2s ease forwards;
+}
+.toast-erreur.toast-out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{
+  from{opacity:0;transform:translate(-50%,-50%) scale(.85)}
+  to  {opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes toastOut{
+  from{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  to  {opacity:0;transform:translate(-50%,-50%) scale(.85)}
+}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
+#fileInput{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="toolbar">
+    <span class="app-title">📖 Gestionnaire Citations</span>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-white" onclick="openXML()">📂 Ouvrir XML</button>
+    <button class="btn btn-white" onclick="exportXML()">💾 Enregistrer</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-yellow" onclick="newMotWizard()">➕ Nouvelle Citation</button>
+    <button class="btn btn-white btn-sm" onclick="resetConfig()">🔄 Réinitialiser</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-white btn-sm" onclick="showHelp()">❓ Aide</button>
+    <button class="btn btn-white btn-sm" onclick="quitterApp()">🚪 Quitter</button>
+  </div>
+
+  <div class="main-area">
+    <div class="welcome-area" id="welcomeArea">
+      <div class="welcome-box">
+        <div class="wb-icon">🎯</div>
+        <div style="flex:1">
+          <h2>Bienvenue dans le Gestionnaire de Citations</h2>
+          <p>Gérez vos citations par auteur et livre au format XML. Commencez par ouvrir un fichier existant ou créez votre première citation.</p>
+          <div class="wb-actions">
+            <button class="btn btn-white btn-sm" onclick="openXML()">📂 Ouvrir un fichier XML existant</button>
+            <button class="btn btn-yellow btn-sm" onclick="newMotWizard()">➕ Créer ma première citation</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-header">
+        <span class="list-title">📋 Liste des mots</span>
+        <span class="list-count" id="listCount">0</span>
+        <input class="list-filter" type="text" placeholder="🔍 Rechercher une citation, un auteur, un livre…" oninput="filterList(this.value)" id="filterInput">
+      </div>
+
+      <!-- Barre de statistiques -->
+      <div class="stats-bar" id="statsBar" style="display:none">
+        <div class="stat-item">📦 <strong id="statTotal">0</strong>&nbsp;citation(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">📚 <strong id="statCats">0</strong>&nbsp;livre(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">🗃️ Capacité&nbsp;: <span id="statCapacity" class="stat-chip ok">0 / 200</span></div>
+        <div class="stat-sep" id="statFilterSep" style="display:none"></div>
+        <div class="stat-item" id="statFilterInfo" style="display:none">🔍&nbsp;<strong id="statFiltered">0</strong>&nbsp;résultat(s) affiché(s)</div>
+      </div>
+
+      <div class="word-table-wrap">
+        <table class="word-table">
+          <thead>
+            <tr>
+              <th style="width:60px">N°</th>
+              <th style="width:120px">Auteur</th>
+              <th style="width:150px">Livre</th>
+              <th>Texte</th>
+              <th style="width:130px;text-align:center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wordTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="status-badge status-clean" id="modifiedIndicator">✅ Aucune modification</span>
+    <span id="statusMsg" style="color:var(--gray-600)">Prêt</span>
+    <span style="flex:1"></span>
+    <span style="font-size:12px;color:var(--gray-400)">v1.0</span>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".xml" onchange="handleFileOpen(event)">
+
+<script>
+const MAX_TEXTES     = 200;
+const MIN_TEXT_CHARS = 10;
+const MAX_TEXT_CHARS = 500;
+const DEFAULT_LIVRES = ['Informatidien'];
+
+let textesData    = [];
+let currentFilter = '';
+let modified      = false;
+let expandedRow   = null;
+
+// ── XML ──────────────────────────────────────────────────────────────────────
+function parseXMLConfig(xmlString) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlString, 'text/xml');
+  if (doc.querySelector('parseerror,parsererror')) throw new Error('Fichier XML invalide ou corrompu.');
+  const textes = [];
+  doc.querySelectorAll('citation').forEach(n => {
+    textes.push({
+      id:      (n.querySelector('index') ? n.querySelector('index').textContent.trim() : '') ||
+               n.getAttribute('id') || '',
+      auteur:  (n.querySelector('auteur') ? n.querySelector('auteur').textContent.trim() : '') ||
+               n.getAttribute('auteur') || '',
+      livre:   (n.querySelector('livre') ? n.querySelector('livre').textContent.trim() : '') ||
+               n.getAttribute('livre') || '',
+      valeur:  (n.querySelector('texte') ? n.querySelector('texte').textContent.trim() : '') ||
+               n.getAttribute('texte') || ''
+    });
+  });
+  textes.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0));
+  return textes;
+}
+
+function generateXML() {
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<citations>\n';
+  textesData.forEach(m => {
+    xml += `\n  <citation>\n`;
+    xml += `    <index>${escX(m.id)}</index>\n`;
+    xml += `    <auteur>${escX(m.auteur)}</auteur>\n`;
+    xml += `    <livre>${escX(m.livre)}</livre>\n`;
+    xml += `    <texte>${escX(m.valeur)}</texte>\n`;
+    xml += `  </citation>\n`;
+  });
+  return xml + '\n</citations>';
+}
+
+function escX(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ── FICHIER ───────────────────────────────────────────────────────────────────
+function openXML(){ document.getElementById('fileInput').click(); }
+
+function handleFileOpen(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      textesData = parseXMLConfig(e.target.result);
+      expandedRow = null;
+      setModified(false);
+      updateStatus('✅ Fichier chargé : ' + file.name);
+      renderTable();
+    } catch(err) {
+      showInfo('❌ Erreur de lecture', 'Impossible de lire le fichier :\n' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+async function exportXML() {
+  if (textesData.length === 0) {
+    showInfo('⚠️ Rien à enregistrer', 'La liste est vide.\nAjoutez au moins un mot avant d\'enregistrer.');
+    return;
+  }
+  const xml      = generateXML();
+  const filename = 'NouveauxMots.xml';
+
+  if (window.showSaveFilePicker) {
+    try {
+      const fh = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'Fichier XML', accept: {'application/xml':['.xml']} }]
+      });
+      const w = await fh.createWritable();
+      await w.write(xml); await w.close();
+      setModified(false);
+      updateStatus('✅ Fichier enregistré');
+      showSaveSuccess(fh.name || filename, false);
+      return;
+    } catch(e) { if (e.name === 'AbortError') return; }
+  }
+  // Fallback download
+  const blob = new Blob([xml], {type:'application/xml;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setModified(false);
+  updateStatus('✅ Fichier téléchargé');
+  showSaveSuccess(filename, true);
+}
+
+function showSaveSuccess(filename, isDownload) {
+  const total = textesData.length;
+  const cats  = [...new Set(textesData.map(m => m.livre))].length;
+  const pathHtml = isDownload
+    ? `<span class="path-label">📁 Emplacement du fichier</span>
+       <strong>Dossier Téléchargements</strong>
+       <span class="path-sub">Chemin habituel : C:\\Utilisateurs\\VotreNom\\Téléchargements\\${escH(filename)}</span>`
+    : `<span class="path-label">📁 Fichier enregistré</span>
+       <strong>${escH(filename)}</strong>
+       <span class="path-sub">dans le dossier que vous avez choisi lors de l'enregistrement</span>`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:460px">
+      <div class="modal-header" style="background:var(--green)">
+        <h2>💾 Fichier sauvegardé avec succès !</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="save-success-body">
+          <div class="save-success-icon">✅</div>
+          <div class="save-success-title">Enregistrement réussi !</div>
+          <div class="save-success-path">${pathHtml}</div>
+          <div class="save-success-stats">
+            📊 Contenu sauvegardé : <strong>${total} citation${total>1?'s':''}</strong> réparties dans <strong>${cats} livre${cats>1?'s':''}</strong>
+          </div>
+          <div class="save-success-note">Vous pouvez rouvrir ce fichier dans cette application à tout moment en cliquant sur <strong>📂 Ouvrir XML</strong>.</div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:center">
+        <button class="btn btn-green btn-lg" onclick="this.closest('.modal-overlay').remove()">✅ OK, j'ai compris</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.btn-green').focus();
+}
+
+function resetConfig() {
+  showConfirm('🔄 Réinitialiser ?',
+    'Tous les mots seront effacés de la mémoire.\nCette action est irréversible si vous n\'avez pas encore enregistré.\n\nVoulez-vous continuer ?',
+    () => { textesData = []; expandedRow = null; setModified(false); renderTable(); updateStatus('Liste réinitialisée'); });
+}
+
+// ── RENDU TABLEAU ─────────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody    = document.getElementById('wordTableBody');
+  const total    = textesData.length;
+  const filtered = textesData.filter(m =>
+    !currentFilter ||
+    m.valeur.toLowerCase().includes(currentFilter) ||
+    m.auteur.toLowerCase().includes(currentFilter) ||
+    m.livre.toLowerCase().includes(currentFilter) ||
+    m.id.includes(currentFilter)
+  );
+
+  // Badge count
+  document.getElementById('listCount').textContent = total;
+
+  // Stats bar
+  const statsBar = document.getElementById('statsBar');
+  if (total > 0) {
+    statsBar.style.display = 'flex';
+    document.getElementById('statTotal').textContent = total;
+    const catsCount = [...new Set(textesData.map(m => m.livre))].length;
+    document.getElementById('statCats').textContent = catsCount;
+    const capEl = document.getElementById('statCapacity');
+    capEl.textContent = total + ' / ' + MAX_TEXTES;
+    capEl.className = 'stat-chip ' + (total >= MAX_TEXTES * 0.8 ? 'warn' : 'ok');
+    const fSep  = document.getElementById('statFilterSep');
+    const fInfo = document.getElementById('statFilterInfo');
+    if (currentFilter) {
+      fSep.style.display = ''; fInfo.style.display = '';
+      document.getElementById('statFiltered').textContent = filtered.length;
+    } else {
+      fSep.style.display = 'none'; fInfo.style.display = 'none';
+    }
+  } else { statsBar.style.display = 'none'; }
+
+  // Welcome
+  document.getElementById('welcomeArea').style.display = total === 0 ? '' : 'none';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-list">
+      <div class="empty-icon">${currentFilter ? '🔍' : '📭'}</div>
+      <p>${currentFilter
+        ? 'Aucune citation ne correspond à "<strong>' + escH(currentFilter) + '</strong>".'
+        : 'Aucune citation pour l\'instant.<br>Utilisez <strong>➕ Nouvelle Citation</strong> pour commencer.'}</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(mot => {
+    const idx   = textesData.indexOf(mot);
+    const isOpen = expandedRow === idx;
+    const texteApercu = mot.valeur.length > 80 ? escH(mot.valeur.substring(0,80)) + '…' : escH(mot.valeur);
+    html += `
+      <tr class="${isOpen?'expanded':''}" id="row-${idx}">
+        <td class="td-id">#${escH(mot.id)}</td>
+        <td class="td-cat"><span>${escH(mot.auteur)}</span></td>
+        <td class="td-cat"><span>${escH(mot.livre)}</span></td>
+        <td class="td-mot" style="font-size:13px;font-weight:400">${texteApercu}</td>
+        <td class="td-action">
+          <button class="expand-btn ${isOpen?'open':''}" onclick="toggleExpand(${idx})">${isOpen?'▲ Fermer':'▼ Détails'}</button>
+        </td>
+      </tr>`;
+    if (isOpen) {
+      html += `
+      <tr class="expanded-row" id="expanded-${idx}">
+        <td colspan="5">
+          <div class="expanded-panel">
+            <div class="detail-fields" style="grid-template-columns:auto 1fr">
+              <span class="df-label">🔢 Numéro</span>
+              <div class="df-value df-id">${escH(mot.id)}</div>
+              <span class="df-label">✍️ Auteur</span>
+              <div class="df-value df-cat"><span class="cat-badge">${escH(mot.auteur)}</span></div>
+              <span class="df-label">📚 Livre</span>
+              <div class="df-value df-cat"><span class="cat-badge">${escH(mot.livre)}</span></div>
+              <span class="df-label">💬 Texte</span>
+              <div class="df-value" style="font-size:14px;font-weight:400;line-height:1.6;white-space:pre-wrap;align-items:flex-start;padding:12px 13px">${escH(mot.valeur)}</div>
+            </div>
+            <div class="expanded-actions">
+              <button class="btn btn-blue" onclick="openEditModal(${idx})">✏️ Modifier</button>
+              <button class="btn btn-red"  onclick="deleteMot(${idx})">🗑️ Supprimer</button>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }
+  });
+  tbody.innerHTML = html;
+}
+
+function toggleExpand(idx) {
+  expandedRow = (expandedRow === idx) ? null : idx;
+  renderTable();
+  if (expandedRow !== null) {
+    setTimeout(() => {
+      const r = document.getElementById('expanded-' + idx);
+      if (r) r.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }, 50);
+  }
+}
+
+function filterList(val) {
+  currentFilter = val.trim().toLowerCase();
+  expandedRow   = null;
+  renderTable();
+}
+
+// ── EDIT MODAL ────────────────────────────────────────────────────────────────
+function openEditModal(idx) {
+  const mot = textesData[idx];
+  const existingLivres = [...new Set(textesData.map(m => m.livre))];
+  const livreOptions   = buildLivreOptions(mot.livre, existingLivres);
+  const allLivres      = [...new Set([...DEFAULT_LIVRES,...existingLivres])].sort();
+  const isCustomLivre  = !allLivres.includes(mot.livre) && mot.livre !== '';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'editModal';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:620px">
+      <div class="modal-header">
+        <h2>✏️ Modifier la citation #${escH(mot.id)}</h2>
+        <button class="modal-close" onclick="document.getElementById('editModal').remove()">✕</button>
+      </div>
+      <div class="modal-body"><div class="form-body">
+        <div class="form-section">
+          <label>Numéro (ID) <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(non modifiable)</span></label>
+          <input type="text" value="${escH(mot.id)}" readonly>
+        </div>
+        <div class="form-section">
+          <label>Auteur <span class="req">*</span></label>
+          <input type="text" id="em_auteur" value="${escH(mot.auteur)}" placeholder="Nom de l'auteur" maxlength="100">
+        </div>
+        <div class="form-section">
+          <label>Livre <span class="req">*</span></label>
+          <select id="em_livre_select" onchange="handleLivreSelect('em_livre_select','em_livre_custom')">${livreOptions}</select>
+          <input type="text" id="em_livre_custom" placeholder="Tapez le nom du livre…"
+            value="${isCustomLivre ? escH(mot.livre) : ''}"
+            style="margin-top:8px;display:${isCustomLivre?'block':'none'}">
+          <div class="hint">Choisissez un livre ou sélectionnez <strong>"➕ Autre"</strong> pour en saisir un nouveau.</div>
+        </div>
+        <div class="form-section">
+          <label>Texte <span class="req">*</span> <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} caractères)</span></label>
+          <textarea id="em_valeur" rows="6" placeholder="Saisissez le texte de la citation…"
+            oninput="updateCounter('em_valeur','em_counter')" maxlength="${MAX_TEXT_CHARS}"
+            style="width:100%;padding:10px 13px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;outline:none;transition:border .15s;color:var(--gray-900);resize:vertical"
+          >${escH(mot.valeur)}</textarea>
+          <div class="char-counter ok" id="em_counter">${mot.valeur.length} / ${MAX_TEXT_CHARS} caractères</div>
+        </div>
+        <div id="em_error" style="display:none" class="form-error"></div>
+      </div></div>
+      <div class="modal-footer">
+        <button class="btn btn-gray" onclick="document.getElementById('editModal').remove()">❌ Annuler</button>
+        <button class="btn btn-blue btn-lg" onclick="saveEdit(${idx})">💾 Enregistrer la modification</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  updateCounter('em_valeur','em_counter');
+}
+
+function buildLivreOptions(currentLivre, existingLivres) {
+  const all     = [...new Set([...DEFAULT_LIVRES,...existingLivres])].sort();
+  const isKnown = all.includes(currentLivre);
+  let html      = '';
+  all.forEach(c => { html += `<option value="${escH(c)}" ${currentLivre===c?'selected':''}>${escH(c)}</option>`; });
+  html += `<option value="__autre__" ${!isKnown && currentLivre!=='' ? 'selected' : ''}>➕ Autre (nouveau livre)</option>`;
+  return html;
+}
+
+function handleLivreSelect(selId, customId) {
+  const sel = document.getElementById(selId);
+  const inp = document.getElementById(customId);
+  inp.style.display = sel.value === '__autre__' ? 'block' : 'none';
+  if (sel.value === '__autre__') inp.focus();
+}
+
+// keep for backward compat
+function buildCatOptions(c,e){return buildLivreOptions(c,e);}
+function handleCatSelect(s,c){return handleLivreSelect(s,c);}
+
+function saveEdit(idx) {
+  const auteurInp = document.getElementById('em_auteur');
+  const sel       = document.getElementById('em_livre_select');
+  const customInp = document.getElementById('em_livre_custom');
+  const valInp    = document.getElementById('em_valeur');
+  const errEl     = document.getElementById('em_error');
+  const auteur    = auteurInp.value.trim();
+  let livre       = sel.value === '__autre__' ? customInp.value.trim() : sel.value;
+  const valeur    = valInp.value.trim();
+
+  if (valeur.length > 0 && valeur.length < MIN_TEXT_CHARS) {
+    showToast(`⚠️ Texte trop court !\n${valeur.length} caractère${valeur.length>1?'s':''} — minimum ${MIN_TEXT_CHARS}.`);
+    return;
+  }
+  if (valeur.length > MAX_TEXT_CHARS) {
+    showToast(`⚠️ Texte trop long !\n${valeur.length} caractères — maximum ${MAX_TEXT_CHARS}.`);
+    return;
+  }
+
+  const errors = [];
+  if (!auteur) errors.push('L\'auteur est obligatoire.');
+  if (!livre)  errors.push('Le livre est obligatoire.');
+  if (!valeur) errors.push('Le texte est obligatoire.');
+  if (errors.length) { errEl.textContent = errors.join(' '); errEl.style.display = 'block'; return; }
+
+  errEl.style.display = 'none';
+  textesData[idx].auteur   = auteur;
+  textesData[idx].livre    = livre;
+  textesData[idx].valeur   = valeur;
+  setModified(true);
+  expandedRow = idx;
+  document.getElementById('editModal').remove();
+  renderTable();
+  updateStatus('✅ Citation #' + textesData[idx].id + ' modifiée en mémoire');
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function deleteMot(idx) {
+  const mot = textesData[idx];
+  const apercu = mot.valeur.length > 60 ? mot.valeur.substring(0,60) + '…' : mot.valeur;
+  showConfirm('🗑️ Supprimer cette citation ?',
+    `Vous allez supprimer définitivement :\n\n  ✍️ Auteur : ${mot.auteur}\n  📚 Livre : ${mot.livre}\n  🔢 Numéro : #${mot.id}\n  💬 Texte : ${apercu}\n\nCette action est irréversible.`,
+    () => {
+      textesData.splice(idx, 1);
+      reindex();
+      expandedRow = null;
+      setModified(true);
+      renderTable();
+      updateStatus('🗑️ Citation supprimée — numéros réorganisés');
+    });
+}
+
+function reindex() { textesData.forEach((m,i) => { m.id = String(i+1); }); }
+
+// ── WIZARD NOUVEAU MOT ────────────────────────────────────────────────────────
+function newMotWizard() {
+  if (textesData.length >= MAX_TEXTES) {
+    showInfo('⚠️ Limite atteinte', `Vous avez atteint le maximum de ${MAX_TEXTES} citations.\nSupprimez des citations existantes pour en ajouter de nouvelles.`);
+    return;
+  }
+  const existingLivres = [...new Set(textesData.map(m => m.livre))];
+  const livreOptions   = buildLivreOptions('Informatidien', existingLivres);
+  let currentStep    = 1;
+  const totalSteps   = 4;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'wizModal';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:600px">
+      <div class="modal-header">
+        <h2>➕ Ajouter une nouvelle citation — Guide pas à pas</h2>
+        <button class="modal-close" onclick="document.getElementById('wizModal').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wizard-progress">
+          <div class="wiz-step-dot current" id="wdot1">1</div>
+          <div class="wiz-connector" id="wcon1"></div>
+          <div class="wiz-step-dot" id="wdot2">2</div>
+          <div class="wiz-connector" id="wcon2"></div>
+          <div class="wiz-step-dot" id="wdot3">3</div>
+          <div class="wiz-connector" id="wcon3"></div>
+          <div class="wiz-step-dot" id="wdot4">4</div>
+        </div>
+        <div class="wizard-steps">
+          <!-- Étape 1 -->
+          <div class="wiz-panel active" id="wizStep1">
+            <div class="wiz-title">👋 Étape 1 — Prêt à ajouter une citation ?</div>
+            <div class="wiz-sub">Ce guide vous accompagne pas à pas. Suivez les étapes — c'est simple et rapide !</div>
+            <div style="background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius);padding:14px 16px">
+              <p style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:8px">📝 Ce que vous allez faire :</p>
+              <p style="font-size:14px;color:var(--gray-600);line-height:2">
+                <strong>① Renseigner l'auteur</strong> — ex : Ch, Voltaire…<br>
+                <strong>② Choisir le livre</strong> source de la citation<br>
+                <strong>③ Saisir le texte</strong> de la citation (max ${MAX_TEXT_CHARS} caractères)<br>
+                <strong>④ Vérifier et confirmer</strong> l'ajout
+              </p>
+            </div>
+            <div class="wiz-note" style="margin-top:12px">
+              💡 <strong>Info :</strong> La liste contient actuellement <strong>${textesData.length} citation(s)</strong>.
+              Après l'ajout, pensez à cliquer sur <strong>💾 Enregistrer</strong> pour sauvegarder sur votre ordinateur.
+            </div>
+          </div>
+          <!-- Étape 2 -->
+          <div class="wiz-panel" id="wizStep2">
+            <div class="wiz-title">✍️ Étape 2 — Auteur et livre</div>
+            <div class="wiz-sub">Renseignez l'auteur et choisissez (ou saisissez) le titre du livre source.</div>
+            <div class="form-section">
+              <label>Auteur <span class="req">*</span></label>
+              <input type="text" id="wiz_auteur" placeholder="Ex : Ch" maxlength="100" style="font-size:16px;padding:12px">
+            </div>
+            <div class="form-section">
+              <label>Livre <span class="req">*</span></label>
+              <select id="wiz_livre_select" onchange="handleLivreSelect('wiz_livre_select','wiz_livre_custom')" style="font-size:16px;padding:12px">${livreOptions}</select>
+              <input type="text" id="wiz_livre_custom" placeholder="Tapez le nom du livre…" style="margin-top:10px;display:none;font-size:16px;padding:12px">
+              <div class="hint" style="font-size:13px;margin-top:8px">💡 Si le livre n'est pas dans la liste, sélectionnez <strong>"➕ Autre"</strong> et tapez son nom.</div>
+            </div>
+          </div>
+          <!-- Étape 3 -->
+          <div class="wiz-panel" id="wizStep3">
+            <div class="wiz-title">💬 Étape 3 — Saisissez le texte</div>
+            <div class="wiz-sub">Entrez le texte de la citation. La mise en forme (majuscules, ponctuation) est conservée telle quelle.</div>
+            <div class="form-section">
+              <label>Texte <span class="req">*</span> <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} caractères)</span></label>
+              <textarea id="wiz_valeur" rows="7" placeholder="Saisissez le texte de la citation ici…"
+                oninput="updateCounter('wiz_valeur','wiz_counter')"
+                maxlength="${MAX_TEXT_CHARS}" style="width:100%;padding:12px;font-size:14px;font-family:inherit;border:2px solid var(--gray-200);border-radius:var(--radius-sm);outline:none;resize:vertical;transition:border .15s"></textarea>
+              <div class="char-counter ok" id="wiz_counter" style="font-size:15px;margin-top:8px">0 / ${MAX_TEXT_CHARS} caractères</div>
+            </div>
+            <div class="wiz-note">⚠️ <strong>Règles :</strong> Le texte doit contenir <strong>entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} caractères</strong>.</div>
+          </div>
+          <!-- Étape 4 -->
+          <div class="wiz-panel" id="wizStep4">
+            <div class="wiz-title">✅ Étape 4 — Vérification avant ajout</div>
+            <div class="wiz-sub">Relisez les informations ci-dessous. Si tout est correct, cliquez sur <strong>"✅ Ajouter la citation !"</strong></div>
+            <div class="detail-fields" style="background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:12px;grid-template-columns:auto 1fr">
+              <span class="df-label">🔢 Numéro</span>
+              <div class="df-value df-id" id="recap_id">—</div>
+              <span class="df-label">✍️ Auteur</span>
+              <div class="df-value df-cat"><span class="cat-badge" id="recap_auteur">—</span></div>
+              <span class="df-label">📚 Livre</span>
+              <div class="df-value df-cat"><span class="cat-badge" id="recap_livre">—</span></div>
+              <span class="df-label">💬 Texte</span>
+              <div class="df-value" id="recap_mot" style="font-size:13px;font-weight:400;line-height:1.6;align-items:flex-start;padding:10px 13px;white-space:pre-wrap">—</div>
+            </div>
+            <div class="wiz-note">💾 <strong>Rappel :</strong> Après l'ajout, cliquez sur <strong>"💾 Enregistrer"</strong> dans la barre du haut pour sauvegarder le fichier sur votre ordinateur.</div>
+          </div>
+          <div id="wiz_error_inline" style="display:none"></div>
+        </div>
+      </div>
+      <div class="wiz-nav">
+        <span class="wiz-nav-counter">Étape <span id="wiz_step_num">1</span> sur ${totalSteps}</span>
+        <button class="btn btn-gray" id="wizBtnPrev" onclick="wizNav(-1)" style="display:none">◀ Précédent</button>
+        <button class="btn btn-blue btn-lg" id="wizBtnNext" onclick="wizNav(1)">Suivant ▶</button>
+        <button class="btn btn-green btn-lg" id="wizBtnConfirm" onclick="wizConfirm()" style="display:none">✅ Ajouter la citation !</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  function wizShowError(msg) { showToast(msg); }
+
+  function wizNav(dir) {
+    if (dir === 1 && currentStep === 2) {
+      const auteur = document.getElementById('wiz_auteur').value.trim();
+      const sel    = document.getElementById('wiz_livre_select');
+      const custom = document.getElementById('wiz_livre_custom');
+      const livre  = sel.value === '__autre__' ? custom.value.trim() : sel.value;
+      if (!auteur) { wizShowError('⚠️ Veuillez saisir le nom de l\'auteur avant de continuer.'); return; }
+      if (!livre)  { wizShowError('⚠️ Veuillez choisir ou saisir le titre du livre avant de continuer.'); return; }
+    }
+    if (dir === 1 && currentStep === 3) {
+      const val = document.getElementById('wiz_valeur').value.trim();
+      if (!val) { wizShowError('⚠️ Veuillez saisir un texte avant de continuer.'); return; }
+      if (val.length < MIN_TEXT_CHARS) { wizShowError(`⚠️ Le texte est trop court (${val.length} caractère${val.length>1?'s':''}, minimum ${MIN_TEXT_CHARS}).`); return; }
+      if (val.length > MAX_TEXT_CHARS) { wizShowError(`⚠️ Le texte est trop long (${val.length} caractères, max ${MAX_TEXT_CHARS}).`); return; }
+    }
+    currentStep += dir;
+    updateWizUI();
+    if (currentStep === 4) buildRecap();
+  }
+
+  function buildRecap() {
+    const auteur = document.getElementById('wiz_auteur').value.trim();
+    const sel    = document.getElementById('wiz_livre_select');
+    const custom = document.getElementById('wiz_livre_custom');
+    const livre  = sel.value === '__autre__' ? custom.value.trim() : sel.value;
+    const val    = document.getElementById('wiz_valeur').value.trim();
+    const nextId = getNextId();
+    document.getElementById('recap_id').textContent     = '#' + nextId;
+    document.getElementById('recap_auteur').textContent = auteur;
+    document.getElementById('recap_livre').textContent  = livre;
+    document.getElementById('recap_mot').textContent    = val;
+  }
+
+  function updateWizUI() {
+    for (let i = 1; i <= totalSteps; i++) {
+      document.getElementById('wizStep' + i).classList.toggle('active', i === currentStep);
+      document.getElementById('wdot' + i).className = 'wiz-step-dot' + (i < currentStep ? ' done' : i === currentStep ? ' current' : '');
+      if (i < totalSteps) document.getElementById('wcon' + i).className = 'wiz-connector' + (i < currentStep ? ' done' : '');
+    }
+    document.getElementById('wiz_step_num').textContent    = currentStep;
+    document.getElementById('wizBtnPrev').style.display    = currentStep > 1 ? '' : 'none';
+    document.getElementById('wizBtnNext').style.display    = currentStep < totalSteps ? '' : 'none';
+    document.getElementById('wizBtnConfirm').style.display = currentStep === totalSteps ? '' : 'none';
+  }
+
+  window.wizNav     = wizNav;
+  window.wizConfirm = function() {
+    const auteur = document.getElementById('wiz_auteur').value.trim();
+    const sel    = document.getElementById('wiz_livre_select');
+    const custom = document.getElementById('wiz_livre_custom');
+    const livre  = sel.value === '__autre__' ? custom.value.trim() : sel.value;
+    const val    = document.getElementById('wiz_valeur').value.trim();
+    const nextId = getNextId();
+    textesData.push({ id: String(nextId), auteur, livre, valeur: val });
+    expandedRow  = textesData.length - 1;
+    setModified(true);
+    renderTable();
+    updateStatus('✅ Citation #' + nextId + ' ajoutée');
+    document.getElementById('wizModal').remove();
+    setTimeout(() => {
+      const row = document.getElementById('row-' + (textesData.length - 1));
+      if (row) row.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 100);
+  };
+}
+
+function getNextId() {
+  const ids = textesData.map(m => parseInt(m.id)||0);
+  let n = 1; while (ids.includes(n)) n++;
+  return n;
+}
+
+// ── COUNTER ───────────────────────────────────────────────────────────────────
+function updateCounter(inputId, counterId) {
+  const inp = document.getElementById(inputId);
+  const ctr = document.getElementById(counterId);
+  if (!inp || !ctr) return;
+  const len = inp.value.length;
+  ctr.textContent = `${len} / ${MAX_TEXT_CHARS} caractères`;
+  if (len === 0)                  ctr.className = 'char-counter ok';
+  else if (len < MIN_TEXT_CHARS)  ctr.className = 'char-counter over';
+  else if (len > MAX_TEXT_CHARS)  ctr.className = 'char-counter over';
+  else if (len > MAX_TEXT_CHARS * 0.8) ctr.className = 'char-counter warn';
+  else                            ctr.className = 'char-counter ok';
+}
+
+// ── TOAST ERREUR (petite fenêtre centrée, 3 secondes) ────────────────────────
+function showToast(msg) {
+  // Supprimer tout toast existant immédiatement
+  const old = document.querySelector('.toast-erreur');
+  if (old) old.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-erreur';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+
+  // Après 2.7s on lance l'animation de sortie, puis on supprime à 3s
+  const timer = setTimeout(() => {
+    toast.classList.add('toast-out');
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+  }, 2700);
+
+  // Clic sur le toast = fermeture immédiate
+  toast.style.pointerEvents = 'auto';
+  toast.style.cursor = 'pointer';
+  toast.addEventListener('click', () => {
+    clearTimeout(timer);
+    toast.classList.add('toast-out');
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+  });
+}
+
+// ── DIALOGS ───────────────────────────────────────────────────────────────────
+function showInfo(title, message) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-header"><h2>${title}</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body" style="padding:22px 24px">
+        <p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-blue btn-lg" onclick="this.closest('.modal-overlay').remove()">OK</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function showConfirm(title, message, onOk) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:440px">
+      <div class="modal-header" style="background:var(--red)"><h2>${title}</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body" style="padding:22px 24px">
+        <p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">❌ Non, annuler</button>
+        <button class="btn btn-red btn-lg" id="_confirmYes">✅ Oui, confirmer</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_confirmYes').addEventListener('click', () => { overlay.remove(); onOk(); });
+}
+
+// ── AIDE ──────────────────────────────────────────────────────────────────────
+function showHelp() {
+  const hs = (title, body) =>
+    `<div class="help-section-block"><h4>${title}</h4>${body}</div>`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:700px">
+      <div class="modal-header">
+        <h2>❓ Guide complet d'utilisation — Gestionnaire Citations v1.0</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px">
+
+        ${hs('🎯 À quoi sert cette application ?',`
+          <p>Cette application vous permet de <strong>créer et gérer une liste de mots</strong> pour le jeu <strong>Motus</strong>.
+          Les mots sont organisés par <strong>catégories</strong> (animaux, pays, métiers…) et sauvegardés dans un fichier <strong>.xml</strong> sur votre ordinateur.</p>
+          <p style="margin-top:8px">Vous pouvez ouvrir un fichier existant, ajouter de nouveaux mots, modifier ou supprimer des mots existants, puis enregistrer le résultat.</p>
+          <div class="help-good">✅ <strong>Aucune installation requise.</strong> Cette application fonctionne directement dans votre navigateur web (Chrome, Firefox, Edge, Safari). Ouvrez simplement le fichier HTML fourni.</div>
+        `)}
+
+        ${hs('📂 Ouvrir un fichier de mots existant',`
+          <ul>
+            <li>Cliquez sur <strong>📂 Ouvrir XML</strong> dans la barre bleue du haut.</li>
+            <li>Une fenêtre s'ouvre pour parcourir votre ordinateur — naviguez jusqu'à votre fichier <strong>.xml</strong> et double-cliquez dessus.</li>
+            <li>La liste des mots s'affiche immédiatement dans le tableau.</li>
+            <li>La <strong>barre de statistiques</strong> (sous l'en-tête) indique le nombre total de mots, le nombre de catégories et la capacité restante.</li>
+          </ul>
+          <div class="help-tip">💡 L'application accepte les fichiers XML avec les attributs <code>id</code>/<code>index</code> et <code>categorie</code>/<code>theme</code> — les deux formats sont reconnus automatiquement.</div>
+        `)}
+
+        ${hs('🔍 Consulter le détail d\'un mot',`
+          <p>La liste affiche pour chaque mot son <strong>numéro</strong>, sa <strong>catégorie</strong> et la <strong>valeur</strong> du mot.</p>
+          <ul>
+            <li>Cliquez sur <strong>▼ Détails</strong> à droite d'un mot pour ouvrir son panneau de détail.</li>
+            <li>Le panneau affiche les 3 champs du mot sous forme de <strong>zones lisibles</strong> : Numéro (en bleu), Catégorie (badge coloré) et Mot (en grand, gras).</li>
+            <li>Ces champs sont affichés mais <strong>non modifiables</strong> ici — ils servent uniquement à vérifier les données avant d'agir.</li>
+            <li>Les boutons <strong>✏️ Modifier</strong> et <strong>🗑️ Supprimer</strong> sont accessibles directement dans ce panneau.</li>
+            <li>Recliquez sur <strong>▲ Fermer</strong> pour refermer le panneau.</li>
+          </ul>
+        `)}
+
+        ${hs('➕ Ajouter un nouveau mot (Guide pas à pas)',`
+          <p>Cliquez sur le bouton jaune <strong>➕ Nouveau Mot</strong>. Un guide en 4 étapes s'ouvre :</p>
+          <ul>
+            <li><strong>Étape 1</strong> — Introduction : récapitulatif du nombre de mots actuel et de ce que vous allez faire.</li>
+            <li><strong>Étape 2</strong> — Choisissez une catégorie dans la liste (animaux, alimentation, pays, vocabulaire, métier) ou sélectionnez <em>"➕ Autre"</em> pour en créer une nouvelle en la tapant.</li>
+            <li><strong>Étape 3</strong> — Tapez le mot à ajouter. Il sera automatiquement mis en <strong>MAJUSCULES</strong>. Un compteur coloré s'affiche sous le champ :
+              <ul style="margin-top:6px;margin-bottom:4px">
+                <li>🟢 <strong>Vert</strong> — longueur correcte (entre 5 et 24 lettres)</li>
+                <li>🟠 <strong>Orange</strong> — mot long mais encore accepté (25 à 30 lettres)</li>
+                <li>🔴 <strong>Rouge</strong> — mot trop court (moins de 5 lettres) ou trop long (plus de 30 lettres)</li>
+              </ul>
+              Si vous essayez de passer à l'étape suivante avec un mot trop court ou trop long, un <strong>message d'erreur rouge</strong> apparaît au centre de l'écran pendant 3 secondes.
+            </li>
+            <li><strong>Étape 4</strong> — Vérification : le numéro, la catégorie et le mot s'affichent en récapitulatif. Relisez avant de confirmer.</li>
+          </ul>
+          <div class="help-good">✅ <strong>Règle de longueur :</strong> Le mot doit contenir <strong>entre 5 et 30 lettres</strong>. Un mot de 4 lettres ou moins sera refusé. Un mot de plus de 30 lettres sera également refusé.</div>
+          <p style="margin-top:8px">Cliquez <strong>✅ Ajouter le mot !</strong> pour valider. Le mot apparaît aussitôt dans la liste, avec son panneau de détail ouvert.</p>
+          <div class="help-danger">⛔ <strong>Attention !</strong> L'ajout est enregistré <em>en mémoire</em> seulement. Cliquez toujours sur <strong>💾 Enregistrer</strong> pour sauvegarder sur votre ordinateur.</div>
+        `)}
+
+        ${hs('✏️ Modifier un mot existant',`
+          <ul>
+            <li>Repérez le mot dans la liste (utilisez la barre de recherche si nécessaire).</li>
+            <li>Cliquez sur <strong>▼ Détails</strong> pour ouvrir le panneau de détail du mot.</li>
+            <li>Cliquez sur <strong>✏️ Modifier</strong> — une fenêtre s'ouvre avec les champs modifiables.</li>
+            <li>Vous pouvez changer la <strong>catégorie</strong> (liste déroulante + option "Autre") et/ou le <strong>mot</strong>. Le numéro ne peut pas être modifié manuellement.</li>
+            <li>Pour le champ <strong>Mot</strong>, les mêmes règles de longueur s'appliquent qu'à la création :
+              <ul style="margin-top:6px;margin-bottom:4px">
+                <li>🔴 Minimum <strong>5 lettres</strong> — un mot plus court sera refusé avec un message d'erreur rouge au centre de l'écran.</li>
+                <li>🔴 Maximum <strong>30 lettres</strong> — un mot plus long sera également refusé.</li>
+                <li>Le compteur sous le champ change de couleur (vert / orange / rouge) pour vous guider en temps réel.</li>
+              </ul>
+            </li>
+            <li>Cliquez <strong>💾 Enregistrer la modification</strong> pour valider — le panneau de détail se rouvre avec les nouvelles valeurs.</li>
+          </ul>
+          <div class="help-tip">💡 Si vous avez fait une erreur, cliquez <strong>❌ Annuler</strong> — aucune modification ne sera appliquée.</div>
+          <div class="help-danger">⛔ La modification est enregistrée <em>en mémoire</em>. N'oubliez pas de cliquer sur <strong>💾 Enregistrer</strong> pour la conserver sur le disque !</div>
+        `)}
+
+        ${hs('🗑️ Supprimer un mot',`
+          <ul>
+            <li>Ouvrez le panneau <strong>▼ Détails</strong> du mot à supprimer.</li>
+            <li>Cliquez sur <strong>🗑️ Supprimer</strong>.</li>
+            <li>Une fenêtre de confirmation s'affiche avec le détail complet du mot (numéro, catégorie, valeur) — lisez-la attentivement avant de confirmer.</li>
+            <li>Cliquez <strong>"✅ Oui, confirmer"</strong> pour supprimer ou <strong>"❌ Non, annuler"</strong> pour revenir en arrière.</li>
+            <li>Après suppression, les numéros de tous les mots sont automatiquement réorganisés sans trous.</li>
+          </ul>
+          <div class="help-danger">⛔ <strong>La suppression est irréversible en mémoire.</strong> Si vous supprimez par erreur, vous pouvez fermer la page SANS cliquer sur "💾 Enregistrer" pour récupérer le fichier original.</div>
+        `)}
+
+        ${hs('🔍 Rechercher un mot ou filtrer la liste',`
+          <p>Utilisez la barre de recherche en haut de la liste pour filtrer les mots en temps réel :</p>
+          <ul>
+            <li>Tapez une ou plusieurs lettres — la liste se réduit automatiquement.</li>
+            <li>La recherche s'effectue sur le <strong>mot</strong>, la <strong>catégorie</strong> et même le <strong>numéro</strong>.</li>
+            <li>La barre de statistiques affiche le nombre de résultats correspondants.</li>
+            <li>Effacez le texte pour réafficher toute la liste.</li>
+          </ul>
+        `)}
+
+        ${hs('📊 Barre de statistiques',`
+          <p>Une fois un fichier chargé ou un mot ajouté, une barre bleue apparaît sous l'en-tête de liste :</p>
+          <ul>
+            <li><strong>📦 Nombre de mots</strong> — total des mots présents en mémoire.</li>
+            <li><strong>📂 Nombre de catégories</strong> — nombre de catégories différentes utilisées.</li>
+            <li><strong>🗃️ Capacité</strong> — nombre de mots sur le maximum autorisé (200). Devient orange quand vous approchez la limite.</li>
+            <li><strong>🔍 Résultats</strong> — s'affiche uniquement quand une recherche est active, indiquant le nombre de mots correspondants.</li>
+          </ul>
+        `)}
+
+        ${hs('💾 Enregistrer le fichier sur votre ordinateur',`
+          <p>Cliquez sur <strong>💾 Enregistrer</strong> dans la barre bleue. Selon votre navigateur :</p>
+          <ul>
+            <li><strong>Chrome / Edge :</strong> Une fenêtre s'ouvre pour choisir l'emplacement et le nom du fichier. Vous choisissez exactement où enregistrer.</li>
+            <li><strong>Firefox / Safari :</strong> Le fichier est automatiquement téléchargé dans votre dossier <strong>Téléchargements</strong> sous le nom <em>NouveauxMots.xml</em>.</li>
+          </ul>
+          <p style="margin-top:8px">Une <strong>fenêtre de confirmation verte</strong> s'affiche ensuite avec l'emplacement exact du fichier et le nombre de mots sauvegardés. Cliquez <strong>"✅ OK, j'ai compris"</strong> pour la fermer.</p>
+          <div class="help-good">✅ Après enregistrement, l'indicateur en bas de page passe au vert : <em>"✅ Aucune modification"</em>.</div>
+          <div class="help-danger">⛔ <strong>Tant que vous ne cliquez pas sur "💾 Enregistrer", vos données sont uniquement en mémoire.</strong> Fermer le navigateur ou recharger la page sans enregistrer effacera toutes vos modifications.</div>
+        `)}
+
+        ${hs('🔄 Réinitialiser (vider toute la liste)',`
+          <ul>
+            <li>Cliquez sur <strong>🔄 Réinitialiser</strong> pour effacer tous les mots de la mémoire.</li>
+            <li>Une confirmation vous est demandée avant l'effacement.</li>
+            <li>Après réinitialisation, vous pouvez ouvrir un nouveau fichier XML ou recommencer de zéro.</li>
+          </ul>
+          <div class="help-danger">⛔ <strong>Attention :</strong> Toutes les données non enregistrées seront perdues définitivement.</div>
+        `)}
+
+        ${hs('🚪 Quitter l\'application',`
+          <ul>
+            <li>Cliquez sur <strong>🚪 Quitter</strong> pour fermer proprement l'application.</li>
+            <li>Si des modifications ne sont pas sauvegardées, une fenêtre d'avertissement s'affiche avant de quitter.</li>
+          </ul>
+          <div class="help-tip">💡 Vous pouvez aussi fermer l'onglet directement. Le navigateur vous préviendra si des données non sauvegardées sont en cours.</div>
+        `)}
+
+        ${hs('📄 Structure du fichier XML',`
+          <p>Le fichier sauvegardé ressemble à ceci :</p>
+          <div class="xml-demo">
+            &lt;?xml version="1.0" encoding="UTF-8"?&gt;<br>
+            &lt;citations&gt;<br>
+            &nbsp;&nbsp;&lt;citation&gt;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;index&gt;<strong>1</strong>&lt;/index&gt;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;auteur&gt;<strong>Ch</strong>&lt;/auteur&gt;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;livre&gt;<strong>Informatidien</strong>&lt;/livre&gt;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;texte&gt;<strong>Le texte de la citation…</strong>&lt;/texte&gt;<br>
+            &nbsp;&nbsp;&lt;/citation&gt;<br>
+            &lt;/citations&gt;
+          </div>
+          <p style="margin-top:8px">Chaque citation contient 4 informations : son <strong>numéro unique</strong> (index), l'<strong>auteur</strong>, le <strong>livre</strong> source et le <strong>texte</strong>. Ce fichier peut être lu par n'importe quel éditeur de texte.</p>
+        `)}
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-blue btn-lg" onclick="this.closest('.modal-overlay').remove()">✅ Fermer l'aide</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+// ── QUITTER ───────────────────────────────────────────────────────────────────
+function quitterApp() {
+  if (modified) {
+    showConfirm('🚪 Quitter sans sauvegarder ?',
+      '⚠️ Attention ! Vous avez des modifications non enregistrées.\n\nSi vous quittez maintenant, toutes vos modifications seront définitivement perdues.\n\nVoulez-vous vraiment quitter sans enregistrer ?',
+      () => doQuit());
+  } else { doQuit(); }
+}
+
+function doQuit() {
+  window.onbeforeunload = null;
+  document.open();
+  document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Fermé</title>
+  <style>body{margin:0;background:#1a4a8a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Segoe UI',sans-serif}
+  .box{text-align:center;color:#fff}.icon{font-size:64px;margin-bottom:16px}.title{font-size:22px;font-weight:800;margin-bottom:8px}
+  .sub{font-size:15px;opacity:.7;margin-bottom:24px}
+  button{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:15px;cursor:pointer;font-family:inherit;font-weight:700}
+  button:hover{background:#1d4ed8}</style></head>
+  <body><div class="box"><div class="icon">🚪</div><div class="title">Application fermée</div>
+  <div class="sub">Vous pouvez maintenant fermer cet onglet.</div>
+  <button onclick="window.close()">Fermer l'onglet</button></div></body></html>`);
+  document.close();
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+function setModified(val) {
+  modified = val;
+  const el = document.getElementById('modifiedIndicator');
+  el.textContent = val ? '⚠️ Modifications non sauvegardées' : '✅ Aucune modification';
+  el.className   = 'status-badge ' + (val ? 'status-dirty' : 'status-clean');
+}
+
+function updateStatus(msg) { document.getElementById('statusMsg').textContent = msg; }
+
+window.addEventListener('beforeunload', e => { if (modified) { e.preventDefault(); e.returnValue = ''; } });
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderTable();
+</script>
+</body>
+</html>

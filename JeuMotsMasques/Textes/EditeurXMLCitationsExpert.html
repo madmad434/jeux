@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/webp" href="../../assets/favicons/jeux.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestionnaire Texte v1.1.0</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --primary:#1a3a5c;--primary-light:#2980b9;--primary-lighter:#3498db;
+ --primary-bg:#eaf2f8;--primary-border:#b0c4de;
+ --white:#ffffff;--bg:#f0f4f8;--bg-card:#ffffff;
+ --text:#1e293b;--text-light:#475569;--text-muted:#94a3b8;
+ --success:#16a34a;--danger:#dc2626;--warning:#d97706;
+ --border:#cbd5e1;--border-light:#e2e8f0;
+ --shadow:0 1px 3px rgba(0,0,0,.1);
+ --radius:6px;
+ /* Panneau gauche Textes — bleu nuit */
+ --dark-panel:#071422;--dark-panel-header:#0b1c35;
+ --dark-item:#091929;--dark-item-hover:#0f2540;--dark-item-active:#163356;
+ --dark-text:#b8cfe8;--dark-text-muted:#5a7a99;--dark-border:#12263d;
+ /* Panneau droit Détails/Édition — gris anthracite */
+ --tab-dark:#1a1d23;--tab-dark-panel:#22262e;
+ --tab-text:#d4d8e0;--tab-text-muted:#7a8090;--tab-border:#32363f;
+ --tab-input:#1a1d23;--tab-input-text:#d4d8e0;
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;font-size:13px;color:var(--text);background:var(--bg)}
+button{cursor:pointer;font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;background:var(--white);color:var(--text);transition:all .15s}
+button:hover{background:var(--primary-bg);border-color:var(--primary-light)}
+button:active{transform:scale(.97)}
+button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+button.primary:hover{background:var(--primary-light)}
+button.danger{color:var(--danger);border-color:var(--danger)}
+button.danger:hover{background:#fef2f2}
+input[type="text"],select,textarea{font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px;background:var(--white);color:var(--text);outline:none;transition:border .15s}
+input[type="text"]:focus,select:focus,textarea:focus{border-color:var(--primary-lighter);box-shadow:0 0 0 2px rgba(52,152,219,.15)}
+input[readonly]{background:#e8edf2;color:#475569}
+textarea{resize:vertical}
+
+/* Aide dialog */
+.help-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:1000}
+.help-box{background:#1e2530;border:1px solid #2e3a4a;border-radius:10px;padding:0;box-shadow:0 12px 48px rgba(0,0,0,.5);width:680px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column}
+.help-box-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#162030;border-bottom:1px solid #2a3a4e;border-radius:10px 10px 0 0;flex-shrink:0}
+.help-box-header h2{color:#7eb8e8;font-size:14px;margin:0}
+.help-box-close{background:transparent;border:none;color:#5a7a99;font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+.help-box-close:hover{color:#c9d8e8}
+.help-panel{padding:16px 20px;color:var(--dark-text);overflow-y:auto;flex:1}
+.help-panel h2{color:#7eb8e8;font-size:14px;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #1e3a5c}
+.help-section{margin-bottom:18px}
+.help-section h3{color:#5ba3d9;font-size:12px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.help-section p,.help-section li{font-size:11.5px;line-height:1.7;color:#b8cfe8;margin-bottom:4px}
+.help-section ul{padding-left:20px}
+.help-section li{list-style:disc}
+.help-section .note{background:#0f1f35;border-left:3px solid #e67e22;padding:8px 12px;margin:6px 0;border-radius:0 4px 4px 0;color:#f0c080;font-size:11px;line-height:1.6}
+.help-kbd{display:inline-block;background:#162030;border:1px solid #2e4a7a;border-radius:4px;padding:1px 6px;font-family:monospace;font-size:11px;color:#7eb8e8;margin:0 2px}
+.help-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
+.help-table th{background:#0f1f3d;color:#5ba3d9;text-align:left;padding:5px 8px;border:1px solid #1e3a5c}
+.help-table td{padding:5px 8px;border:1px solid #1a3050;color:#b8cfe8;vertical-align:top}
+.help-table tr:nth-child(even) td{background:#0a1628}
+
+#app{display:flex;flex-direction:column;height:100vh}
+.toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0}
+.toolbar .sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+.toolbar .app-title{font-weight:700;color:var(--primary);font-size:13px;margin-right:8px;white-space:nowrap}
+.main{display:flex;flex:1;overflow:hidden;min-height:0}
+.statusbar{display:flex;align-items:center;gap:12px;padding:5px 12px;background:var(--white);border-top:1px solid var(--border);font-size:11px;color:var(--text-light);flex-shrink:0}
+.statusbar .modified{font-weight:600}
+.statusbar .modified.clean{color:var(--success)}
+.statusbar .modified.dirty{color:var(--danger)}
+.statusbar .spacer{flex:1}
+
+.left-panel{width:270px;min-width:270px;background:var(--dark-panel);border-right:1px solid var(--dark-border);display:flex;flex-direction:column;overflow:hidden}
+.panel-header{padding:6px 10px;font-weight:700;font-size:12px;color:#7eb8e8;background:var(--dark-panel-header);border-bottom:1px solid var(--dark-border);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.sections-list{flex:1;overflow-y:auto;padding:2px;background:var(--dark-panel)}
+.section-item{display:flex;align-items:center;padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--dark-border);font-size:11.5px;transition:background .1s;gap:6px;color:var(--dark-text)}
+.section-item:hover{background:var(--dark-item-hover)}
+.section-item.active{background:var(--dark-item-active);color:#fff}
+.section-item .sec-id{font-weight:700;color:#5ba3d9;min-width:40px;flex-shrink:0;font-size:11px}
+.section-item.active .sec-id{color:#ffd700}
+.section-item .sec-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:var(--dark-text)}
+.section-item .sec-author{font-size:10px;color:var(--dark-text-muted);font-style:italic}
+.section-item.active .sec-author{color:#aad4f5}
+.section-item.active .sec-name{color:#fff}
+
+.right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--tab-dark-panel)}
+.tab-bar{display:flex;background:var(--tab-dark);border-bottom:2px solid var(--tab-border);flex-shrink:0}
+.tab-btn{padding:7px 20px;font-size:12px;font-weight:600;border:none;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--tab-text-muted);margin-bottom:-2px}
+.tab-btn:hover{background:#2a2e38;color:var(--tab-text)}
+.tab-btn.active{color:#64b0e8;border-bottom-color:#3498db}
+.tab-content{flex:1;overflow-y:auto;padding:0;background:var(--tab-dark-panel)}
+.tab-panel{display:none;height:100%;overflow-y:auto;background:var(--tab-dark-panel)}
+.tab-panel.active{display:block}
+
+.details-box{padding:12px 16px;font-family:'Segoe UI',sans-serif;font-size:12px;line-height:1.6;color:var(--tab-text);background:var(--tab-dark-panel)}
+.details-box .detail-title{font-weight:700;color:#7eb8e8;font-size:14px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--tab-border)}
+.details-box .detail-label{font-weight:600;color:#64b0e8;margin-top:8px;font-size:11px}
+.details-box .detail-value{margin-left:12px;margin-bottom:4px;color:var(--tab-text)}
+.details-box .quote-text{background:var(--tab-input);border-left:3px solid #3498db;padding:12px;margin:8px 0;font-style:italic;line-height:1.8;color:#d4d8e0}
+
+.edit-container{padding:8px 14px;background:var(--tab-dark-panel);min-height:100%}
+.edit-title{font-weight:700;font-size:13px;color:#7eb8e8;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--tab-border)}
+.form-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:start}
+.form-grid label{font-size:11.5px;font-weight:600;color:#64b0e8;white-space:nowrap;text-align:right;padding-right:4px;padding-top:4px}
+.form-grid input[type="text"],.form-grid select{width:100%;background:#ffffff;color:#1e293b;border-color:#94a3b8}
+.form-grid input[type="text"]:focus,.form-grid textarea:focus{border-color:#3498db;box-shadow:0 0 0 2px rgba(52,152,219,.2)}
+.form-grid textarea{width:100%;min-height:80px;background:#ffffff;color:#1e293b;border-color:#94a3b8}
+.error-msg{color:#f87171;font-size:11px;font-weight:600;min-height:14px;margin-top:4px;grid-column:1/-1}
+.form-buttons{display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--tab-border)}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+
+#fileInput{display:none}
+
+/* Panneau bienvenue — occupe tout l'espace, visible sans scroll */
+.welcome-panel{padding:20px 28px;background:#ffffff;height:100%;overflow:hidden;color:#1e293b;display:flex;flex-direction:column;box-sizing:border-box}
+.welcome-panel h2{font-size:16px;color:#1a3a5c;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.welcome-panel .welcome-sub{font-size:12px;color:#64748b;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #e2e8f0}
+.welcome-steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:10px}
+.welcome-step{display:flex;gap:10px;align-items:flex-start}
+.welcome-step .step-num{background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.welcome-step .step-body h3{font-size:12.5px;color:#1a3a5c;margin-bottom:3px;font-weight:700}
+.welcome-step .step-body p{font-size:12px;color:#475569;line-height:1.55}
+.welcome-step .step-body .step-btn{display:inline-block;background:#eaf2f8;border:1px solid #b0c4de;border-radius:3px;padding:1px 7px;font-size:11px;color:#1a3a5c;font-weight:600;margin:0 1px}
+.welcome-cancel{background:#f8f4ff;border:1px solid #c4b5fd;border-radius:6px;padding:9px 14px;margin-bottom:10px}
+.welcome-cancel h3{font-size:12px;color:#5b21b6;margin-bottom:4px;font-weight:700;display:flex;align-items:center;gap:5px}
+.welcome-cancel p{font-size:12px;color:#6d28d9;line-height:1.55}
+.welcome-note{background:#fffbeb;border-left:3px solid #f59e0b;padding:7px 12px;border-radius:0 4px 4px 0;margin-bottom:8px;font-size:12px;color:#78350f;line-height:1.5}
+.welcome-note strong{color:#92400e}
+.welcome-new{background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:9px 14px}
+.welcome-new h3{font-size:12px;color:#166534;margin-bottom:4px;display:flex;align-items:center;gap:5px;font-weight:700}
+.welcome-new p{font-size:12px;color:#15803d;line-height:1.55}
+
+.dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:1000}
+.dialog-box{background:var(--white);border-radius:8px;padding:20px 24px;box-shadow:0 8px 32px rgba(0,0,0,.2);min-width:320px;max-width:440px}
+.dialog-box h3{font-size:14px;color:var(--primary);margin-bottom:12px}
+.dialog-box p{font-size:12px;line-height:1.5;margin-bottom:16px;color:var(--text-light)}
+.dialog-buttons{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="toolbar">
+    <span class="app-title">📖 Gestionnaire Texte</span>
+    <div class="sep"></div>
+    <button onclick="openXML()" title="Ouvrir un fichier XML">📂 Ouvrir XML</button>
+    <button onclick="exportXML()" title="Enregistrer le fichier XML">💾 Enregistrer</button>
+    <div class="sep"></div>
+    <button class="primary" onclick="newTexte()" title="Ajouter une nouvelle citation">➕ Nouvelle Citation</button>
+    <button onclick="resetConfig()" title="Réinitialiser">🔄 Réinitialiser</button>
+    <div style="flex:1"></div>
+    <button onclick="showHelp()" title="Aide">❓ Aide</button>
+    <div class="sep"></div>
+    <button onclick="quitterApp()" title="Quitter">🚪 Quitter</button>
+  </div>
+
+  <div class="main">
+    <div class="left-panel">
+      <div class="panel-header">📋 Citations</div>
+      <div class="sections-list" id="sectionsList"></div>
+    </div>
+
+    <div class="right-panel">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="details" onclick="switchTab('details')">📄 Détails</button>
+        <button class="tab-btn" data-tab="edition" onclick="switchTab('edition')">✏️ Édition</button>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active" id="tabDetails">
+          <div class="details-box" id="detailsContent">
+            <div class="welcome-panel" id="welcomePanel">
+              <h2>📖 Gestionnaire Texte</h2>
+              <p class="welcome-sub">Gérez vos citations au format XML (structure &lt;citations&gt; / &lt;citation&gt;).</p>
+
+              <div class="welcome-steps-grid">
+                <div class="welcome-step">
+                  <div class="step-num">1</div>
+                  <div class="step-body">
+                    <h3>📂 Charger un fichier existant</h3>
+                    <p>Cliquez sur <span class="step-btn">📂 Ouvrir XML</span> pour charger un fichier <strong>Texte.xml</strong>. Les citations s'affichent dans la liste à gauche.</p>
+                  </div>
+                </div>
+
+                <div class="welcome-step">
+                  <div class="step-num">2</div>
+                  <div class="step-body">
+                    <h3>✏️ Consulter et modifier</h3>
+                    <p>Cliquez sur une citation dans la liste. Passez sur l'onglet <span class="step-btn">✏️ Édition</span>, modifiez, puis <span class="step-btn">💾 Sauvegarder</span>.</p>
+                  </div>
+                </div>
+
+                <div class="welcome-step">
+                  <div class="step-num">3</div>
+                  <div class="step-body">
+                    <h3>➕ Ajouter une citation</h3>
+                    <p>Cliquez sur <span class="step-btn">➕ Nouvelle Citation</span>. Renseignez l'auteur, le livre et le texte. L'index est attribué automatiquement.</p>
+                  </div>
+                </div>
+
+                <div class="welcome-step">
+                  <div class="step-num">4</div>
+                  <div class="step-body">
+                    <h3>💾 Enregistrer sur le disque</h3>
+                    <p>Cliquez sur <span class="step-btn">💾 Enregistrer</span> pour sauvegarder dans <strong>Texte_modifie.xml</strong>.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="welcome-cancel">
+                <h3>❌ Effet du bouton Annuler</h3>
+                <p><strong>En mode Édition</strong> (modification d'une citation existante) : les champs reviennent aux valeurs d'origine, aucune modification n'est appliquée.<br>
+                <strong>En mode Nouvelle Citation</strong> : la création est abandonnée et la nouvelle entrée (vide) est supprimée. La sélection précédente est restaurée.</p>
+              </div>
+
+              <div class="welcome-note">
+                ⚠️ <strong>Important :</strong> <em>Sauvegarder</em> enregistre en mémoire uniquement. Utilisez <strong>Enregistrer</strong> pour écrire définitivement sur le disque.
+              </div>
+
+              <div class="welcome-new">
+                <h3>🆕 Créer un nouveau fichier de zéro</h3>
+                <p>Pas de fichier XML ? Cliquez directement sur <span class="step-btn">➕ Nouvelle Citation</span> sans rien charger, ajoutez vos citations, puis <span class="step-btn">💾 Enregistrer</span> pour créer <strong>Texte_modifie.xml</strong>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="tabEdition">
+          <div class="edit-container" id="editContainer">
+            <span style="color:var(--tab-text-muted)">Sélectionnez un texte pour l'éditer.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="modified clean" id="modifiedIndicator">✅ Aucune modification</span>
+    <span id="statusMsg">Prêt</span>
+    <span class="spacer"></span>
+    <span id="recordCount" style="font-size:11px;color:#475569">0 citation(s)</span>
+    <span id="savedPathInfo" style="display:none;font-size:11px;color:#1a3a5c"></span>
+    <span class="version">v1.1.0</span>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".xml" onchange="handleFileOpen(event)">
+
+<script>
+// ==================== CONSTANTS ====================
+const VERSION = "1.1.0";
+const MAX_TEXTES = 500;
+const MAX_TEXT_CHARS = 500;
+const MIN_TEXT_CHARS = 1;
+
+// ==================== STATE ====================
+let textesData = [];
+let currentTexteIndex = null;
+let modified = false;
+let isCreatingNew = false;
+let backupData = null;
+let activeTab = 'details';
+
+// ==================== XML PARSING ====================
+function parseXMLConfig(xmlString) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlString, 'text/xml');
+  
+  const parseError = doc.querySelector('parsererror');
+  if (parseError) {
+    throw new Error('Erreur de parsing XML: ' + parseError.textContent.substring(0, 200));
+  }
+
+  const textes = [];
+  const citationNodes = doc.querySelectorAll('citation');
+  
+  citationNodes.forEach(node => {
+    const getEl = (tag) => { const el = node.querySelector(tag); return el ? el.textContent.trim() : ''; };
+    textes.push({
+      index:  getEl('index'),
+      auteur: getEl('auteur'),
+      livre:  getEl('livre'),
+      texte:  getEl('texte')
+    });
+  });
+
+  // Trier par index numérique
+  textes.sort((a, b) => (parseInt(a.index) || 0) - (parseInt(b.index) || 0));
+
+  return textes;
+}
+
+// ==================== XML GENERATION ====================
+function generateXML() {
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<citations>\n\n';
+  textesData.forEach(c => {
+    xml += '  <citation>\n';
+    xml += `    <index>${escapeXML(c.index)}</index>\n`;
+    xml += `    <auteur>${escapeXML(c.auteur)}</auteur>\n`;
+    xml += `    <livre>${escapeXML(c.livre)}</livre>\n`;
+    xml += `    <texte>${escapeXML(c.texte)}</texte>\n`;
+    xml += '  </citation>\n\n';
+  });
+  xml += '</citations>';
+  return xml;
+}
+
+function escapeXML(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+
+// ==================== FILE OPERATIONS ====================
+function openXML() {
+  document.getElementById('fileInput').click();
+}
+
+function handleFileOpen(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      textesData = parseXMLConfig(e.target.result);
+      setModified(false);
+      updateStatus('Chargé: ' + file.name);
+      refreshSectionsList();
+      if (textesData.length > 0) {
+        selectTexte(0);
+      }
+    } catch (err) {
+      showDialog('Erreur', 'Impossible de lire le fichier:\n' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+async function exportXML() {
+  const filename = 'Texte_modifie.xml';
+  const xml = generateXML();
+
+  // Tentative via showSaveFilePicker (Chrome/Edge) — donne le vrai nom choisi
+  if (window.showSaveFilePicker) {
+    try {
+      const fh = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'Fichier XML', accept: { 'application/xml': ['.xml'] } }]
+      });
+      const writable = await fh.createWritable();
+      await writable.write(xml);
+      await writable.close();
+      setModified(false);
+      const chosenName = fh.name || filename;
+      updateStatus('✅ Fichier enregistré dans le dossier sélectionné');
+      showSavedPathInfo('Fichier <strong>' + escapeHTML(chosenName) + '</strong> enregistré dans le dossier sélectionné.');
+      return;    } catch (e) {
+      if (e.name === 'AbortError') return; // l'utilisateur a annulé
+      // Autre erreur → on tombe sur le téléchargement classique
+    }
+  }
+
+  // Téléchargement automatique (Firefox, Safari, ou fallback)
+  const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setModified(false);
+  updateStatus('✅ Fichier enregistré dans votre dossier Téléchargements');
+  showSavedPathInfo('Fichier <strong>' + filename + '</strong> enregistré dans votre dossier <strong>Téléchargements</strong>.');
+}
+
+function showSavedPathInfo(msg) {
+  const el = document.getElementById('savedPathInfo');
+  el.innerHTML = '📁 ' + msg;
+  el.style.display = 'inline';
+}
+
+function resetConfig() {
+  showConfirm('Réinitialiser?', 'Toutes les modifications seront perdues.\nVoulez-vous continuer?', () => {
+    textesData = [];
+    setModified(false);
+    updateStatus('Réinitialisé');
+    refreshSectionsList();
+    currentTexteIndex = null;
+    document.getElementById('detailsContent').innerHTML = '<span style="color:var(--text-muted)">Aucun texte.</span>';
+    document.getElementById('editContainer').innerHTML = '<span style="color:var(--text-muted)">Aucun texte.</span>';
+  });
+}
+
+// ==================== UI RENDERING ====================
+function refreshSectionsList() {
+  const container = document.getElementById('sectionsList');
+  let html = '';
+  
+  textesData.forEach((c, idx) => {
+    const preview = c.texte.length > 60 ? c.texte.substring(0, 60) + '…' : c.texte;
+    html += `<div class="section-item ${currentTexteIndex === idx ? 'active' : ''}" onclick="selectTexte(${idx})">
+      <span class="sec-id">#${escapeHTML(c.index)}</span>
+      <div style="flex:1;overflow:hidden">
+        <div class="sec-name">${escapeHTML(c.auteur)} — ${escapeHTML(c.livre)}</div>
+        <div class="sec-author">${escapeHTML(preview)}</div>
+      </div>
+    </div>`;
+  });
+  
+  container.innerHTML = html || '<div style="padding:12px;color:var(--text-muted);text-align:center">Aucune citation</div>';
+
+  const count = textesData.length;
+  document.getElementById('recordCount').textContent = `${count} citation${count !== 1 ? 's' : ''}`;
+}
+
+function selectTexte(idx) {
+  currentTexteIndex = idx;
+  
+  // Backup
+  if (idx !== null && textesData[idx]) {
+    backupData = JSON.parse(JSON.stringify(textesData[idx]));
+  }
+  
+  isCreatingNew = false;
+  refreshSectionsList();
+  showDetails();
+  loadEditForm();
+  
+  if (!isCreatingNew) {
+    switchTab('details');
+  }
+}
+
+function showDetails() {
+  const container = document.getElementById('detailsContent');
+  
+  if (currentTexteIndex === null || !textesData[currentTexteIndex]) {
+    container.innerHTML = '<span style="color:var(--text-muted)">Sélectionnez une citation.</span>';
+    return;
+  }
+  
+  const c = textesData[currentTexteIndex];
+  
+  let html = `<div class="detail-title">Citation #${escapeHTML(c.index)}</div>\n`;
+  html += `<div class="detail-label">Auteur :</div>`;
+  html += `<div class="detail-value">${escapeHTML(c.auteur)}</div>`;
+  html += `<div class="detail-label">Livre :</div>`;
+  html += `<div class="detail-value">${escapeHTML(c.livre)}</div>`;
+  html += `<div class="detail-label">Texte :</div>`;
+  html += `<div class="quote-text">${escapeHTML(c.texte).replace(/\n/g,'<br>')}</div>`;
+  
+  container.innerHTML = html;
+}
+
+// ==================== EDIT FORM ====================
+function loadEditForm() {
+  const container = document.getElementById('editContainer');
+  
+  if (currentTexteIndex === null || !textesData[currentTexteIndex]) {
+    container.innerHTML = '<span style="color:var(--text-muted)">Sélectionnez une citation.</span>';
+    return;
+  }
+  
+  const c = textesData[currentTexteIndex];
+
+  container.innerHTML = `
+    <div class="edit-title">✏️ Édition Citation</div>
+    <div class="form-grid">
+      <label>Index :</label>
+      <input type="text" id="f_index" value="${escapeAttr(c.index)}" readonly style="width:80px">
+      
+      <label>Auteur :</label>
+      <input type="text" id="f_auteur" value="${escapeAttr(c.auteur)}" placeholder="Auteur…" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8">
+      
+      <label>Livre :</label>
+      <input type="text" id="f_livre" value="${escapeAttr(c.livre)}" placeholder="Titre du livre…" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8">
+      
+      <label>Texte :</label>
+      <textarea id="f_texte" rows="8" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8" oninput="updateTextCounter()">${escapeHTML(c.texte)}</textarea>
+      
+      <label></label>
+      <span style="font-size:10px;color:var(--text-muted)" id="textCounter">0/${MAX_TEXT_CHARS}</span>
+    </div>
+    <div class="error-msg" id="formError"></div>
+    <div class="form-buttons">
+      <button class="primary" onclick="saveForm()">💾 Sauvegarder</button>
+      <button onclick="cancelEdit()">❌ Annuler</button>
+      <button class="danger" onclick="deleteTexte()">🗑️ Supprimer</button>
+    </div>
+  `;
+  
+  updateTextCounter();
+}
+
+function updateTextCounter() {
+  const inp = document.getElementById('f_texte');
+  const counter = document.getElementById('textCounter');
+  if (!inp || !counter) return;
+  const len = inp.value.length;
+  counter.textContent = `${len}/${MAX_TEXT_CHARS} caractères`;
+  counter.style.color = len > MAX_TEXT_CHARS ? 'var(--danger)' : 'var(--text-muted)';
+  counter.style.fontWeight = len > MAX_TEXT_CHARS ? '700' : '400';
+}
+
+function onCategorieSelectChange() { /* non utilisé */ }
+
+function saveForm() {
+  const errEl = document.getElementById('formError');
+  if (currentTexteIndex === null) return;
+  
+  const errors = [];
+  const auteur = (document.getElementById('f_auteur').value || '').trim();
+  const livre  = (document.getElementById('f_livre').value  || '').trim();
+  const texte  = (document.getElementById('f_texte').value  || '').trim();
+
+  if (!auteur) errors.push('L\'auteur est obligatoire.');
+  if (!livre)  errors.push('Le livre est obligatoire.');
+  if (!texte)  errors.push('Le texte est obligatoire.');
+  if (texte.length > MAX_TEXT_CHARS) errors.push(`Le texte dépasse ${MAX_TEXT_CHARS} caractères.`);
+  
+  if (errors.length > 0) {
+    errEl.textContent = errors.join(' | ');
+    return;
+  }
+  
+  errEl.textContent = '';
+  
+  textesData[currentTexteIndex].auteur = auteur;
+  textesData[currentTexteIndex].livre  = livre;
+  textesData[currentTexteIndex].texte  = texte;
+  
+  backupData = JSON.parse(JSON.stringify(textesData[currentTexteIndex]));
+  
+  isCreatingNew = false;
+  setModified(true);
+  refreshSectionsList();
+  showDetails();
+  updateStatus('Citation sauvegardée en mémoire');
+  switchTab('details');
+  showDialog('✅ Citation sauvegardée', 'La citation #' + textesData[currentTexteIndex].index + ' a été sauvegardée en mémoire.\n\n⚠️ N\'oubliez pas d\'utiliser "💾 Enregistrer" pour enregistrer définitivement vos modifications sur le disque.');
+}
+
+function cancelEdit() {
+  if (isCreatingNew) {
+    textesData.pop();
+    isCreatingNew = false;
+    refreshSectionsList();
+    if (textesData.length > 0) {
+      selectTexte(0);
+    } else {
+      currentTexteIndex = null;
+      document.getElementById('detailsContent').innerHTML = '<span style="color:var(--text-muted)">Aucune citation.</span>';
+      document.getElementById('editContainer').innerHTML = '<span style="color:var(--text-muted)">Aucune citation.</span>';
+    }
+  } else if (backupData && currentTexteIndex !== null) {
+    textesData[currentTexteIndex] = JSON.parse(JSON.stringify(backupData));
+    loadEditForm();
+    showDetails();
+  }
+  
+  const errEl = document.getElementById('formError');
+  if (errEl) errEl.textContent = '';
+  switchTab('details');
+  updateStatus('Modifications annulées');
+}
+
+function reindexMots() {
+  textesData.forEach((c, i) => {
+    c.index = String(i + 1);
+  });
+}
+
+function deleteTexte() {
+  if (currentTexteIndex === null) return;
+  
+  const cit = textesData[currentTexteIndex];
+  showConfirm('Confirmer la suppression', `Voulez-vous vraiment supprimer la citation #${cit.index} ?`, () => {
+    textesData.splice(currentTexteIndex, 1);
+    reindexMots();
+    isCreatingNew = false;
+    setModified(true);
+    refreshSectionsList();
+    
+    if (textesData.length > 0) {
+      selectTexte(Math.min(currentTexteIndex, textesData.length - 1));
+    } else {
+      currentTexteIndex = null;
+      document.getElementById('detailsContent').innerHTML = '<span style="color:var(--text-muted)">Aucune citation.</span>';
+      document.getElementById('editContainer').innerHTML = '<span style="color:var(--text-muted)">Aucune citation.</span>';
+    }
+    updateStatus('Citation supprimée — index mis à jour');
+  });
+}
+
+// ==================== NOUVELLE CITATION ====================
+function newTexte() {
+  if (textesData.length >= MAX_TEXTES) {
+    showDialog('Limite atteinte', `Nombre maximum de citations atteint (${MAX_TEXTES}).`);
+    return;
+  }
+  
+  const existingIds = textesData.map(c => parseInt(c.index) || 0);
+  let nextId = 1;
+  while (existingIds.includes(nextId)) nextId++;
+  
+  textesData.push({ index: String(nextId), auteur: '', livre: '', texte: '' });
+  isCreatingNew = true;
+  backupData = null;
+  setModified(true);
+  refreshSectionsList();
+  selectTexte(textesData.length - 1);
+  switchTab('edition');
+  updateStatus(`Nouvelle citation #${nextId} créée`);
+}
+
+// ==================== TABS ====================
+function switchTab(tabName) {
+  activeTab = tabName;
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  document.getElementById('tabDetails').classList.toggle('active', tabName === 'details');
+  document.getElementById('tabEdition').classList.toggle('active', tabName === 'edition');
+}
+
+// ==================== AIDE (dialog flottante) ====================
+function showHelp() {
+  const overlay = document.createElement('div');
+  overlay.className = 'help-overlay';
+  overlay.id = 'helpOverlay';
+  overlay.innerHTML = `
+    <div class="help-box">
+      <div class="help-box-header">
+        <h2>📖 Guide d'utilisation — Gestionnaire Texte</h2>
+        <button class="help-box-close" onclick="document.getElementById('helpOverlay').remove()" title="Fermer">✕</button>
+      </div>
+      <div class="help-panel">
+
+        <div class="help-section">
+          <h3>📖 Présentation</h3>
+          <p>Application de gestion de citations au format XML (structure &lt;citations&gt; / &lt;citation&gt;). Chargez un fichier existant, créez, modifiez ou supprimez des citations, puis exportez le résultat.</p>
+        </div>
+
+        <div class="help-section">
+          <h3>📂 Ouvrir un fichier XML</h3>
+          <ul>
+            <li>Cliquez sur <strong>📂 Ouvrir XML</strong> dans la barre d'outils.</li>
+            <li>Sélectionnez un fichier <span class="help-kbd">.xml</span> sur votre disque.</li>
+            <li>Les citations sont automatiquement chargées et triées par index.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>➕ Ajouter une citation</h3>
+          <ul>
+            <li>Cliquez sur <strong>➕ Nouvelle Citation</strong>.</li>
+            <li>Renseignez l'<em>Auteur</em>, le <em>Livre</em> et le <em>Texte</em>. L'index est attribué automatiquement.</li>
+            <li>Cliquez <strong>💾 Sauvegarder</strong> une fois les champs remplis.</li>
+          </ul>
+          <div class="note">⚠️ <strong>La sauvegarde ne suffit pas à conserver les données sur disque.</strong> Elle enregistre les modifications en mémoire uniquement. Pour les conserver définitivement, vous devez ensuite cliquer sur <strong>💾 Enregistrer</strong>.</div>
+        </div>
+
+        <div class="help-section">
+          <h3>✏️ Modifier une citation</h3>
+          <ul>
+            <li>Cliquez sur une citation dans la liste à gauche.</li>
+            <li>Passez sur l'onglet <strong>✏️ Édition</strong>, modifiez les champs, puis cliquez <strong>💾 Sauvegarder</strong>.</li>
+            <li><strong>❌ Annuler</strong> restaure les données originales sans rien enregistrer.</li>
+          </ul>
+          <div class="note">⚠️ Pensez à <strong>Enregistrer</strong> après vos modifications pour les sauvegarder sur le disque.</div>
+        </div>
+
+        <div class="help-section">
+          <h3>🗑️ Supprimer une citation</h3>
+          <ul>
+            <li>Sélectionnez la citation, allez dans l'onglet <em>Édition</em> et cliquez <strong>🗑️ Supprimer</strong>.</li>
+            <li>Une confirmation est demandée avant suppression définitive.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>💾 Exporter en XML</h3>
+          <ul>
+            <li>Cliquez sur <strong>💾 Enregistrer</strong> dans la barre d'outils.</li>
+            <li>Le fichier est téléchargé sous le nom <span class="help-kbd">Texte_modifie.xml</span>.</li>
+            <li>Le statut passe au vert <em>✅ Aucune modification</em> après export réussi.</li>
+          </ul>
+          <div class="note">⚠️ <strong>C'est la seule façon d'enregistrer vos données sur le disque.</strong> Tant que vous n'avez pas exporté, toutes vos modifications restent en mémoire et seront perdues si vous fermez la page.</div>
+        </div>
+
+        <div class="help-section">
+          <h3>🔄 Réinitialiser</h3>
+          <ul>
+            <li>Cliquez sur <strong>🔄 Réinitialiser</strong> pour effacer toutes les citations en mémoire.</li>
+            <li>Une confirmation est demandée avant l'opération.</li>
+            <li>Cette action est irréversible : les données non exportées seront perdues définitivement.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>🚪 Quitter</h3>
+          <ul>
+            <li>Cliquez sur <strong>🚪 Quitter</strong> pour fermer l'application.</li>
+            <li>Si une édition est en cours ou si des modifications n'ont pas été exportées, une confirmation vous sera demandée.</li>
+          </ul>
+        </div>
+
+        <div class="help-section">
+          <h3>📋 Structure du fichier XML</h3>
+          <table class="help-table">
+            <tr><th>Balise</th><th>Description</th><th>Obligatoire</th></tr>
+            <tr><td><span class="help-kbd">&lt;index&gt;</span></td><td>Numéro unique (entier, géré automatiquement)</td><td>Oui</td></tr>
+            <tr><td><span class="help-kbd">&lt;auteur&gt;</span></td><td>Nom de l'auteur</td><td>Oui</td></tr>
+            <tr><td><span class="help-kbd">&lt;livre&gt;</span></td><td>Titre du livre ou de la source</td><td>Oui</td></tr>
+            <tr><td><span class="help-kbd">&lt;texte&gt;</span></td><td>Corps de la citation (texte libre)</td><td>Oui</td></tr>
+          </table>
+          <p style="margin-top:6px;font-size:11px;color:#b8cfe8">Balise racine : <span class="help-kbd">&lt;citations&gt;</span> — Balise entrée : <span class="help-kbd">&lt;citation&gt;&lt;index&gt;…&lt;/index&gt;&lt;auteur&gt;…&lt;/auteur&gt;&lt;livre&gt;…&lt;/livre&gt;&lt;texte&gt;…&lt;/texte&gt;&lt;/citation&gt;</span></p>
+        </div>
+
+        <div class="help-section">
+          <h3>⚙️ Limites & informations</h3>
+          <ul>
+            <li>Maximum <strong>500 citations</strong> par fichier.</li>
+            <li>Le texte est limité à <strong>500 caractères</strong>.</li>
+            <li>L'indicateur <span style="color:#f59e0b">⚠️ Modifications non sauvegardées</span> dans la barre de statut signale que des données n'ont pas encore été exportées.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  `;
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.remove();
+  });
+  document.body.appendChild(overlay);
+}
+
+// ==================== QUITTER ====================
+function quitterApp() {
+  let msg = '';
+  if (isCreatingNew || activeTab === 'edition') {
+    msg = 'Une édition est en cours et n\'a pas été sauvegardée.\nVoulez-vous vraiment quitter sans sauvegarder ?';
+  } else if (modified) {
+    msg = '⚠️ Des modifications n\'ont pas encore été exportées vers Texte_modifie.xml.\nSi vous quittez, ces modifications seront perdues.\n\nVoulez-vous quitter sans exporter ?';
+  } else {
+    doQuit();
+    return;
+  }
+  showConfirm('🚪 Quitter sans sauvegarder ?', msg, () => { doQuit(); });
+}
+
+function doQuit() {
+  window.onbeforeunload = null;
+  // Remplacer la page par un écran de fin avec bouton pour fermer l'onglet
+  document.open();
+  document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<title>Application fermée</title>
+<style>
+  body{margin:0;background:#071422;display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Segoe UI',sans-serif}
+  .box{text-align:center;color:#b8cfe8}
+  .icon{font-size:56px;margin-bottom:16px}
+  .title{font-size:18px;font-weight:700;color:#7eb8e8;margin-bottom:8px}
+  .sub{font-size:13px;color:#5a7a99;margin-bottom:24px}
+  button{background:#163356;color:#7eb8e8;border:1px solid #2e5a8a;border-radius:6px;padding:9px 22px;font-size:13px;cursor:pointer;font-family:inherit}
+  button:hover{background:#1e4a7a;color:#aad4f5}
+</style></head><body>
+<div class="box">
+  <div class="icon">🚪</div>
+  <div class="title">Application fermée</div>
+  <div class="sub">Vous pouvez maintenant fermer cet onglet.</div>
+  <button onclick="window.close()">Fermer l'onglet</button>
+</div>
+</body></html>`);
+  document.close();
+}
+
+// ==================== STATE HELPERS ====================
+function setModified(val) {
+  modified = val;
+  const el = document.getElementById('modifiedIndicator');
+  if (val) {
+    el.textContent = '⚠️ Modifications non sauvegardées';
+    el.className = 'modified dirty';
+  } else {
+    el.textContent = '✅ Aucune modification';
+    el.className = 'modified clean';
+  }
+}
+
+function updateStatus(msg) {
+  document.getElementById('statusMsg').textContent = msg;
+}
+
+// ==================== DIALOGS ====================
+function showDialog(title, message) {
+  const overlay = document.createElement('div');
+  overlay.className = 'dialog-overlay';
+  overlay.innerHTML = `
+    <div class="dialog-box">
+      <h3>${title}</h3>
+      <p>${message.replace(/\n/g, '<br>')}</p>
+      <div class="dialog-buttons">
+        <button class="primary" onclick="this.closest('.dialog-overlay').remove()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector('button').focus();
+}
+
+function showConfirm(title, message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'dialog-overlay';
+  overlay.innerHTML = `
+    <div class="dialog-box">
+      <h3>${title}</h3>
+      <p>${message.replace(/\n/g, '<br>')}</p>
+      <div class="dialog-buttons">
+        <button onclick="this.closest('.dialog-overlay').remove()">Non</button>
+        <button class="primary" id="confirmYes">Oui</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#confirmYes').addEventListener('click', () => {
+    overlay.remove();
+    onConfirm();
+  });
+  overlay.querySelector('#confirmYes').focus();
+}
+
+// ==================== HTML ESCAPE ====================
+function escapeHTML(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escapeAttr(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ==================== INITIALIZATION ====================
+function init() {
+  textesData = [];
+  refreshSectionsList();
+  updateStatus('Prêt - Ouvrez un fichier XML ou créez une nouvelle citation');
+}
+
+window.addEventListener('beforeunload', function(e) {
+  if (modified) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+init();
+</script>
+</body>
+</html>

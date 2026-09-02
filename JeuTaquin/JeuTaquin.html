@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeu de Taquin</title>
+<link rel="icon" type="image/png" href="../assets/favicons/taquin.png">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-light:  #C2F6FF;   /* bleu clair : zone de jeu + body   */
+    --brand:        #38B6FF;   /* bleu foncé : bandeaux et panneaux */
+    --brand-dark:   #0B4E75;   /* texte sur fond bleu               */
+    --config-bg:    #38B6FF;
+    --config-border:#1E9BE0;
+    --config-text:  #0B4E75;
+    --config-muted: #0B4E75;
+    --input-bg:     #ffffff;
+    --input-border: #c7d0e0;
+    --game-bg:      #C2F6FF;
+    --side-bg:      #38B6FF;
+    --side-border:  #8FDCFF;
+    --stats-bg:     #DCF6FF;
+    --stats-border: #8FDCFF;
+    --accent:       #3b82f6;
+    --accent-light: #dbeafe;
+    --accent-dark:  #1d4ed8;
+    --green:        #10b981;
+    --green-light:  #d1fae5;
+    --green-dark:   #065f46;
+    --red:          #ef4444;
+    --red-light:    #fee2e2;
+    --yellow:       #f59e0b;
+    --yellow-light: #fef3c7;
+    --purple:       #8b5cf6;
+    --tile-bg:      #ffffff;
+    --tile-bg2:     #eef2fb;
+    --board-bg:     #1e3a7a;
+    --board-bg2:    #152d62;
+    --text:         #1e293b;
+    --text-muted:   #64748b;
+    --radius:       12px;
+    --radius-sm:    8px;
+    --t:            0.18s ease;
+  }
+
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--game-bg); color:var(--text); font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; user-select:none; }
+
+  #app { display:grid; grid-template-rows:auto auto 1fr; height:100vh; overflow:hidden; }
+
+  /* ── CONFIG (gris clair) ── */
+  #configpanel {
+    background:var(--config-bg);
+    border-bottom:1px solid var(--config-border);
+    padding:7px 12px;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex-shrink:0;
+    box-shadow:0 1px 4px #00000010;
+  }
+  .app-logo { width:26px; height:26px; flex-shrink:0; }
+  .game-title { font-size:1.02rem; font-weight:900; color:#083C5C; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; font-family:'Courier New',Courier,monospace; margin-right:4px; }
+  .separator  { width:1px; height:24px; background:#ffffff99; flex-shrink:0; }
+  .cfg-group  { display:flex; align-items:center; gap:5px; }
+  .cfg-x { font-size:.8rem; font-weight:900; color:#083C5C; }
+  .cfg-label  { font-size:.66rem; font-weight:800; color:#083C5C; text-transform:uppercase; letter-spacing:.8px; white-space:nowrap; }
+
+  select, input[type=number] {
+    height:31px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:var(--radius-sm);
+    color:var(--config-text); font-size:.8rem; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; font-weight:700; cursor:pointer;
+    outline:none; transition:border-color var(--t),box-shadow var(--t);
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 8px center; background-color:var(--input-bg);
+    padding:0 26px 0 8px; box-shadow:0 1px 3px #0000000a;
+  }
+  select:hover,input[type=number]:hover { border-color:var(--accent); }
+  select:focus,input[type=number]:focus { border-color:var(--accent); box-shadow:0 0 0 3px #3b82f630; }
+  select.dim-select { width:56px; }
+  select#sel-theme  { min-width:142px; }
+  select#sel-click  { min-width:124px; }
+
+  .range-wrap { display:flex; align-items:center; gap:6px; }
+  input[type=range] {
+    -webkit-appearance:none; width:90px; height:4px; border-radius:2px;
+    background:var(--config-border); outline:none; cursor:pointer;
+    box-shadow:none; background-image:none; padding:0;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--accent); border:2px solid #fff; cursor:pointer; box-shadow:0 1px 4px #3b82f640;
+  }
+
+  .btn {
+    display:inline-flex; align-items:center; gap:5px; height:31px; padding:0 11px;
+    border-radius:var(--radius-sm); border:1px solid var(--input-border);
+    background:var(--input-bg); color:var(--config-text);
+    font-size:.78rem; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; font-weight:700;
+    cursor:pointer; transition:all var(--t); white-space:nowrap; box-shadow:0 1px 3px #0000000a;
+  }
+  .btn:hover { border-color:var(--accent); background:var(--accent-light); color:var(--accent-dark); }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-size:.84rem; padding:0 15px; box-shadow:0 2px 8px #3b82f640; }
+  .btn.primary:hover { background:var(--accent-dark); box-shadow:0 3px 12px #3b82f660; }
+  .btn.danger { background:var(--red-light); border-color:#fca5a5; color:#b91c1c; }
+  .btn.danger:hover { background:#fecaca; border-color:var(--red); }
+  .btn.btn-solution { background:#f3e8ff; border-color:#c4b5fd; color:#6d28d9; }
+  .btn.btn-solution:hover { background:#ede9fe; border-color:var(--purple); }
+  .btn.btn-solution.active { background:#ddd6fe; border-color:var(--purple); }
+  #btn-aide { margin-left:auto; }
+
+  /* ── VALIDATION ── */
+  #val-msg { font-size:.75rem; color:#b91c1c; padding:4px 16px; font-weight:700; background:var(--red-light); border-bottom:1px solid #fca5a5; display:none; }
+  #val-msg.visible { display:block; }
+
+  /* ── STATS (panneau latéral) ── */
+  #stats-side { display:flex; flex-direction:column; margin-top:6px; }
+  .stat-row { display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:4px 0; border-bottom:1px dashed #ffffff99; }
+  .stat-row:last-child { border-bottom:none; }
+  .stat-label { font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#0B4E75; }
+  .stat-value { font-family:'Courier New',Courier,monospace; font-size:.92rem; font-weight:700; color:#062E47; line-height:1.1; }
+  .stat-value.c-accent { color:#062E47; }
+  .stat-value.c-green  { color:#04543C; }
+  .stat-value.c-yellow { color:#7A3705; }
+  .stat-value.c-purple { color:#6d28d9; }
+
+  /* ── AIDE (fenêtre) ── */
+  .aide-kbd { background:#fff; border:1px solid #93c5fd; border-radius:4px; padding:0 5px; font-family:'Courier New',Courier,monospace; font-size:.72rem; font-weight:700; color:var(--accent-dark); }
+  #msg-overlay { display:none; position:fixed; inset:0; background:#00000070; backdrop-filter:blur(8px); z-index:130; align-items:center; justify-content:center; }
+  #msg-overlay.show { display:flex; }
+  #msg-overlay .overlay-card { gap:10px; padding:26px 34px; max-width:min(460px,88vw); }
+  #msg-icon { font-size:2.2rem; line-height:1; }
+  #msg-title { font-size:1.1rem; font-weight:900; color:var(--accent-dark); text-align:center; }
+  #msg-text { white-space:pre-line; font-size:.86rem; line-height:1.5; color:var(--text); text-align:center; }
+
+  #aide-overlay { display:none; position:fixed; inset:0; background:#00000070; backdrop-filter:blur(8px); z-index:120; align-items:center; justify-content:center; }
+  #aide-overlay.show { display:flex; }
+  #aide-overlay .overlay-card { gap:14px; padding:28px 32px; align-items:stretch; max-width:min(620px,90vw); }
+  #aide-title { font-size:1.15rem; font-weight:900; color:var(--accent-dark); text-align:center; }
+  .aide-body { display:flex; flex-direction:column; gap:14px; max-height:58vh; overflow-y:auto; padding-right:4px; }
+  .aide-sec { background:#EAFBFF; border:1px solid #8FDCFF; border-left:3px solid var(--brand); border-radius:var(--radius-sm); padding:10px 13px; }
+  .aide-h { font-size:.7rem; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:var(--accent-dark); margin-bottom:5px; }
+  .aide-sec p { font-size:.84rem; line-height:1.5; color:var(--text); }
+  .aide-sec ol { font-size:.84rem; line-height:1.55; color:var(--text); padding-left:18px; }
+  .aide-sec ol li { margin-bottom:2px; }
+  .fo-quote { display:inline-block; background:var(--config-bg); border:1px solid var(--config-border); border-radius:4px; padding:0 5px; font-family:'Courier New',Courier,monospace; font-size:.78rem; font-weight:700; }
+
+  /* ── MAIN ── */
+  #main { display:flex; flex:1; overflow:hidden; min-height:0; }
+
+  /* ── SIDE PANEL (blanc) ── */
+  #sidepanel { width:185px; min-width:160px; background:var(--side-bg); border-right:1px solid #1E9BE0; display:flex; flex-direction:column; padding:14px 12px; overflow-y:auto; flex-shrink:0; gap:16px; box-shadow:2px 0 8px #00000008; }
+  .side-section-title { font-size:.63rem; font-weight:900; color:#083C5C; text-transform:uppercase; letter-spacing:1.5px; padding-bottom:6px; border-bottom:2px solid #ffffffb0; }
+
+  #progress-wrap { display:flex; flex-direction:column; gap:6px; }
+  .progress-bar-track { width:100%; height:14px; background:#ffffffcc; border-radius:7px; overflow:hidden; }
+  .progress-bar-fill  { height:100%; background:linear-gradient(90deg,var(--green),#34d399); border-radius:7px; width:0%; transition:width .4s ease; box-shadow:0 1px 4px #10b98140; }
+  .progress-bar-label { display:flex; justify-content:space-between; align-items:baseline; }
+  .prog-pct  { font-family:'Courier New',Courier,monospace; font-size:1rem; font-weight:700; color:#04543C; }
+  .pairs-text { font-size:.72rem; color:#0B4E75; font-weight:700; }
+  .pairs-text span { color:#04543C; font-weight:900; }
+
+  /* Aperçu objectif */
+  #preview-grid { display:grid; gap:2px; margin-top:8px; background:var(--game-bg); border:1px solid #ffffffcc; border-radius:var(--radius-sm); padding:5px; justify-content:center; }
+  .p-cell { display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--green-light); border:1px solid #6ee7b7; border-radius:4px; line-height:1; animation:popIn .3s cubic-bezier(.34,1.56,.64,1); }
+  .p-cell.empty { background:#e2e8f0; border-color:#cbd5e1; }
+  .p-num { font-weight:900; color:#065f46; }
+  .p-sym { opacity:.85; }
+  @keyframes popIn { from{transform:scale(0) rotate(-10deg);opacity:0} to{transform:scale(1) rotate(0deg);opacity:1} }
+
+  .side-counter { display:flex; align-items:center; justify-content:space-between; background:#f3e8ff; border:1px solid #c4b5fd; border-radius:var(--radius-sm); padding:6px 10px; }
+  .side-counter .sc-label { font-size:.74rem; color:#6d28d9; font-weight:700; }
+  .side-counter .sc-val   { font-family:'Courier New',Courier,monospace; color:#6d28d9; font-weight:700; font-size:.9rem; }
+
+  /* ── GRID AREA (fond clair) ── */
+  #play-zone { display:flex; align-items:center; gap:16px; }
+  #keypad { display:flex; flex-direction:column; align-items:center; gap:9px; background:#ffffffcc; border:1px solid #8FDCFF; border-radius:var(--radius); padding:11px 13px; box-shadow:0 2px 10px #0b4e7518; }
+  .kp-title { font-size:.58rem; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#0B4E75; text-align:center; }
+  .kp-cross { display:grid; grid-template-columns:repeat(3,auto); grid-template-rows:repeat(2,auto); gap:5px; justify-items:center; }
+  .kp-up    { grid-area:1/2; } .kp-left { grid-area:2/1; }
+  .kp-down  { grid-area:2/2; } .kp-right{ grid-area:2/3; }
+  .kp-slot { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .kp-key { min-width:34px; height:34px; display:flex; align-items:center; justify-content:center; padding:0 6px;
+            background:#fff; border:2px solid var(--brand); border-bottom-width:3px; border-radius:7px;
+            font-family:'Courier New',Courier,monospace; font-size:.95rem; font-weight:900; color:#0B4E75;
+            box-shadow:0 1px 3px #0b4e7520; transition:all .1s ease; }
+  .kp-key.hit { background:var(--brand); color:#fff; transform:translateY(2px); border-bottom-width:2px; }
+  .kp-dir { font-size:.54rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#0B4E75; opacity:.75; }
+  #btn-keys-new { display:none; height:26px; font-size:.68rem; padding:0 8px; }
+  #keypad.random #btn-keys-new { display:inline-flex; }
+  #keypad.random .kp-key { border-color:var(--purple); color:#5B21B6; }
+  #keypad.random .kp-key.hit { background:var(--purple); color:#fff; }
+
+  #grid-area { flex:1; display:flex; align-items:center; justify-content:center; padding:8px; overflow:hidden; min-width:0; background:var(--game-bg); }
+  #grid {
+    position:relative; border-radius:var(--radius);
+    background:linear-gradient(145deg,var(--board-bg) 0%,var(--board-bg2) 100%);
+    box-shadow:0 4px 20px #1e3a7a40,inset 0 1px 0 #ffffff20; padding:0;
+  }
+  #grid::after { content:''; position:absolute; inset:4px; border-radius:9px; border:1px solid rgba(255,255,255,.28); pointer-events:none; }
+
+  /* ── TUILES ── */
+  .tile {
+    position:absolute; top:0; left:0; cursor:pointer; border-radius:var(--radius);
+    background:linear-gradient(145deg,var(--tile-bg) 0%,var(--tile-bg2) 100%);
+    border:2px solid #c7d0e0; color:var(--text);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 8px #00000018, inset 0 1px 0 #ffffffcc;
+    transition:transform .17s cubic-bezier(.4,0,.2,1), border-color var(--t), box-shadow var(--t), background var(--t);
+    will-change:transform; z-index:1;
+  }
+  .tile:hover:not(.locked) { border-color:var(--accent); box-shadow:0 4px 16px #3b82f640,0 0 0 3px #3b82f620; z-index:3; }
+  .tile.movable { border-color:#93c5fd; }
+  .tile.placed { border-color:var(--green); background:linear-gradient(145deg,#f0fdf4 0%,#dcfce7 100%); box-shadow:0 2px 10px #10b98130, inset 0 1px 0 #ffffffcc; }
+  .tile.placed .tile-num { color:var(--green-dark); }
+  .tile.locked { cursor:default; }
+
+  .tile.img { background:#0b1a3a; background-repeat:no-repeat; }
+  .tile-badge {
+    position:absolute; top:2px; left:3px; font-family:'Courier New',Courier,monospace;
+    font-size:min(.40em,26px); font-weight:900; color:#fff; background:#0f172ab0; border-radius:4px;
+    padding:0 3px; line-height:1.5; pointer-events:none; letter-spacing:.5px;
+  }
+  .tile.placed .tile-badge { background:#065f46d0; }
+  #grid.hide-nums .tile-badge { display:none; }
+
+  #preview-wrap { position:relative; width:100%; border-radius:var(--radius-sm); overflow:hidden; border:1px solid #ffffffcc; }
+  #preview-img { width:100%; height:100%; object-fit:cover; display:block; }
+  #preview-overlay { position:absolute; inset:0; display:grid; }
+  .pv-cell { display:flex; align-items:center; justify-content:center; border:1px solid #ffffff70; margin:-0.5px;
+             font-family:'Courier New',Courier,monospace; font-weight:900; font-size:.62rem; color:#fff;
+             text-shadow:0 1px 2px #000,0 0 6px #000c; }
+  .pv-cell.empty { background:#0f172a99; }
+  #preview-grid.hide-nums .pv-cell { color:transparent; text-shadow:none; }
+  .s-card.img { background:#0b1a3a; background-repeat:no-repeat; border-color:#93c5fd; }
+  #grp-image { display:none; }
+  .img-info { font-size:.72rem; font-weight:700; color:#083C5C; max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .img-info.ok { color:#04543C; }
+  .btn[disabled] { opacity:.45; cursor:not-allowed; }
+  .btn[disabled]:hover { border-color:var(--input-border); background:var(--input-bg); color:var(--config-text); }
+  #val-msg.info { color:#1e40af; background:var(--accent-light); border-bottom-color:#bfdbfe; }
+
+  #grp-image.on { display:flex; }
+  #btn-num-toggle.off { background:var(--config-bg); color:var(--config-muted); }
+  #grid-area.dragover { outline:3px dashed var(--accent); outline-offset:-8px; background:var(--accent-light); }
+
+  .tile-label { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1; pointer-events:none; }
+  .tile-label .tile-num { font-size:1em; font-weight:900; color:#1e293b; font-family:'Courier New',Courier,monospace; }
+  .tile-label .tile-sym { font-size:.72em; }
+
+  /* ── OVERLAY ── */
+  #overlay { display:none; position:fixed; inset:0; background:#00000070; backdrop-filter:blur(8px); z-index:100; align-items:center; justify-content:center; flex-direction:column; }
+  #overlay.show { display:flex; }
+
+  .overlay-card { background:#fff; border:1px solid #8FDCFF; border-radius:20px; padding:36px 44px; display:flex; flex-direction:column; align-items:center; gap:18px; box-shadow:0 30px 80px #00000030; animation:slideUp .4s cubic-bezier(.34,1.56,.64,1); min-width:320px; max-width:90vw; }
+  @keyframes slideUp { from{transform:translateY(30px) scale(.95);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+  .overlay-card h2 { font-size:2rem; font-weight:900; color:var(--green-dark); }
+
+  .overlay-stats { display:flex; gap:24px; background:var(--stats-bg); border-radius:var(--radius); padding:14px 20px; width:100%; justify-content:center; }
+  .ov-stat { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .ov-stat-val { font-family:'Courier New',Courier,monospace; font-size:1.5rem; font-weight:700; color:var(--accent-dark); }
+  .ov-stat-lbl { font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
+
+  .overlay-buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+  /* Grille résolue */
+  #solved-grid-wrap { display:none; flex-direction:column; align-items:center; gap:8px; width:100%; max-height:40vh; overflow:auto; }
+  #solved-grid-wrap.visible { display:flex; }
+  #solved-grid-title { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
+  #solved-grid { display:grid; gap:3px; background:var(--game-bg); border:1px solid var(--side-border); border-radius:var(--radius); padding:8px; }
+  .s-card { width:34px; height:34px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#f0fdf4; border:1.5px solid var(--green); border-radius:6px; line-height:1; }
+  .s-card.empty { background:#e2e8f0; border-color:#cbd5e1; }
+  .s-card .tile-num { font-size:.68rem; }
+  .s-card .tile-sym { font-size:.6rem; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#1E9BE0; border-radius:3px; }
+
+  @media (max-width:600px) {
+    #sidepanel { width:120px; min-width:100px; }
+
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- CONFIG (gris clair) -->
+  <div id="configpanel">
+    <img class="app-logo" src="data:image/png;base64,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" alt=""><span class="game-title">Taquin</span>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Grille</span>
+      <select id="inp-rows" class="dim-select" title="Nombre de lignes">
+        <option value="2">2</option><option value="3">3</option>
+        <option value="4" selected>4</option><option value="5">5</option>
+      </select>
+      <span class="cfg-x">×</span>
+      <select id="inp-cols" class="dim-select" title="Nombre de colonnes">
+        <option value="2">2</option><option value="3">3</option>
+        <option value="4" selected>4</option><option value="5">5</option>
+      </select>
+    </div>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Thème</span>
+      <select id="sel-theme">
+        <option value="numbers">Numéros 1️⃣2️⃣</option>
+        <option value="cards">Cartes ♠♥</option>
+        <option value="animals">Animaux 🐶</option>
+        <option value="food">Alimentation 🍎</option>
+        <option value="letters">Lettres A–Z</option>
+        <option value="smileys">Smileys 😀</option>
+        <option value="mix">Mélange 🎲</option>
+        <option value="image">Image perso 🖼</option>
+      </select>
+    </div>
+    <div class="cfg-group" id="grp-image">
+      <button class="btn" id="btn-img-file" title="Choisir une image sur votre ordinateur">🖼 Choisir une image…</button>
+      <span class="img-info" id="img-info">aucune image</span>
+      <button class="btn" id="btn-num-toggle" title="Afficher / masquer les numéros sur les tuiles">🔢</button>
+      <input type="file" id="inp-img-file" accept="image/*" hidden>
+    </div>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Déplacement</span>
+      <select id="sel-click">
+        <option value="click">Clic gauche</option>
+        <option value="dblclick">Double-clic</option>
+        <option value="contextmenu">Clic droit</option>
+        <option value="randomkeys">Touches aléatoires ⌨</option>
+      </select>
+    </div>
+    <div class="separator"></div>
+    <button class="btn primary"      id="btn-start">▶ Lancer</button>
+    <button class="btn" id="btn-save">💾 Sauvegarder partie</button>
+    <button class="btn" id="btn-load">📂 Charger partie</button>
+    <input type="file" id="inp-save" accept=".json,application/json" hidden>
+    <button class="btn"              id="btn-aide">❓ Aide</button>
+    <button class="btn danger"       id="btn-quit">✕ Quitter</button>
+  </div>
+
+  <!-- VALIDATION -->
+  <div id="val-msg"></div>
+
+
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- PANNEAU LATÉRAL (blanc) -->
+    <div id="sidepanel">
+      <div>
+        <div class="side-section-title">Statistiques</div>
+        <div id="stats-side">
+          <div class="stat-row"><span class="stat-label">Temps</span><span class="stat-value c-accent" id="st-time">00:00</span></div>
+          <div class="stat-row"><span class="stat-label">Coups joués</span><span class="stat-value c-yellow" id="st-moves">0</span></div>
+          <div class="stat-row"><span class="stat-label">Bien placées</span><span class="stat-value c-green" id="st-placed-full">0 / 0</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="side-section-title">Progression</div>
+        <div id="progress-wrap" style="margin-top:10px;">
+          <div class="progress-bar-label">
+            <span class="prog-pct" id="ring-pct">0%</span>
+            <span class="pairs-text"><span id="sp-found">0</span> / <span id="sp-total">0</span> tuiles</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="ring-fill"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="side-section-title">Aperçu objectif</div>
+        <div id="preview-grid"></div>
+      </div>
+    </div>
+
+    <!-- GRILLE (plateau) -->
+    <div id="grid-area">
+      <div id="play-zone">
+        <div id="grid"></div>
+        <div id="keypad">
+          <div class="kp-title" id="kp-title">Touches de déplacement</div>
+          <div class="kp-cross">
+            <div class="kp-slot kp-up">    <kbd class="kp-key" id="kp-k-up">↑</kbd><span class="kp-dir">haut</span></div>
+            <div class="kp-slot kp-left">  <kbd class="kp-key" id="kp-k-left">←</kbd><span class="kp-dir">gauche</span></div>
+            <div class="kp-slot kp-down">  <kbd class="kp-key" id="kp-k-down">↓</kbd><span class="kp-dir">bas</span></div>
+            <div class="kp-slot kp-right"> <kbd class="kp-key" id="kp-k-right">→</kbd><span class="kp-dir">droite</span></div>
+          </div>
+          <button class="btn" id="btn-keys-new" title="Tirer 4 nouvelles touches au hasard">🎲 Autres touches</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FENÊTRE DE MESSAGE -->
+<div id="msg-overlay">
+  <div class="overlay-card">
+    <div id="msg-icon">✅</div>
+    <h3 id="msg-title">Information</h3>
+    <p id="msg-text"></p>
+    <div class="overlay-buttons">
+      <button class="btn" id="btn-msg-cancel" style="display:none;">✕ Annuler</button>
+      <button class="btn primary" id="btn-msg-ok" style="padding:0 30px;">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- FENÊTRE D'AIDE -->
+<div id="aide-overlay">
+  <div class="overlay-card">
+    <h3 id="aide-title">🧩 Comment jouer au Taquin</h3>
+    <div class="aide-body">
+      <div class="aide-sec">
+        <div class="aide-h">🎯 Objectif</div>
+        <p>Remettre toutes les tuiles dans l'ordre croissant, ligne par ligne, la <strong>case vide</strong> revenant en bas à droite.</p>
+      </div>
+      <div class="aide-sec">
+        <div class="aide-h">🎮 Déroulement</div>
+        <ol>
+          <li>Choisissez les dimensions de la grille, le thème et l'action de déplacement.</li>
+          <li>Cliquez <strong>▶ Lancer</strong> : la grille est mélangée (toujours résoluble).</li>
+          <li>Cliquez une tuile <strong>alignée</strong> avec la case vide : elle glisse, et toute la rangée intermédiaire la suit.</li>
+          <li>Les tuiles bien placées passent en vert ; la progression s'affiche à gauche.</li>
+        </ol>
+      </div>
+      <div class="aide-sec">
+        <div class="aide-h">⌨️ Clavier</div>
+        <p><kbd class="aide-kbd">←</kbd> <kbd class="aide-kbd">↑</kbd> <kbd class="aide-kbd">↓</kbd> <kbd class="aide-kbd">→</kbd> déplacent la tuile voisine dans le sens de la flèche — toujours actives. <kbd class="aide-kbd">Échap</kbd> ferme les fenêtres.</p>
+        <p style="margin-top:6px">Le mode <strong>Touches aléatoires ⌨</strong> tire au sort 4 touches (lettres ou chiffres) à chaque partie : la souris est alors désactivée, seules ces touches jouent. Le pavé à droite de la grille les rappelle en permanence, et <strong>🎲 Autres touches</strong> en tire de nouvelles.</p>
+      </div>
+      <div class="aide-sec">
+        <div class="aide-h">🖼 Image personnelle</div>
+        <p>Thème <strong>Image perso</strong> puis <strong>🖼 Choisir une image…</strong> — ou glissez simplement une image sur la grille. L'aperçu latéral montre le découpage numéroté ; <strong>🔢</strong> masque les numéros pour corser le jeu.</p>
+      </div>
+      <div class="aide-sec">
+        <div class="aide-h">💾 Sauvegarde</div>
+        <p><strong>Sauvegarder</strong> crée un fichier <span class="fo-quote">.json</span> horodaté contenant toute la partie (image comprise). <strong>Charger</strong>, ou un glisser-déposer du fichier sur la grille, reprend exactement où vous en étiez.</p>
+      </div>
+    </div>
+    <div class="overlay-buttons">
+      <button class="btn primary" id="btn-aide-close">✓ Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY VICTOIRE -->
+<div id="overlay">
+  <div class="overlay-card">
+    <h2>🎉 Félicitations !</h2>
+    <div class="overlay-stats">
+      <div class="ov-stat">
+        <span class="ov-stat-val" id="ov-time">—</span>
+        <span class="ov-stat-lbl">Temps</span>
+      </div>
+      <div class="ov-stat">
+        <span class="ov-stat-val" id="ov-moves">—</span>
+        <span class="ov-stat-lbl">Coups</span>
+      </div>
+    </div>
+    <!-- Grille résolue cachée par défaut -->
+    <div id="solved-grid-wrap">
+      <div id="solved-grid-title">Grille résolue</div>
+      <div id="solved-grid"></div>
+    </div>
+    <div class="overlay-buttons">
+      <button class="btn btn-solution" id="btn-show-solved">🗺 Voir la grille résolue</button>
+      <button class="btn primary" id="btn-replay" style="height:40px;padding:0 24px;">🔄 Rejouer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════ THÈMES ═══════════════ */
+const THEMES = {
+  numbers: [],
+  cards:  ['♠','♥','♦','♣'],
+  animals:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🦝','🦨','🦡'],
+  food:   ['🍎','🍌','🍇','🍓','🍒','🍑','🥝','🍍','🥭','🍋','🍊','🍉','🍈','🍏','🍐','🫐','🍅','🥥','🌽','🥕','🧅','🥦','🫑','🍄','🥑'],
+  letters:'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+  smileys:['😀','😂','🤩','😎','🥳','😍','🤔','😴','🥺','😡','🤯','🥸','😇','🤠','🥶','😱','🤗','🫠','😤','🥴','😜','🤪','😏','😒','🙃'],
+};
+function getThemeItems(n){
+  if(n==='mix') return [...THEMES.animals.slice(0,5),...THEMES.food.slice(0,5),...THEMES.smileys.slice(0,5),...THEMES.letters.slice(0,5),...THEMES.cards];
+  return THEMES[n]!==undefined ? THEMES[n] : THEMES.numbers;
+}
+/* Le numéro porte l'ordre, le symbole décore (cyclique si le thème est plus court) */
+function tileHtml(num,sym){
+  return sym
+    ? `<div class="tile-label"><div class="tile-num">${num}</div><div class="tile-sym">${sym}</div></div>`
+    : `<div class="tile-label"><div class="tile-num">${num}</div></div>`;
+}
+
+/* ═══════════════ ÉTAT ═══════════════ */
+const GAP = 6, PAD = 5, AREA_PAD = 8;
+
+/* ─── Taille des cellules ───────────────────────────────────────────────
+   Objectif : une cellule de CELL_CM centimètres, IDENTIQUE en toutes
+   circonstances (nouvelle partie, chargement, 2×2 comme 5×5).
+   Les navigateurs calculent le « cm » CSS en supposant 96 dpi, alors qu'un
+   écran de portable 15" en 1920×1080 en affiche ~140 : sans correction, le
+   rendu serait ~1/3 trop petit. DPI_CALIB rattrape cet écart.
+   → Pour des cellules plus grandes ou plus petites, ne changer que ces
+     deux constantes.                                                      */
+const CELL_CM   = 1.5;
+const DPI_CALIB = 1.5;
+let   _cmPx     = 0;
+function cmPx(){
+  if(!_cmPx){
+    const d=document.createElement('div');
+    d.style.cssText='position:absolute;visibility:hidden;width:10cm;height:0';
+    document.body.appendChild(d);
+    _cmPx=(d.getBoundingClientRect().width/10)||37.8;
+    d.remove();
+  }
+  return _cmPx;
+}
+function targetCellPx(){ return Math.round(CELL_CM*cmPx()*DPI_CALIB); }
+const MIX_LEVEL = 8;                     // intensité de mélange fixe
+let state = {
+  rows:0, cols:0, tiles:[], board:[], blank:{r:0,c:0},
+  moves:0, placed:0, total:0, elapsed:0, timerInterval:null,
+  mixLevel:MIX_LEVEL, clickMode:'click',
+  started:false, size:0, imageMode:false, picture:null
+};
+
+const $=id=>document.getElementById(id);
+const grid=$('grid'), overlay=$('overlay'), valMsg=$('val-msg');
+const stTime=$('st-time'), stMoves=$('st-moves'), stPlaced=$('st-placed-full');
+const spFound=$('sp-found'), spTotal=$('sp-total');
+const ringFill=$('ring-fill'), ringPct=$('ring-pct');
+const previewGrid=$('preview-grid');
+
+document.addEventListener('contextmenu',e=>e.preventDefault());
+
+/* ═══════════════ IMAGE PERSONNELLE ═══════════════ */
+let imgPicture=null;                    // {name,url,img}
+const grpImage=$('grp-image'), selTheme=$('sel-theme'), imgInfo=$('img-info');
+
+function refreshThemeUI(){ grpImage.classList.toggle('on', selTheme.value==='image'); }
+selTheme.addEventListener('change',refreshThemeUI); refreshThemeUI();
+
+function showVal(m){ valMsg.textContent=m; valMsg.classList.remove('info'); valMsg.classList.add('visible'); }
+function showInfo(m){ valMsg.textContent=m; valMsg.classList.add('info','visible'); }
+function hideVal(){ valMsg.textContent=''; valMsg.classList.remove('visible','info'); }
+
+function currentImage(){ return imgPicture; }
+
+function updateImgInfo(){
+  if(!imgPicture){ imgInfo.textContent='aucune image'; imgInfo.title=''; imgInfo.classList.remove('ok'); return; }
+  imgInfo.textContent=imgPicture.name; imgInfo.title=imgPicture.name; imgInfo.classList.add('ok');
+}
+
+function setPicture(file){
+  if(!file||!file.type.startsWith('image/')){ showVal('⚠ Fichier non reconnu : choisissez une image (JPG, PNG, GIF, WEBP, BMP).'); return; }
+  const fr=new FileReader();
+  fr.onload=()=>{
+    const img=new Image(); img.src=fr.result;      // dataURL : sauvegardable avec la partie
+    imgPicture={name:file.name,url:fr.result,img};
+    selTheme.value='image'; refreshThemeUI(); updateImgInfo();
+    showInfo(`✓ Image « ${file.name} » chargée — cliquez ▶ Lancer. Elle reste sur votre ordinateur, rien n'est envoyé.`);
+  };
+  fr.onerror=()=>showVal("⚠ Impossible de lire ce fichier image.");
+  fr.readAsDataURL(file);
+}
+
+$('btn-img-file').addEventListener('click',()=>$('inp-img-file').click());
+$('inp-img-file').addEventListener('change',e=>{ const f=e.target.files[0]; e.target.value=''; if(f) setPicture(f); });
+
+/* Glisser-déposer d'une image sur la grille */
+const gridArea=$('grid-area');
+['dragenter','dragover'].forEach(ev=>gridArea.addEventListener(ev,e=>{ e.preventDefault(); gridArea.classList.add('dragover'); }));
+['dragleave','drop'].forEach(ev=>gridArea.addEventListener(ev,e=>{ e.preventDefault(); gridArea.classList.remove('dragover'); }));
+gridArea.addEventListener('drop',e=>{
+  const f=e.dataTransfer&&e.dataTransfer.files[0]; if(!f) return;
+  if(f.name.toLowerCase().endsWith('.json')||f.type==='application/json'){   // sauvegarde déposée
+    const fr=new FileReader(); fr.onload=()=>loadGame(fr.result); fr.readAsText(f);
+  } else setPicture(f);
+});
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ aideOverlay.classList.remove('show'); closeMsg(); } });
+
+/* Numéros repères sur les tuiles image */
+$('btn-num-toggle').addEventListener('click',()=>{
+  const off=grid.classList.toggle('hide-nums');
+  previewGrid.classList.toggle('hide-nums',off);
+  $('btn-num-toggle').classList.toggle('off',off);
+});
+updateImgInfo();
+
+const msgOverlay=$('msg-overlay'), btnMsgCancel=$('btn-msg-cancel');
+let msgOnOk=null;
+
+function showDialog(text,title,icon){
+  msgOnOk=null; btnMsgCancel.style.display='none';
+  $('btn-msg-ok').textContent='OK';
+  $('msg-text').textContent=text;
+  $('msg-title').textContent=title||'Information';
+  $('msg-icon').textContent=icon||'✅';
+  msgOverlay.classList.add('show');
+}
+function showConfirm(text,title,icon,onOk,okLabel){
+  showDialog(text,title,icon);
+  msgOnOk=onOk; btnMsgCancel.style.display='';
+  $('btn-msg-ok').textContent=okLabel||'OK';
+}
+function closeMsg(){
+  msgOverlay.classList.remove('show'); msgOnOk=null;
+  requestAnimationFrame(()=>{ if(state.tiles.length){ renderGrid(); refreshVisual(); } });
+}
+$('btn-msg-ok').addEventListener('click',()=>{ const f=msgOnOk; closeMsg(); if(f) f(); });
+btnMsgCancel.addEventListener('click',closeMsg);
+msgOverlay.addEventListener('click',e=>{ if(e.target===msgOverlay) closeMsg(); });
+
+const aideOverlay=$('aide-overlay');
+$('btn-aide').addEventListener('click',()=>aideOverlay.classList.add('show'));
+$('btn-aide-close').addEventListener('click',()=>aideOverlay.classList.remove('show'));
+aideOverlay.addEventListener('click',e=>{ if(e.target===aideOverlay) aideOverlay.classList.remove('show'); });
+$('btn-start').addEventListener('click',()=>{
+  /* aucune alerte si rien n'a encore été joué */
+  if(!state.tiles.length||state.moves===0){ startGame(); return; }
+  showConfirm(
+    `Une partie est en cours : ${state.moves} coup(s) joué(s) `+
+      `(${Math.floor(state.elapsed/60)} min ${state.elapsed%60} s).\n`+
+      "Lancer une nouvelle partie effacera cette progression.\n"+
+      "Pensez à « 💾 Sauvegarder partie » si vous souhaitez la reprendre plus tard.",
+    'Nouvelle partie ?','⚠️', startGame, '▶ Lancer quand même');
+});
+$('btn-quit').addEventListener('click',quitGame);
+$('btn-replay').addEventListener('click',()=>{ $('solved-grid-wrap').classList.remove('visible'); overlay.classList.remove('show'); startGame(); });
+
+$('btn-show-solved').addEventListener('click',()=>{
+  const wrap=$('solved-grid-wrap');
+  if(wrap.classList.contains('visible')){ wrap.classList.remove('visible'); $('btn-show-solved').textContent='🗺 Voir la grille résolue'; }
+  else { buildSolvedGrid(); wrap.classList.add('visible'); $('btn-show-solved').textContent='🙈 Masquer la grille'; }
+});
+
+/* ═══════════════ LANCEMENT ═══════════════ */
+function startGame(){
+  const rows=parseInt($('inp-rows').value), cols=parseInt($('inp-cols').value), total=rows*cols;
+  const theme=$('sel-theme').value;
+  hideVal();
+  if(isNaN(rows)||isNaN(cols)||rows<2||cols<2){ showVal('⚠ Dimensions invalides (min 2×2).'); return; }
+  if(rows>5||cols>5){ showVal('⚠ Maximum 5 lignes et 5 colonnes.'); return; }
+
+  let picture=null;
+  if(theme==='image'){
+    picture=currentImage();
+    if(!picture){ showVal('⚠ Aucune image sélectionnée : cliquez sur 🖼 Choisir une image…, ou glissez une image sur la grille.'); return; }
+    if(!picture.img.complete||!picture.img.naturalWidth){
+      showVal('⏳ Image en cours de chargement, relancez dans un instant…');
+      picture.img.addEventListener('load',hideVal,{once:true});
+      return;
+    }
+  }
+
+  clearTimers();
+  grid.innerHTML='';
+  state={...state, rows, cols, tiles:[], board:[], blank:{r:rows-1,c:cols-1},
+    moves:0, placed:0, total:total-1, elapsed:0, started:true,
+    mixLevel:MIX_LEVEL, clickMode:$('sel-click').value,
+    imageMode:theme==='image', picture};
+
+  if(state.clickMode==='randomkeys') drawRandomKeys(); else keyMap={...ARROWS};
+  paintKeys();
+  stMoves.textContent='0'; stTime.textContent='00:00';
+
+  /* Tuiles dans l'ordre résolu, case vide en bas à droite */
+  const syms=state.imageMode?[]:getThemeItems(theme);
+  state.board=Array.from({length:rows},()=>Array(cols).fill(null));
+  for(let i=0;i<total-1;i++){
+    const r=Math.floor(i/cols), c=i%cols;
+    const tile={ num:i+1, sym:syms.length?syms[i%syms.length]:'', home:{r,c}, r, c, el:null };
+    tile.html=state.imageMode?`<div class="tile-badge">${tile.num}</div>`:tileHtml(tile.num,tile.sym);
+    state.tiles.push(tile);
+    state.board[r][c]=tile;
+  }
+
+  shuffleBoard();
+  renderGrid();
+  buildPreview();
+  refreshPlaced();
+  startTimer();
+}
+
+/* Mélange par coups légaux ⇒ configuration toujours résoluble */
+function shuffleBoard(){
+  const {rows,cols}=state;
+  const n=Math.max(60, state.mixLevel*rows*cols*4);
+  let last=null;
+  for(let k=0;k<n;k++){
+    const b=state.blank, opts=[];
+    if(b.r>0)      opts.push({r:b.r-1,c:b.c});
+    if(b.r<rows-1) opts.push({r:b.r+1,c:b.c});
+    if(b.c>0)      opts.push({r:b.r,c:b.c-1});
+    if(b.c<cols-1) opts.push({r:b.r,c:b.c+1});
+    const pool=opts.filter(o=>!last||o.r!==last.r||o.c!==last.c);
+    const pick=(pool.length?pool:opts)[Math.floor(Math.random()*(pool.length?pool.length:opts.length))];
+    const t=state.board[pick.r][pick.c];
+    state.board[b.r][b.c]=t; state.board[pick.r][pick.c]=null;
+    last={r:b.r,c:b.c};
+    t.r=b.r; t.c=b.c;
+    state.blank={r:pick.r,c:pick.c};
+  }
+  if(isSolved()) shuffleBoard();
+}
+
+/* ═══════════════ RENDU ═══════════════ */
+function renderGrid(){
+  const {rows,cols}=state;
+  if(!rows||!cols||!state.tiles.length) return;
+  const area=$('grid-area');
+  /* on mesure la zone AVANT de vider la grille, et sans l'ancienne taille imposée */
+  grid.style.width=grid.style.height='';
+  const kpW=keypad?keypad.offsetWidth+16:0;
+  const aw=area.clientWidth-2*AREA_PAD-2*PAD-kpW;
+  const ah=area.clientHeight-2*AREA_PAD-2*PAD;
+  if(aw<40*cols&&ah<40*rows&&(area.clientWidth<80||area.clientHeight<80)){
+    requestAnimationFrame(renderGrid); return;      // mise en page pas encore stabilisée
+  }
+  grid.innerHTML='';
+  /* Cellule de taille fixe (CELL_CM), réduite seulement si la fenêtre
+     est trop petite pour contenir le plateau. */
+  const maxW=Math.floor((aw-(cols-1)*GAP)/cols);
+  const maxH=Math.floor((ah-(rows-1)*GAP)/rows);
+  const size=Math.max(32,Math.min(targetCellPx(),maxW,maxH));
+  state.size=size;
+  grid.style.width =(size*cols+(cols-1)*GAP+2*PAD)+'px';
+  grid.style.height=(size*rows+(rows-1)*GAP+2*PAD)+'px';
+  const fs=Math.max(11,size*0.40);
+  const bgW=size*cols+(cols-1)*GAP, bgH=size*rows+(rows-1)*GAP;
+  const slice=state.imageMode?sliceParams(state.picture.img,bgW,bgH):null;
+
+  state.tiles.forEach(tile=>{
+    const el=document.createElement('div');
+    el.className='tile'+(state.imageMode?' img':'');
+    el.style.width=size+'px'; el.style.height=size+'px'; el.style.fontSize=fs+'px';
+    el.innerHTML=tile.html;
+    if(slice) paintSlice(el,tile,size,GAP,slice,state.picture.url);
+    grid.appendChild(el);
+    tile.el=el; el._tile=tile;
+    place(tile);
+  });
+  refreshVisual();
+}
+
+/* Cadrage « cover » de l'image sur toute la surface du plateau (sans déformation) */
+function sliceParams(img,bgW,bgH){
+  const iw=img.naturalWidth||1, ih=img.naturalHeight||1;
+  const sc=Math.max(bgW/iw,bgH/ih), w=iw*sc, h=ih*sc;
+  return { w, h, offX:(bgW-w)/2, offY:(bgH-h)/2 };
+}
+/* Chaque tuile affiche le fragment correspondant à sa position FINALE */
+function paintSlice(el,tile,size,gap,sl,url){
+  el.style.backgroundImage=`url("${url}")`;
+  el.style.backgroundSize=`${sl.w}px ${sl.h}px`;
+  el.style.backgroundPosition=`${sl.offX-tile.home.c*(size+gap)}px ${sl.offY-tile.home.r*(size+gap)}px`;
+}
+
+function place(tile,r,c){
+  const size=state.size;
+  const rr=(r===undefined?tile.r:r), cc=(c===undefined?tile.c:c);
+  tile.el.style.transform=`translate(${PAD+cc*(size+GAP)}px,${PAD+rr*(size+GAP)}px)`;
+}
+
+/* Délégation : le mode de clic est lu à chaque événement ⇒ changement pris
+   en compte immédiatement, sans avoir à relancer la partie. */
+['click','dblclick','contextmenu'].forEach(evt=>{
+  grid.addEventListener(evt,e=>{
+    if(state.clickMode==='randomkeys'||evt!==state.clickMode) return;
+    const el=e.target.closest('.tile');
+    if(!el||!el._tile) return;
+    e.preventDefault();
+    if(evt==='click'&&e.detail>1) return;   // 2e clic d'un double-clic ignoré
+    tryMove(el._tile);
+  });
+});
+$('sel-click').addEventListener('change',()=>{ state.clickMode=$('sel-click').value; applyKeyMode(); });
+
+/* ═══════════════ TOUCHES DE DÉPLACEMENT ═══════════════ */
+/* Réservoir de touches : lettres + chiffres (pavé numérique inclus) */
+const KEY_POOL='AZERTYUIOPQSDFGHJKLMWXCVBN0123456789'.split('');
+const keypad=$('keypad'), kpTitle=$('kp-title');
+const KP_EL={up:$('kp-k-up'),down:$('kp-k-down'),left:$('kp-k-left'),right:$('kp-k-right')};
+const ARROWS={up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight'};
+let keyMap={...ARROWS};
+
+function drawRandomKeys(){
+  const pool=[...KEY_POOL], pick=[];
+  while(pick.length<4) pick.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  keyMap={up:pick[0],down:pick[1],left:pick[2],right:pick[3]};
+  paintKeys();
+}
+function paintKeys(){
+  const rnd=state.clickMode==='randomkeys';
+  const lbl={up:'↑',down:'↓',left:'←',right:'→'};
+  for(const d in KP_EL) KP_EL[d].textContent = rnd ? keyMap[d] : lbl[d];
+  keypad.classList.toggle('random',rnd);
+  kpTitle.textContent = rnd ? 'Touches tirées au sort' : 'Touches de déplacement';
+}
+function applyKeyMode(){
+  if(state.clickMode==='randomkeys'){ if(keyMap.up==='ArrowUp') drawRandomKeys(); }
+  else keyMap={...ARROWS};
+  paintKeys();
+}
+$('btn-keys-new').addEventListener('click',drawRandomKeys);
+paintKeys();
+
+/* Retour visuel : la touche pressée s'enfonce */
+function flashKey(dir){
+  const el=KP_EL[dir]; if(!el) return;
+  el.classList.add('hit'); setTimeout(()=>el.classList.remove('hit'),130);
+}
+
+/* ═══════════════ DÉPLACEMENTS ═══════════════ */
+function tryMove(tile){
+  if(!state.started) return;
+  const b=state.blank;
+  if(tile.r===b.r && tile.c!==b.c){
+    const tc=tile.c, step=tc<b.c?-1:1;          // tc figé AVANT mutation de tile.c
+    for(let c=b.c+step; ; c+=step){
+      const t=state.board[b.r][c];
+      state.board[b.r][c-step]=t; state.board[b.r][c]=null;
+      t.c=c-step; place(t); state.moves++;
+      if(c===tc) break;
+    }
+    state.blank={r:b.r,c:tc};
+  } else if(tile.c===b.c && tile.r!==b.r){
+    const tr=tile.r, step=tr<b.r?-1:1;          // tr figé AVANT mutation de tile.r
+    for(let r=b.r+step; ; r+=step){
+      const t=state.board[r][b.c];
+      state.board[r-step][b.c]=t; state.board[r][b.c]=null;
+      t.r=r-step; place(t); state.moves++;
+      if(r===tr) break;
+    }
+    state.blank={r:tr,c:b.c};
+  } else return;
+
+  stMoves.textContent=state.moves;
+  refreshPlaced(); refreshVisual(); checkVictory();
+}
+
+/* Clavier : la touche indique le SENS de glissement de la tuile.
+   Les flèches restent actives dans tous les modes ; en mode « touches
+   aléatoires », les 4 lettres tirées au sort le sont également. */
+function dirFromKey(k,code){
+  const up=(k||'').toUpperCase();
+  /* un chiffre du pavé numérique équivaut au même chiffre du clavier */
+  const num=(code&&/^Numpad([0-9])$/.test(code))?code.slice(6):null;
+  for(const d in keyMap) if(keyMap[d]===k||keyMap[d]===up||(num&&keyMap[d]===num)) return d;
+  for(const d in ARROWS) if(ARROWS[d]===k) return d;
+  return null;
+}
+document.addEventListener('keydown',e=>{
+  if(!state.started) return;
+  if(e.ctrlKey||e.altKey||e.metaKey) return;
+  const dir=dirFromKey(e.key,e.code); if(!dir) return;
+  e.preventDefault();
+  const b=state.blank; let t=null;
+  if(dir==='up'    && b.r<state.rows-1) t=state.board[b.r+1][b.c];
+  else if(dir==='down'  && b.r>0)            t=state.board[b.r-1][b.c];
+  else if(dir==='left'  && b.c<state.cols-1) t=state.board[b.r][b.c+1];
+  else if(dir==='right' && b.c>0)            t=state.board[b.r][b.c-1];
+  flashKey(dir);
+  if(t) tryMove(t);
+});
+
+function refreshVisual(){
+  const b=state.blank;
+  state.tiles.forEach(t=>{
+    const movable=(t.r===b.r||t.c===b.c);
+    t.el.classList.toggle('movable',movable);
+    t.el.classList.toggle('locked',!movable);
+    t.el.classList.toggle('placed',t.r===t.home.r&&t.c===t.home.c);
+  });
+}
+
+function refreshPlaced(){
+  state.placed=state.tiles.filter(t=>t.r===t.home.r&&t.c===t.home.c).length;
+  updateProgress(state.placed,state.total);
+}
+
+function updateProgress(found,total){
+  spFound.textContent=found; spTotal.textContent=total;
+  stPlaced.textContent=`${found} / ${total}`;
+  const pct=total>0?Math.round(found/total*100):0;
+  ringPct.textContent=pct+'%';
+  ringFill.style.width=pct+'%';
+}
+
+function isSolved(){ return state.tiles.every(t=>t.r===t.home.r&&t.c===t.home.c); }
+
+/* ═══════════════ APERÇU / SOLUTION ═══════════════ */
+function buildPreview(){
+  previewGrid.innerHTML=''; previewGrid.style.display='grid';
+  const {rows,cols}=state;
+  if(state.imageMode){
+    previewGrid.style.display='block';
+    let cells='';
+    for(let i=0;i<rows*cols;i++) cells+= i<state.tiles.length ? `<div class="pv-cell">${state.tiles[i].num}</div>` : '<div class="pv-cell empty"></div>';
+    previewGrid.innerHTML=
+      `<div id="preview-wrap" style="aspect-ratio:${cols}/${rows}">`+
+        `<img id="preview-img" src="${state.picture.url}" alt="">`+
+        `<div id="preview-overlay" style="grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr)">${cells}</div>`+
+      `</div>`;
+    return;
+  }
+  previewGrid.style.display='grid';
+  const cell=Math.max(11,Math.min(Math.floor(150/cols),26));
+  previewGrid.style.gridTemplateRows=`repeat(${rows},${cell}px)`;
+  previewGrid.style.gridTemplateColumns=`repeat(${cols},${cell}px)`;
+  const fs=Math.max(6,cell*0.42);
+  for(let i=0;i<rows*cols;i++){
+    const d=document.createElement('div'); d.className='p-cell';
+    if(i<state.tiles.length){
+      const t=state.tiles[i];
+      d.innerHTML=`<div class="p-num" style="font-size:${fs}px">${t.num}</div>`+
+                  (t.sym&&cell>=16?`<div class="p-sym" style="font-size:${fs*0.8}px">${t.sym}</div>`:'');
+    } else d.classList.add('empty');
+    previewGrid.appendChild(d);
+  }
+}
+
+function buildSolvedGrid(){
+  const sg=$('solved-grid'); sg.innerHTML='';
+  const {rows,cols}=state;
+  sg.style.gridTemplateRows=`repeat(${rows},34px)`;
+  sg.style.gridTemplateColumns=`repeat(${cols},34px)`;
+  const sl=state.imageMode?sliceParams(state.picture.img,34*cols+3*(cols-1),34*rows+3*(rows-1)):null;
+  for(let i=0;i<rows*cols;i++){
+    const div=document.createElement('div'); div.className='s-card';
+    if(i<state.tiles.length){
+      const t=state.tiles[i];
+      if(sl){ div.classList.add('img'); paintSlice(div,t,34,3,sl,state.picture.url); }
+      else div.innerHTML=`<div class="tile-num">${t.num}</div>`+(t.sym?`<div class="tile-sym">${t.sym}</div>`:'');
+    } else div.classList.add('empty');
+    sg.appendChild(div);
+  }
+}
+
+/* ═══════════════ FIN DE PARTIE ═══════════════ */
+function checkVictory(){
+  if(!isSolved()) return;
+  clearTimers(); state.started=false;
+  state.tiles.forEach(t=>t.el.classList.add('locked'));
+  const m=String(Math.floor(state.elapsed/60)).padStart(2,'0'), s=String(state.elapsed%60).padStart(2,'0');
+  $('ov-time').textContent=`${m}:${s}`; $('ov-moves').textContent=state.moves;
+  $('solved-grid-wrap').classList.remove('visible'); $('btn-show-solved').textContent='🗺 Voir la grille résolue';
+  overlay.classList.add('show');
+}
+
+function quitGame(){
+  if(!state.started&&grid.children.length===0){ window.close(); return; }
+  clearTimers(); state.started=false;
+  grid.innerHTML=''; grid.style.width=grid.style.height='';
+  previewGrid.innerHTML='';
+  state.tiles=[]; state.board=[];
+  stTime.textContent='00:00'; stMoves.textContent='0';
+  valMsg.textContent=''; valMsg.classList.remove('visible');
+  overlay.classList.remove('show');
+  updateProgress(0,0);
+}
+
+function startTimer(from){
+  state.elapsed=from||0; clearInterval(state.timerInterval);
+  stTime.textContent=`${String(Math.floor(state.elapsed/60)).padStart(2,'0')}:${String(state.elapsed%60).padStart(2,'0')}`;
+  state.timerInterval=setInterval(()=>{
+    state.elapsed++;
+    stTime.textContent=`${String(Math.floor(state.elapsed/60)).padStart(2,'0')}:${String(state.elapsed%60).padStart(2,'0')}`;
+  },1000);
+}
+/* ═══════════════ SAUVEGARDE / CHARGEMENT ═══════════════ */
+function stamp(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return `${p(d.getDate())}${p(d.getMonth()+1)}${d.getFullYear()}_${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+let lastSaveName='';
+function saveGame(){
+  if(!state.tiles.length){ showVal('⚠ Aucune partie en cours à sauvegarder.'); return; }
+  const data={
+    app:'taquin', version:1, savedAt:new Date().toISOString(),
+    rows:state.rows, cols:state.cols,
+    moves:state.moves, elapsed:state.elapsed,
+    mixLevel:state.mixLevel, clickMode:state.clickMode,
+    theme:$('sel-theme').value, showNums:!grid.classList.contains('hide-nums'),
+    keyMap:{...keyMap},
+    blank:{...state.blank},
+    tiles:state.tiles.map(t=>({num:t.num,sym:t.sym,r:t.r,c:t.c})),
+    image:(state.imageMode&&state.picture)?{name:state.picture.name,data:state.picture.url}:null
+  };
+  const json=JSON.stringify(data);
+  const suggested=lastSaveName||`${stamp()}_Taquin.json`;
+
+  /* Navigateurs compatibles (Chrome, Edge, Opera) : vraie boîte « Enregistrer sous »
+     permettant de choisir le DOSSIER et le NOM du fichier. */
+  if(window.showSaveFilePicker){
+    (async()=>{
+      try{
+        const h=await window.showSaveFilePicker({
+          suggestedName:suggested,
+          types:[{description:'Sauvegarde Taquin',accept:{'application/json':['.json']}}]
+        });
+        const w=await h.createWritable(); await w.write(json); await w.close();
+        lastSaveName=h.name;
+        hideVal();
+        showDialog(`Partie enregistrée sous « ${h.name} », dans le dossier que vous avez choisi.`,'💾 Sauvegarde effectuée','💾');
+      }catch(err){
+        if(err.name==='AbortError') return;                 // annulé par l'utilisateur
+        downloadSave(json,suggested,'⚠ Enregistrement direct impossible ('+err.message+') : le fichier a été téléchargé.');
+      }
+    })();
+  } else {
+    let name=prompt("Nom du fichier de sauvegarde :\n(votre navigateur le déposera dans son dossier de téléchargements)",suggested);
+    if(name===null) return;
+    downloadSave(json,name.trim()||suggested);
+  }
+}
+
+function downloadSave(json,name,warn){
+  if(!/\.json$/i.test(name)) name+='.json';
+  try{
+    const blob=new Blob([json],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+    lastSaveName=name; hideVal();
+    showDialog((warn?warn+'\n\n':'')+`Partie enregistrée sous « ${name} », dans le dossier de téléchargements de votre navigateur.`,
+               '💾 Sauvegarde effectuée','💾');
+  }catch(err){ showVal('⚠ Sauvegarde impossible : '+err.message); }
+}
+
+function loadGame(text){
+  let d;
+  try{ d=JSON.parse(text); }catch(e){ showVal("⚠ Fichier illisible : ce n'est pas une sauvegarde valide."); return; }
+  if(!d||d.app!=='taquin'||!Array.isArray(d.tiles)||!d.rows||!d.cols){ showVal("⚠ Ce fichier n'est pas une sauvegarde de Taquin."); return; }
+  if(d.tiles.length!==d.rows*d.cols-1||!d.blank){ showVal('⚠ Sauvegarde incomplète ou corrompue.'); return; }
+  if(d.theme==='image'&&d.image&&d.image.data){
+    const img=new Image();
+    img.onload=()=>{ imgPicture={name:d.image.name||'image',url:d.image.data,img}; updateImgInfo(); applyLoaded(d); };
+    img.onerror=()=>showVal("⚠ L'image contenue dans la sauvegarde est illisible.");
+    img.src=d.image.data;
+  } else applyLoaded(d);
+}
+
+function applyLoaded(d){
+  clearTimers(); overlay.classList.remove('show');
+  const rows=d.rows, cols=d.cols;
+  $('inp-rows').value=rows; $('inp-cols').value=cols;
+  $('sel-theme').value=d.theme||'numbers'; refreshThemeUI();
+  $('sel-click').value=d.clickMode||'click';
+  keyMap=(d.keyMap&&d.keyMap.up)?{...d.keyMap}:{...ARROWS};
+
+  const imageMode=(d.theme==='image')&&!!imgPicture;
+  const tiles=d.tiles.map((t,i)=>{
+    const tile={ num:t.num, sym:t.sym||'', home:{r:Math.floor(i/cols),c:i%cols}, r:t.r, c:t.c, el:null };
+    tile.html=imageMode?`<div class="tile-badge">${tile.num}</div>`:tileHtml(tile.num,tile.sym);
+    return tile;
+  });
+  const board=Array.from({length:rows},()=>Array(cols).fill(null));
+  let bad=false;
+  tiles.forEach(t=>{ if(t.r<0||t.r>=rows||t.c<0||t.c>=cols||board[t.r][t.c]) bad=true; else board[t.r][t.c]=t; });
+  if(bad||board[d.blank.r][d.blank.c]){ showVal('⚠ Positions incohérentes dans la sauvegarde.'); return; }
+
+  grid.innerHTML='';
+  state={...state, rows, cols, tiles, board, blank:{...d.blank},
+    moves:d.moves|0, placed:0, total:tiles.length, elapsed:d.elapsed|0,
+    mixLevel:MIX_LEVEL, clickMode:d.clickMode||'click',
+    started:true, imageMode, picture:imgPicture};
+
+  const off=d.showNums===false;
+  grid.classList.toggle('hide-nums',off); previewGrid.classList.toggle('hide-nums',off);
+  $('btn-num-toggle').classList.toggle('off',off);
+
+  stMoves.textContent=state.moves;
+  paintKeys();
+  renderGrid(); buildPreview(); refreshPlaced(); refreshVisual();
+  /* la fenêtre de confirmation et la barre de message modifient la hauteur utile :
+     on re-dimensionne une fois la mise en page définitive */
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(state.tiles.length){ renderGrid(); refreshVisual(); }
+  }));
+  startTimer(state.elapsed);
+  const dt=d.savedAt?new Date(d.savedAt):null;
+  hideVal();
+  showDialog(
+    `Partie rechargée${dt?`, sauvegardée le ${dt.toLocaleDateString('fr-FR')} à ${dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:''}.\n`+
+    `Grille ${d.rows}×${d.cols} — ${state.moves} coup(s) joué(s), ${Math.floor(state.elapsed/60)} min ${state.elapsed%60} s écoulées. Bonne continuation !`,
+    '📂 Partie rechargée','🧩');
+  checkVictory();
+}
+
+$('btn-save').addEventListener('click',saveGame);
+$('btn-load').addEventListener('click',()=>$('inp-save').click());
+$('inp-save').addEventListener('change',e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>loadGame(fr.result);
+  fr.onerror=()=>showVal('⚠ Impossible de lire ce fichier.');
+  fr.readAsText(f);
+});
+
+function clearTimers(){ clearInterval(state.timerInterval); state.timerInterval=null; }
+
+window.addEventListener('resize',()=>{
+  if(!state.tiles.length) return;
+  renderGrid();
+  buildPreview();
+});
+</script>
+</body>
+</html>

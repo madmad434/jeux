@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/webp" href="assets/favicons/jeux.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeux — menu</title>
+<style>
+/* ═══ CHARTE GRAPHIQUE (identique a assets/css/charte.css) ═══════════════ */
+:root{
+  --bl:#C2F6FF; --bl-strong:#A5EEFD; --bl-pale:#E1F4FF;
+  --bd:#38B6FF; --bd-hover:#1E9BE0; --deep:#0B4E75; --deep-soft:#2A6E96;
+  --white:#fff; --border:#8FDCFF; --border-soft:#D6F2FF;
+  --green:#16a34a; --red:#dc2626; --gold:#f59e0b; --grey:#7c8fa6;
+  --radius:14px; --radius-sm:9px; --radius-lg:22px;
+  --shadow:0 2px 12px rgba(0,80,130,.15);
+  --shadow-lift:0 12px 28px rgba(0,70,120,.26);
+  --t:.22s cubic-bezier(.3,.8,.4,1);
+  --font:'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh; font-family:var(--font); color:var(--deep);
+  background:
+    radial-gradient(1100px 520px at 12% -12%, #E8FCFF 0%, transparent 62%),
+    radial-gradient(900px 480px at 92% 8%, #D3F8FF 0%, transparent 58%),
+    var(--bl);
+  padding-bottom:44px;
+}
+
+/* ═══ BANDEAU ═══════════════════════════════════════════════════════════ */
+.bar{
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  background:var(--bd); color:var(--white);
+  padding:14px clamp(16px,4vw,44px);
+  box-shadow:0 3px 14px rgba(0,70,120,.22); position:relative; z-index:5;
+}
+.mark{display:flex; align-items:center; gap:12px}
+.mark svg{display:block}
+.mark h1{font-size:1.55rem; font-weight:800; letter-spacing:.4px; line-height:1}
+.mark span{display:block; font-size:.78rem; font-weight:600; opacity:.9; margin-top:3px}
+.bar-side{margin-left:auto; display:flex; align-items:center; gap:14px; font-size:.82rem; font-weight:600}
+.switch{display:flex; align-items:center; gap:7px; cursor:pointer; user-select:none;
+  background:rgba(255,255,255,.16); padding:7px 13px; border-radius:999px}
+.switch:hover{background:rgba(255,255,255,.26)}
+.switch input{width:15px; height:15px; accent-color:var(--deep); cursor:pointer}
+
+/* ═══ MISE EN PAGE ══════════════════════════════════════════════════════ */
+main{max-width:1180px; margin:0 auto; padding:0 clamp(16px,4vw,44px)}
+.lead{margin:26px 0 18px; font-size:1.02rem; color:var(--deep-soft); max-width:56ch; line-height:1.55}
+.lead b{color:var(--deep); font-weight:800}
+
+.grid{list-style:none; display:grid; gap:18px;
+  grid-template-columns:repeat(auto-fill,minmax(248px,1fr))}
+
+/* ═══ TUILE DE LANCEMENT ════════════════════════════════════════════════ */
+.card{
+  --accent:var(--bd);
+  position:relative; display:flex; flex-direction:column; height:100%;
+  text-decoration:none; color:inherit; overflow:hidden;
+  background:var(--white); border:1px solid var(--border-soft);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow);
+  transition:transform var(--t), box-shadow var(--t), border-color var(--t);
+}
+.card::before{content:""; position:absolute; inset:0 0 auto 0; height:6px; background:var(--accent)}
+.card:hover,.card:focus-visible{
+  transform:translateY(-5px); box-shadow:var(--shadow-lift); border-color:var(--accent);
+}
+.card:focus-visible{outline:3px solid var(--deep); outline-offset:3px}
+.card:active{transform:translateY(-1px)}
+
+.key{
+  position:absolute; top:16px; right:16px; z-index:2;
+  width:26px; height:26px; border-radius:8px;
+  background:var(--bl-pale); color:var(--deep-soft);
+  font-size:.82rem; font-weight:800; display:grid; place-items:center;
+}
+.card:hover .key,.card:focus-visible .key{background:var(--accent); color:var(--white)}
+
+.art{
+  display:grid; place-items:center; padding:22px 16px 10px; overflow:hidden;
+  background:linear-gradient(175deg,var(--bl-pale) 0%,#fff 100%);
+}
+.art svg{width:132px; height:96px; display:block; overflow:visible}
+
+.body{padding:14px 20px 20px; display:flex; flex-direction:column; gap:6px; flex:1}
+.name{font-size:1.16rem; font-weight:800; letter-spacing:.2px}
+.desc{font-size:.87rem; line-height:1.5; color:var(--deep-soft); flex:1}
+.file{
+  margin-top:8px; font-size:.72rem; font-weight:700; color:var(--accent);
+  background:var(--bl-pale); border-radius:6px; padding:5px 9px;
+  align-self:flex-start; overflow-wrap:anywhere; line-height:1.35;
+}
+
+/* ═══ ILLUSTRATIONS ANIMEES ═════════════════════════════════════════════ */
+.mv{transition:transform .38s cubic-bezier(.34,1.4,.5,1), opacity .3s ease, fill .3s ease}
+
+/* Taquin : la case 8 glisse dans le trou */
+.card:hover .tq-slide,.card:focus-visible .tq-slide{transform:translateX(-32px)}
+.card:hover .tq-hole,.card:focus-visible .tq-hole{transform:translateX(32px)}
+
+/* Puzzle : la piece manquante vient se loger */
+.card:hover .pz-piece,.card:focus-visible .pz-piece{transform:translate(0,0) rotate(0deg)}
+
+/* Puzzle 60 : les fragments se rassemblent */
+.card:hover .pz60 rect,.card:focus-visible .pz60 rect{transform:translate(0,0); opacity:1}
+
+/* Memoire : la carte se retourne */
+.mm-flip{transform-box:fill-box; transform-origin:center}
+.card:hover .mm-flip,.card:focus-visible .mm-flip{transform:scaleX(-1)}
+.card:hover .mm-back,.card:focus-visible .mm-back{opacity:0}
+.card:hover .mm-face,.card:focus-visible .mm-face{opacity:1; transition-delay:.19s}
+
+/* Motus : les cases se colorent une a une */
+.card:hover .mo-1,.card:focus-visible .mo-1{fill:var(--green)}
+.card:hover .mo-2,.card:focus-visible .mo-2{fill:var(--grey); transition-delay:.09s}
+.card:hover .mo-3,.card:focus-visible .mo-3{fill:var(--green); transition-delay:.18s}
+.card:hover .mo-4,.card:focus-visible .mo-4{fill:var(--red);  transition-delay:.27s}
+.card:hover .mo-5,.card:focus-visible .mo-5{fill:var(--green); transition-delay:.36s}
+.card:hover .mo-t,.card:focus-visible .mo-t{fill:#fff}
+
+/* Anagramme : les lettres se remettent droites */
+.card:hover .an g,.card:focus-visible .an g{transform:translate(0,0) rotate(0deg)}
+
+/* Mots masques : le cache coulisse et devoile le mot */
+.card:hover .mk-cover,.card:focus-visible .mk-cover{transform:translateX(56px); opacity:0}
+.card:hover .mk-word,.card:focus-visible .mk-word{opacity:1; transition-delay:.14s}
+
+/* ═══ OUTILS ════════════════════════════════════════════════════════════ */
+.tools{margin-top:40px}
+.tools h2{font-size:1.08rem; font-weight:800; margin-bottom:6px}
+.tools p{font-size:.88rem; color:var(--deep-soft); margin-bottom:16px; max-width:60ch; line-height:1.5}
+.tool-grid{list-style:none; display:grid; gap:11px;
+  grid-template-columns:repeat(auto-fill,minmax(292px,1fr))}
+.tool{
+  display:flex; align-items:center; gap:13px; text-decoration:none; color:inherit;
+  background:rgba(255,255,255,.72); border:1px solid var(--border);
+  border-left:5px solid var(--bd); border-radius:var(--radius-sm);
+  padding:12px 15px; transition:background var(--t), transform var(--t), border-left-color var(--t);
+}
+.tool:hover,.tool:focus-visible{background:var(--white); transform:translateX(4px); border-left-color:var(--gold)}
+.tool:focus-visible{outline:3px solid var(--deep); outline-offset:2px}
+.tool-ico{font-size:1.3rem; line-height:1; flex-shrink:0}
+.tool-txt strong{display:block; font-size:.94rem; font-weight:800}
+.tool-txt small{display:block; font-size:.73rem; color:var(--deep-soft); margin-top:2px; word-break:break-all}
+
+/* ═══ PIED ══════════════════════════════════════════════════════════════ */
+footer{max-width:1180px; margin:36px auto 0; padding:18px clamp(16px,4vw,44px) 0;
+  border-top:1px solid var(--border); font-size:.8rem; color:var(--deep-soft); line-height:1.6}
+kbd{background:var(--white); border:1px solid var(--border); border-bottom-width:2px;
+  border-radius:5px; padding:1px 6px; font-family:var(--font); font-weight:700; font-size:.76rem}
+
+@media (max-width:520px){
+  .bar-side{width:100%; margin-left:0}
+  .mark h1{font-size:1.3rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *,.mv{transition:none !important; animation:none !important}
+  .card:hover,.card:focus-visible{transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="mark">
+    <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true">
+      <rect x="1" y="1" width="36" height="36" rx="9" fill="#fff" opacity=".18"/>
+      <rect x="6"  y="6"  width="12" height="12" rx="3.5" fill="#fff"/>
+      <rect x="20" y="6"  width="12" height="12" rx="3.5" fill="#fff" opacity=".62"/>
+      <rect x="6"  y="20" width="12" height="12" rx="3.5" fill="#fff" opacity=".62"/>
+      <circle cx="26" cy="26" r="5.5" fill="#fff"/>
+    </svg>
+    <div>
+      <h1>Jeux</h1>
+      <span>7 jeux et 5 éditeurs, sur une seule page</span>
+    </div>
+  </div>
+  <div class="bar-side">
+    <label class="switch"><input type="checkbox" id="newtab"> Ouvrir dans un nouvel onglet</label>
+  </div>
+</header>
+
+<main>
+  <p class="lead">Clique sur une tuile pour lancer le jeu. Le retour ici se fait avec le
+    <b>bouton Précédent</b> du navigateur (ou en fermant l'onglet si tu coches l'option ci‑dessus).</p>
+
+  <ul class="grid">
+
+    <!-- 1 — TAQUIN -->
+    <li>
+      <a class="card" style="--accent:#1e3a7a" href="JeuTaquin/JeuTaquin.html" data-key="1">
+        <span class="key">1</span>
+        <span class="art">
+          <svg viewBox="0 0 132 96" aria-hidden="true">
+            <rect x="14" y="6" width="104" height="84" rx="10" fill="#1e3a7a"/>
+            <g font-family="inherit" font-size="14" font-weight="800" text-anchor="middle" fill="#1e3a7a">
+              <rect x="22" y="14" width="26" height="22" rx="5" fill="#fff"/><text x="35" y="30">1</text>
+              <rect x="54" y="14" width="26" height="22" rx="5" fill="#fff"/><text x="67" y="30">2</text>
+              <rect x="86" y="14" width="26" height="22" rx="5" fill="#fff"/><text x="99" y="30">3</text>
+              <rect x="22" y="40" width="26" height="22" rx="5" fill="#eef2fb"/><text x="35" y="56">4</text>
+              <rect x="54" y="40" width="26" height="22" rx="5" fill="#eef2fb"/><text x="67" y="56">5</text>
+              <rect x="86" y="40" width="26" height="22" rx="5" fill="#eef2fb"/><text x="99" y="56">6</text>
+              <rect class="tq-hole mv" x="22" y="66" width="26" height="22" rx="5" fill="#152d62"/>
+              <g class="tq-slide mv">
+                <rect x="54" y="66" width="26" height="22" rx="5" fill="#38B6FF"/>
+                <text x="67" y="82" fill="#fff">7</text>
+              </g>
+              <rect x="86" y="66" width="26" height="22" rx="5" fill="#eef2fb"/><text x="99" y="82">8</text>
+            </g>
+          </svg>
+        </span>
+        <span class="body">
+          <span class="name">Taquin</span>
+          <span class="desc">Fais glisser les cases une à une jusqu'à reconstituer l'image ou la suite de nombres.</span>
+          <span class="file">JeuTaquin/JeuTaquin.html</span>
+        </span>
+      </a>
+    </li>
+
+    <!-- 2 — PUZZLE -->
+    <li>
+      <a class="card" style="--accent:#38B6FF" href="JeuPuzzle/JeuPuzzle.html" data-key="2">
+        <span class="key">2</span>
+        <span class="art">
+          <svg viewBox="0 0 132 96" aria-hidden="true">
+            <rect x="12" y="10" width="104" height="76" rx="10" fill="#C2F6FF" stroke="#8fd6f5" stroke-width="2"/>
+            <rect x="17" y="15" width="44" height="32" rx="6" fill="#38B6FF"/>
+            <rect x="17" y="49" width="44" height="32" rx="6" fill="#7DD8F7"/>
+            <rect x="63" y="49" width="44" height="32" rx="6" fill="#2394D6"/>
+            <circle cx="61" cy="31" r="6" fill="#38B6FF"/>
+            <circle cx="39" cy="49" r="6" fill="#7DD8F7"/>
+            <circle cx="85" cy="49" r="6" fill="#2394D6"/>
+            <rect x="63" y="15" width="44" height="32" rx="6" fill="none"
+                  stroke="#38B6FF" stroke-width="2" stroke-dasharray="5 4" opacity=".55"/>
+            <g class="pz-piece mv" transform="translate(21,-3) rotate(9 85 31)">
+              <rect x="63" y="15" width="44" height="32" rx="6" fill="#1E9BE0"/>
+              <circle cx="85" cy="47" r="6" fill="#1E9BE0"/>
+            </g>
+          </svg>
+        </span>
+        <span class="body">
+          <span class="name">Puzzle</span>
+          <span class="desc">Charge une de tes photos et remets les pièces en place, du plus simple au plus corsé.</span>
+          <span class="file">JeuPuzzle/JeuPuzzle.html</span>
+        </span>
+      </a>
+    </li>
+
+    <!-- 3 — PUZZLE 60 PIECES -->
+    <li>
+      <a class="card" style="--accent:#2394D6" href="JeuPuzzle/JeuPuzzle60piecesMax.html" data-key="3">
+        <span class="key">3</span>
+        <span class="art">
+          <svg viewBox="0 0 132 96" class="pz60" aria-hidden="true">
+            <rect x="14" y="8" width="104" height="80" rx="9" fill="#0B4E75" opacity=".08"/>
+            <g class="mv">
+              <rect class="mv" x="20" y="14" width="16" height="16" rx="3" fill="#38B6FF" transform="translate(-9,-6)" opacity=".55"/>
+              <rect class="mv" x="38" y="14" width="16" height="16" rx="3" fill="#7DD8F7" transform="translate(6,-10)" opacity=".55"/>
+              <rect class="mv" x="56" y="14" width="16" height="16" rx="3" fill="#38B6FF" transform="translate(10,-4)" opacity=".55"/>
+              <rect class="mv" x="74" y="14" width="16" height="16" rx="3" fill="#A5EEFD" transform="translate(12,2)" opacity=".55"/>
+              <rect class="mv" x="92" y="14" width="16" height="16" rx="3" fill="#2394D6" transform="translate(7,-7)" opacity=".55"/>
+              <rect class="mv" x="20" y="32" width="16" height="16" rx="3" fill="#7DD8F7" transform="translate(-11,4)" opacity=".55"/>
+              <rect class="mv" x="38" y="32" width="16" height="16" rx="3" fill="#2394D6" transform="translate(-4,9)" opacity=".55"/>
+              <rect class="mv" x="56" y="32" width="16" height="16" rx="3" fill="#A5EEFD" transform="translate(2,11)" opacity=".55"/>
+              <rect class="mv" x="74" y="32" width="16" height="16" rx="3" fill="#38B6FF" transform="translate(9,6)" opacity=".55"/>
+              <rect class="mv" x="92" y="32" width="16" height="16" rx="3" fill="#7DD8F7" transform="translate(14,1)" opacity=".55"/>
+              <rect class="mv" x="20" y="50" width="16" height="16" rx="3" fill="#2394D6" transform="translate(-12,-2)" opacity=".55"/>
+              <rect class="mv" x="38" y="50" width="16" height="16" rx="3" fill="#A5EEFD" transform="translate(-5,10)" opacity=".55"/>
+              <rect class="mv" x="56" y="50" width="16" height="16" rx="3" fill="#38B6FF" transform="translate(4,12)" opacity=".55"/>
+              <rect class="mv" x="74" y="50" width="16" height="16" rx="3" fill="#7DD8F7" transform="translate(11,9)" opacity=".55"/>
+              <rect class="mv" x="92" y="50" width="16" height="16" rx="3" fill="#38B6FF" transform="translate(15,-5)" opacity=".55"/>
+              <rect class="mv" x="20" y="68" width="16" height="16" rx="3" fill="#A5EEFD" transform="translate(-7,9)" opacity=".55"/>
+              <rect class="mv" x="38" y="68" width="16" height="16" rx="3" fill="#38B6FF" transform="translate(1,14)" opacity=".55"/>
+              <rect class="mv" x="56" y="68" width="16" height="16" rx="3" fill="#7DD8F7" transform="translate(7,11)" opacity=".55"/>
+              <rect class="mv" x="74" y="68" width="16" height="16" rx="3" fill="#2394D6" transform="translate(12,6)" opacity=".55"/>
+              <rect class="mv" x="92" y="68" width="16" height="16" rx="3" fill="#A5EEFD" transform="translate(16,10)" opacity=".55"/>
+            </g>
+          </svg>
+        </span>
+        <span class="body">
+          <span class="name">Puzzle — 60 pièces</span>
+          <span class="desc">La variante allégée : même principe, avec un découpage limité à 60 pièces maximum.</span>
+          <span class="file">JeuPuzzle/JeuPuzzle60piecesMax.html</span>
+        </span>
+      </a>
+    </li>
+
+    <!-- 4 — MEMOIRE -->
+    <li>
+      <a class="card" style="--accent:#16a34a" href="JeuMemoire/JeuMemoire.html" data-key="4">
+        <span class="key">4</span>
+        <span class="art">
+          <svg viewBox="0 0 132 96" aria-hidden="true">
+            <g transform="translate(20,12) rotate(-6 26 36)">
+              <rect width="46" height="66" rx="8" fill="#16a34a"/>
+              <circle cx="23" cy="33" r="12" fill="#d1fae5"/>
+              <path d="M17 33h12M23 27v12" stroke="#16a34a" stroke-width="3.4" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(66,12)"><g class="mm-flip mv">
+              <rect class="mm-back mv" width="46" height="66" rx="8" fill="#38B6FF"/>
+              <rect class="mm-face mv" width="46" height="66" rx="8" fill="#16a34a" opacity="0"/>
+              <circle class="mm-face mv" cx="23" cy="33" r="12" fill="#d1fae5" opacity="0"/>
+              <path class="mm-face mv" d="M17 33h12M23 27v12" stroke="#16a34a" stroke-width="3.4" stroke-linecap="round" opacity="0"/>
+              <path class="mm-back mv" d="M14 20h18M14 33h18M14 46h18" stroke="#fff" stroke-width="3.4" stroke-linecap="round" opacity=".75"/>
+            </g></g>
+          </svg>
+        </span>
+        <span class="body">
+          <span class="name">Mémoire</span>
+          <span class="desc">Retourne les cartes deux par deux et retrouve toutes les paires en un minimum de coups.</span>
+          <span class="file">JeuMemoire/JeuMemoire.html</span>
+        </span>
+      </a>
+    </li>
+
+    <!-- 5 — MOTUS -->
+    <li>
+      <a class="card" style="--accent:#1565c0" href="JeuMotus/jeumotus.html" data-key="5">
+        <span class="key">5</span>
+        <span class="art">
+          <svg viewBox="0 0 132 96" class="mo" aria-hidden="true">
+            <g font-size="16" font-weight="800" text-anchor="middle" font-family="inherit">
+              <rect class="mo-1 mv" x="3"   y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
+              <rect class="mo-2 mv" x="29"  y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
+              <rect class="mo-3 mv" x="55"  y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
+              <rect class="mo-4 mv" x="81"  y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
+              <rect class="mo-5 mv" x="107" y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
+              <text class="mo-t mv" x="14"  y="36" fill="#0a2540">M</text>
+              <text class="mo-t mv" x="40"  y="36" fill="#0a2540">O</text>
+              <text class="mo-t mv" x="66"  y="36" fill="#0a2540">T</text>
+              <text class="mo-t mv" x="92"  y="36" fill="#0a2540">U</text>
+              <text class="mo-t mv" x="118" y="36" fill="#0a2540">S</text>
+              <rect x="3"   y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
+              <rect x="29"  y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
+              <rect x="55"  y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
+              <rect x="81"  y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
+              <rect x="107" y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
+            </g>
+          </svg>
+        </span>
+        <span class="body">
+          <span class="name">Motus</span>
+          <span class="desc">Devine le mot caché en six essais : chaque lettre te dit si elle est bien placée.</span>
+          <span class="file">JeuMotus/jeumotus.html</span>
+        </span>
+      </a>
+    </li>
+
+    <!-- 6 — ANAGRAMME -->
+    <li>
+      <a class="card" style="--accent:#d97706" href="JeuAnagramme/JeuAnagramme.html" data-key="6">
+        <span class="key">6</span>
+        <span class="art">
+          <svg viewBox="0 0 132 96" class="an" aria-hidden="true">
+            <g font-size="18" font-weight="800" text-anchor="middle" font-family="inherit" fill="#7a4a05">
+              <g class="mv" transform="translate(3,-7) rotate(-13 18 48)">
+                <rect x="4" y="32" width="28" height="32" rx="6" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+                <text x="18" y="54">A</text>
+              </g>
+              <g class="mv" transform="translate(-4,8) rotate(11 50 48)">
+                <rect x="36" y="32" width="28" height="32" rx="6" fill="#fcd34d" stroke="#f59e0b" stroke-width="2"/>
+                <text x="50" y="54">N</text>
+              </g>
+              <g class="mv" transform="translate(5,-5) rotate(-8 82 48)">
+                <rect x="68" y="32" width="28" height="32" rx="6" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+                <text x="82" y="54">A</text>
+              </g>
+              <g class="mv" transform="translate(-5,6) rotate(14 114 48)">
+                <rect x="100" y="32" width="28" height="32" rx="6" fill="#fcd34d" stroke="#f59e0b" stroke-width="2"/>
+                <text x="114" y="54">G</text>
+              </g>
+            </g>
+          </svg>
+        </span>
+        <span class="body">
+          <span class="name">Anagrammes</span>
+          <span class="desc">Des lettres en désordre, un mot à reconstruire. Les listes viennent de tes fichiers XML.</span>
+          <span class="file">JeuAnagramme/JeuAnagramme.html</span>
+        </span>
+      </a>
+    </li>
+
+    <!-- 7 — MOTS MASQUES -->
+    <li>
+      <a class="card" style="--accent:#0a6ea0" href="JeuMotsMasques/JeuMotsMasques.html" data-key="7">
+        <span class="key">7</span>
+        <span class="art">
+          <svg viewBox="0 0 132 96" aria-hidden="true">
+            <rect x="6" y="4" width="120" height="88" rx="10" fill="#fff" stroke="#8FDCFF" stroke-width="2"/>
+            <g fill="#C2F6FF">
+              <rect x="16" y="16" width="42" height="10" rx="5"/>
+              <rect x="63" y="16" width="28" height="10" rx="5"/>
+              <rect x="96" y="16" width="20" height="10" rx="5"/>
+              <rect x="16" y="56" width="30" height="10" rx="5"/>
+              <rect x="51" y="56" width="46" height="10" rx="5"/>
+              <rect x="16" y="72" width="54" height="10" rx="5"/>
+              <rect x="75" y="72" width="24" height="10" rx="5"/>
+            </g>
+            <rect class="mk-word mv" x="16" y="34" width="84" height="16" rx="7" fill="#16a34a" opacity="0"/>
+            <text class="mk-word mv" x="58" y="46" text-anchor="middle" font-size="11" font-weight="800"
+                  font-family="inherit" fill="#fff" opacity="0">TROUVÉ</text>
+            <rect class="mk-cover mv" x="16" y="34" width="84" height="16" rx="7" fill="#0a6ea0"/>
+            <rect class="mk-cover mv" x="102" y="56" width="14" height="10" rx="5" fill="#0a6ea0"/>
+          </svg>
+        </span>
+        <span class="body">
+          <span class="name">Mots masqués</span>
+          <span class="desc">Un texte, des mots effacés : retrouve‑les pour révéler la citation en entier.</span>
+          <span class="file">JeuMotsMasques/JeuMotsMasques.html</span>
+        </span>
+      </a>
+    </li>
+
+  </ul>
+
+  <section class="tools">
+    <h2>Préparer le contenu des jeux</h2>
+    <p>Ces éditeurs créent et modifient les fichiers XML utilisés par Motus, Anagrammes et Mots masqués.
+       Enregistre le fichier obtenu, puis charge‑le depuis le jeu.</p>
+    <ul class="tool-grid">
+      <li><a class="tool" href="JeuMotus/FichiersMots/EditeurXMLJeuMotus.html">
+        <span class="tool-ico" aria-hidden="true">🎯</span>
+        <span class="tool-txt"><strong>Mots de Motus</strong><small>JeuMotus/FichiersMots/EditeurXMLJeuMotus.html</small></span></a></li>
+      <li><a class="tool" href="JeuMotus/FichiersMots/EditeurXMLJeuMotusExpert.html">
+        <span class="tool-ico" aria-hidden="true">🛠️</span>
+        <span class="tool-txt"><strong>Mots de Motus — mode expert</strong><small>JeuMotus/FichiersMots/EditeurXMLJeuMotusExpert.html</small></span></a></li>
+      <li><a class="tool" href="JeuAnagramme/Mots/editeurAnagrammexmldebutant.html">
+        <span class="tool-ico" aria-hidden="true">🔤</span>
+        <span class="tool-txt"><strong>Listes d'anagrammes</strong><small>JeuAnagramme/Mots/editeurAnagrammexmldebutant.html</small></span></a></li>
+      <li><a class="tool" href="JeuMotsMasques/Textes/EditeurXMLCitations.html">
+        <span class="tool-ico" aria-hidden="true">📖</span>
+        <span class="tool-txt"><strong>Citations et textes</strong><small>JeuMotsMasques/Textes/EditeurXMLCitations.html</small></span></a></li>
+      <li><a class="tool" href="JeuMotsMasques/Textes/EditeurXMLCitationsExpert.html">
+        <span class="tool-ico" aria-hidden="true">🧰</span>
+        <span class="tool-txt"><strong>Citations et textes — mode expert</strong><small>JeuMotsMasques/Textes/EditeurXMLCitationsExpert.html</small></span></a></li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  Raccourcis : tape <kbd>1</kbd> à <kbd>7</kbd> pour lancer un jeu directement.
+  Les images du puzzle sont dans <b>JeuPuzzle/Images</b>, les listes de mots dans les dossiers
+  <b>Mots</b>, <b>FichiersMots</b> et <b>Textes</b> de chaque jeu.
+</footer>
+
+<script>
+(function(){
+  var box = document.getElementById('newtab');
+  var cards = document.querySelectorAll('a[href$=".html"]');
+
+  function apply(on){
+    cards.forEach(function(a){
+      if(on){ a.target = '_blank'; a.rel = 'noopener'; }
+      else  { a.removeAttribute('target'); a.removeAttribute('rel'); }
+    });
+    try{ localStorage.setItem('jeux.newtab', on ? '1' : '0'); }catch(e){}
+  }
+
+  try{ box.checked = localStorage.getItem('jeux.newtab') === '1'; }catch(e){}
+  apply(box.checked);
+  box.addEventListener('change', function(){ apply(box.checked); });
+
+  document.addEventListener('keydown', function(e){
+    if(e.ctrlKey || e.altKey || e.metaKey) return;
+    if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+    var t = document.querySelector('.card[data-key="' + e.key + '"]');
+    if(t){ e.preventDefault(); t.click(); }
+  });
+})();
+</script>
+</body>
+</html>
