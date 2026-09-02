@@ -18,6 +18,8 @@ RACINE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # cle de bibliotheque -> (dossier a scanner, extensions acceptees)
 SOURCES = {
+    "quizz":        ("JeuQuizz/Questionnaires",     (".xml",)),
+    "editeurquizz": ("JeuQuizz/Questionnaires",     (".xml",)),
     "jeudemot":     ("JeuDeMot/FichiersMots",      (".xml",)),
     "editeurmot":   ("JeuDeMot/FichiersMots",      (".xml",)),
     "anagramme":    ("JeuAnagramme/Mots",         (".xml",)),

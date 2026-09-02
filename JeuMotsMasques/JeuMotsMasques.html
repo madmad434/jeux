@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jeu des Mots 🎮</title>
+<title>Mots masqués</title>
 <link rel="icon" type="image/webp" href="../assets/favicons/jeux.webp">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -75,7 +75,8 @@
     align-items: center;
     justify-content: center;
     padding: 32px 20px;
-    gap: 28px;
+    gap: 14px;
+    padding: 12px;
     background: var(--bd);
   }
   #home-screen.active { display:flex; }
@@ -84,7 +85,7 @@
     background: var(--bl);
     border-radius: 24px;
     box-shadow: var(--shadow);
-    padding: 40px 48px;
+    padding: 18px 34px 16px;
     max-width: 540px;
     width: 100%;
     text-align: center;
@@ -101,7 +102,8 @@
   }
 
   .home-title {
-    font-size: 2.6rem;
+    line-height:1.15;
+    font-size: 2rem;
     font-weight: 900;
     color: var(--bd-hover);
     margin-bottom: 8px;
@@ -109,9 +111,9 @@
   }
 
   .home-sub {
-    font-size: 1.05rem;
+    font-size: .95rem;
     color: var(--text-soft);
-    margin-bottom: 24px;
+    margin-bottom: 14px;
   }
 
   .score-badge {
@@ -119,19 +121,19 @@
     background: var(--bd);
     border: 2px solid var(--bd-hover);
     border-radius: 50px;
-    padding: 8px 24px;
-    font-size: 1.1rem;
+    padding: 6px 20px;
+    font-size: 1rem;
     font-weight: 800;
     color: #fff;
-    margin-bottom: 24px;
+    margin-bottom: 14px;
   }
 
   .load-status {
     font-size: 0.9rem;
     font-weight: 700;
-    padding: 10px 16px;
+    padding: 8px 14px;
     border-radius: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     background: var(--bd-pale);
     border: 1px solid var(--border);
     color: var(--bd-hover);
@@ -141,7 +143,7 @@
   .home-actions {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 9px;
   }
 
   /* ===== BUTTONS ===== */
@@ -150,7 +152,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 13px 26px;
+    padding: 11px 24px;
     border-radius: 12px;
     border: none;
     cursor: pointer;
@@ -573,6 +575,32 @@
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-thumb { background: var(--bl-strong); border-radius: 4px; }
   .dragging { opacity: 0.4; }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+
+/* Icône du jeu, dans le titre de l'accueil et dans la barre de jeu.
+   Elle contient du texte : en dessous d'une soixantaine de pixels, la bulle
+   n'est plus lisible, d'où une taille volontairement généreuse. */
+.home-title{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.titre-icone{
+  height:64px; width:64px; flex-shrink:0;
+  border-radius:10px; box-shadow:0 2px 8px rgba(0,60,110,.22);
+}
+.game-title{display:flex;align-items:center;gap:9px}
+.game-title .titre-icone{height:30px; width:30px; border-radius:6px; box-shadow:none}
 </style>
 </head>
 <body>
@@ -580,8 +608,8 @@
 <!-- ===== HOME ===== -->
 <div id="home-screen" class="screen active">
   <div class="home-card">
-    <div class="home-logo">JF · Jeux Éducatifs</div>
-    <div class="home-title">🎮 Jeu des Mots</div>
+    <div class="home-logo">Jeux Éducatifs</div>
+    <div class="home-title"><img class="titre-icone" src="../assets/img/mots-masques.png" alt="" aria-hidden="true"> Mots masqués</div>
     <div class="home-sub">Retrouve les mots manquants dans des textes et des proverbes</div>
     <div class="score-badge" id="home-score">⭐ Score : 0 points</div>
     <div class="load-status">
@@ -592,6 +620,7 @@
       <button class="btn btn-primary" onclick="startGame()">▶ Commencer le jeu</button>
       <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">📁 Choisir un fichier XML manuellement</button>
       <button class="btn btn-outline" onclick="showRules()">📜 Comment jouer ?</button>
+      <button class="btn btn-outline" id="btn-quitter-accueil" style="color:#c62828;border-color:#e57373">✕ Quitter</button>
     </div>
   </div>
 </div>
@@ -601,7 +630,7 @@
   <!-- Header -->
   <div class="game-header">
     <div class="header-left">
-      <div class="game-title">🎮 Jeu des Mots</div>
+      <div class="game-title"><img class="titre-icone" src="../assets/img/mots-masques.png" alt="" aria-hidden="true"> Mots masqués</div>
       <span class="badge badge-score" id="game-score">⭐ 0 pts</span>
       <span class="badge badge-texts" id="texts-count">📚 0 textes</span>
     </div>
@@ -610,6 +639,7 @@
       <button class="btn-hdr" onclick="showRules()">📜 Règles</button>
       <button class="btn-hdr" id="btn-skip" onclick="skipWord()">⏭ Passer</button>
       <button class="btn-hdr hidden" id="btn-next" onclick="nextText()">Suivant ▶</button>
+      <button class="btn-hdr" id="btn-quitter">✕ Quitter</button>
     </div>
   </div>
 
@@ -1373,5 +1403,9 @@ document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
 <script src="../assets/js/ressources.js"></script>
 <script src="../assets/js/bibliotheque.js" data-jeu="motsmasques" data-base="../"></script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="motsmasques" data-base="../"></script>
 </body>
 </html>

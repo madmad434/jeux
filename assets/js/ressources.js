@@ -1,5 +1,15 @@
 /* Genere par assets/js/generer-ressources.py — ne pas editer a la main. */
 window.__RESSOURCES__ = {
+  "quizz": [
+    "JeuQuizz/Questionnaires/Cinema_FR.xml",
+    "JeuQuizz/Questionnaires/Ecrivains_FR.xml",
+    "JeuQuizz/Questionnaires/Geographie.xml"
+  ],
+  "editeurquizz": [
+    "JeuQuizz/Questionnaires/Cinema_FR.xml",
+    "JeuQuizz/Questionnaires/Ecrivains_FR.xml",
+    "JeuQuizz/Questionnaires/Geographie.xml"
+  ],
   "jeudemot": [
     "JeuDeMot/FichiersMots/200mots.xml"
   ],
@@ -16,6 +26,8 @@ window.__RESSOURCES__ = {
     "JeuMotsMasques/Textes/NouveauxMots_10.xml"
   ],
   "puzzle": [
+    "JeuPuzzle/Images/Enneige.jpg",
+    "JeuPuzzle/Images/JFerry.jpg",
     "JeuPuzzle/Images/Rando01122025.JPG",
     "JeuPuzzle/Images/Rando01122025_1.jpg",
     "JeuPuzzle/Images/Rando01122025_2.jpeg",

@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/webp" href="../../assets/favicons/jeux.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔤 Gestionnaire Anagrammes XML v1.0</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a4a8a;--blue-mid:#2563eb;--blue-light:#3b82f6;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#86efac;
+  --red:#b91c1c;--red-bg:#fef2f2;--red-border:#fca5a5;
+  --orange:#c2410c;--orange-bg:#fff7ed;--orange-border:#fdba74;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#c4b5fd;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
+  --gray-400:#94a3b8;--gray-600:#475569;--gray-700:#334155;--gray-900:#0f172a;
+  --white:#ffffff;--radius:10px;--radius-sm:6px;
+  --shadow:0 2px 8px rgba(0,0,0,.08);
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;color:var(--gray-900);background:var(--gray-100)}
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--blue);flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.2);flex-wrap:wrap}
+.app-title{font-weight:800;color:#fff;font-size:17px;white-space:nowrap;letter-spacing:-.3px}
+.toolbar-sep{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px;flex-shrink:0}
+
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.statusbar{display:flex;align-items:center;gap:12px;padding:6px 16px;background:var(--white);border-top:2px solid var(--gray-200);font-size:13px;color:var(--gray-600);flex-shrink:0;flex-wrap:wrap}
+
+.btn{cursor:pointer;font-family:inherit;font-size:14px;border:2px solid transparent;border-radius:var(--radius-sm);padding:7px 15px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-white{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+.btn-white:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.6)}
+.btn-yellow{background:#fbbf24;color:#78350f;border-color:#f59e0b}
+.btn-yellow:hover{background:#f59e0b}
+.btn-green{background:#22c55e;color:#fff;border-color:#16a34a}
+.btn-green:hover{background:#16a34a}
+.btn-red{background:#ef4444;color:#fff;border-color:#dc2626}
+.btn-red:hover{background:#dc2626}
+.btn-gray{background:var(--white);color:var(--gray-700);border-color:var(--gray-300)}
+.btn-gray:hover{background:var(--gray-100)}
+.btn-blue{background:var(--blue-mid);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:var(--blue)}
+.btn-sm{font-size:12px;padding:5px 11px}
+.btn-lg{font-size:16px;padding:10px 22px;border-radius:var(--radius)}
+
+/* LIST */
+.list-section{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px 12px;min-height:0}
+.list-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap}
+.list-title{font-weight:700;font-size:14px;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px}
+.list-count{background:var(--blue-mid);color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}
+.list-filter{flex:1;max-width:280px;padding:6px 12px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:border .15s}
+.list-filter:focus{border-color:var(--blue-light)}
+.filter-len{padding:6px 10px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;outline:none;background:var(--white)}
+
+/* STATS */
+.stats-bar{display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);font-size:13px;color:var(--blue);font-weight:600;flex-shrink:0;margin-bottom:8px;flex-wrap:wrap}
+.stat-item{display:flex;align-items:center;gap:5px}
+.stat-sep{width:1px;height:16px;background:var(--blue-border)}
+
+/* TABLE */
+.word-table-wrap{flex:1;overflow-y:auto;border:2px solid var(--gray-200);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow)}
+.word-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.word-table th{background:var(--blue);color:#fff;font-size:13px;font-weight:700;padding:10px 12px;text-align:left;position:sticky;top:0;z-index:2;overflow:hidden}
+.word-table td{padding:9px 10px;border-bottom:1px solid var(--gray-100);font-size:14px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.word-table tr:last-child td{border-bottom:none}
+.word-table tr:hover td{background:var(--blue-bg)}
+.word-table tr.expanded td{background:var(--blue-bg)}
+.td-id{font-weight:700;color:var(--blue-mid);width:52px;min-width:52px}
+.td-len{width:80px;min-width:80px}
+.td-grp{width:80px;min-width:80px}
+.td-mots{font-size:13px;color:var(--gray-700)}
+.td-action{text-align:center;width:110px;min-width:110px}
+.len-badge{background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:20px;padding:2px 9px;font-size:12px;font-weight:700;color:var(--purple)}
+.expand-btn{background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:4px 10px;font-size:12px;font-weight:700;color:var(--blue-mid);cursor:pointer;transition:all .15s;white-space:nowrap}
+.expand-btn:hover{background:var(--blue-mid);color:#fff}
+.expand-btn.open{background:var(--blue-mid);color:#fff}
+
+/* EXPANDED */
+.expanded-row td{padding:0;overflow:visible;white-space:normal}
+.expanded-panel{padding:14px 16px;background:linear-gradient(to bottom,var(--blue-bg),#fafcff);border-top:2px solid var(--blue-border);display:flex;gap:16px;align-items:flex-start}
+.detail-fields{flex:1;min-width:0;display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:start}
+.df-label{font-size:12px;font-weight:700;color:var(--blue);text-align:right;white-space:nowrap;padding-right:2px;padding-top:10px}
+.df-value{background:var(--white);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:7px 12px;font-size:13px;font-weight:400;color:var(--gray-900);user-select:text;min-height:34px;word-break:break-word;white-space:normal}
+.mots-grid{display:flex;flex-wrap:wrap;gap:5px}
+.mot-tag{background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:20px;padding:3px 10px;font-size:13px;font-weight:700;color:var(--purple)}
+.expanded-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;justify-content:center;padding-top:2px}
+
+/* EMPTY */
+.empty-list{padding:40px;text-align:center;color:var(--gray-400)}
+.empty-list .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-list p{font-size:15px;line-height:1.6}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:10px}
+.modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:640px;max-height:96vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:11px 18px;background:var(--blue);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-radius:14px 14px 0 0}
+.modal-header h2{color:#fff;font-size:15px;font-weight:800}
+.modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:background .15s;flex-shrink:0}
+.modal-close:hover{background:rgba(255,255,255,.4)}
+.modal-body{overflow-y:auto;flex:1;min-height:0}
+.modal-footer{padding:10px 18px;border-top:2px solid var(--gray-100);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:var(--gray-50);border-radius:0 0 14px 14px}
+
+/* FORM */
+.form-body{padding:14px 18px}
+.form-section{margin-bottom:10px}
+.form-section label{display:block;font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:4px}
+.form-section label .req{color:var(--red)}
+.form-section input[type="text"],.form-section input[type="number"],.form-section select,.form-section textarea{width:100%;padding:6px 10px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;transition:border .15s;color:var(--gray-900);background:var(--white)}
+.form-section input:focus,.form-section select:focus,.form-section textarea:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:12px;color:var(--gray-400);margin-top:3px}
+
+/* MOTS EDITOR */
+.mots-editor{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.mot-input-row{display:flex;align-items:center;gap:6px}
+.mot-num{font-weight:800;color:var(--purple);min-width:22px;font-size:14px}
+.mot-input{flex:1;padding:6px 10px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;transition:border .15s}
+.mot-input:focus{border-color:var(--purple-border);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.btn-del-mot{background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--radius-sm);color:var(--red);cursor:pointer;padding:4px 8px;font-size:13px;font-weight:700;transition:all .15s}
+.btn-del-mot:hover{background:var(--red);color:#fff}
+.btn-add-mot{background:var(--green-bg);border:2px dashed var(--green-border);border-radius:var(--radius-sm);color:var(--green);cursor:pointer;padding:7px 14px;font-size:13px;font-weight:700;transition:all .15s;width:100%;margin-top:4px}
+.btn-add-mot:hover{background:var(--green);color:#fff;border-style:solid}
+
+/* STATUS */
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-weight:700;padding:3px 10px;border-radius:20px;font-size:13px}
+.status-clean{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.status-dirty{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+
+/* WELCOME */
+.welcome-area{padding:14px 14px 6px;flex-shrink:0}
+.welcome-box{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-mid) 100%);border-radius:var(--radius);padding:14px 18px;color:#fff;display:flex;align-items:center;gap:14px}
+.welcome-box .wb-icon{font-size:32px;flex-shrink:0}
+.welcome-box h2{font-size:15px;font-weight:800;margin-bottom:3px}
+.welcome-box p{font-size:13px;opacity:.85;line-height:1.5}
+.welcome-box .wb-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* META MODAL */
+.meta-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:start;padding:16px 20px}
+.meta-label{font-size:12px;font-weight:700;color:var(--blue);text-align:right;padding-top:8px;white-space:nowrap}
+.meta-value{background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius-sm);padding:6px 10px;font-size:13px;color:var(--gray-900);word-break:break-word}
+
+/* SAVE SUCCESS */
+.save-success-body{padding:20px;text-align:center}
+.save-success-icon{font-size:48px;margin-bottom:8px}
+.save-success-title{font-size:18px;font-weight:800;color:var(--green);margin-bottom:10px}
+.save-success-path{background:var(--green-bg);border:2px solid var(--green-border);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--green);font-weight:600;margin:8px 0;word-break:break-all;text-align:left;line-height:1.8}
+.save-success-path .path-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:block}
+
+/* TOAST */
+.toast-erreur{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);background:var(--red);color:#fff;border-radius:var(--radius);padding:14px 24px;font-size:15px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.35);z-index:9999;text-align:center;max-width:360px;line-height:1.5;pointer-events:none;animation:toastIn .2s ease forwards}
+.toast-erreur.toast-out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes toastOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(.85)}}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
+#fileInput{display:none}
+
+/* ── ASSISTANT PAS À PAS (même présentation que les autres éditeurs) ── */
+.wizard-steps{padding:0 20px 10px}
+.wizard-progress{display:flex;align-items:center;margin-bottom:20px;padding:16px 20px 0}
+.wiz-step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;transition:all .3s;border:3px solid var(--gray-200);color:var(--gray-400);background:var(--white)}
+.wiz-step-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.wiz-step-dot.current{background:var(--blue-mid);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-bg)}
+.wiz-connector{flex:1;height:3px;background:var(--gray-200)}
+.wiz-connector.done{background:var(--green)}
+.wiz-panel{display:none}
+.wiz-panel.active{display:block}
+.wiz-title{font-size:19px;font-weight:800;color:var(--blue);margin-bottom:6px}
+.wiz-sub{font-size:14px;color:var(--gray-600);margin-bottom:16px;line-height:1.6}
+.wiz-note{background:var(--orange-bg);border-left:4px solid var(--orange-border);padding:12px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--orange);line-height:1.6;margin-top:12px}
+.wiz-nav{display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:2px solid var(--gray-100);background:var(--gray-50)}
+.wiz-nav-counter{font-size:13px;color:var(--gray-400);flex:1}
+.wiz-recap{background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.wiz-mots{font-size:15px;line-height:1.9;font-weight:700;letter-spacing:1px;color:var(--blue)}
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="toolbar">
+    <span class="app-title">🔤 Anagrammes XML</span>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-white" onclick="openXML()">📂 Ouvrir</button>
+    <button class="btn btn-white" onclick="exportXML()">💾 Enregistrer</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-white btn-sm" id="btnMeta" onclick="openMetaModal()">📋 Métadonnées</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-yellow" id="btnAdd" onclick="newGroupeWizard()">➕ Nouveau groupe</button>
+    <button class="btn btn-white btn-sm" onclick="openAddModal()" title="Formulaire complet, sans guide">📋 Saisie directe</button>
+    <button class="btn btn-white btn-sm" onclick="resetConfig()">🔄 Réinitialiser</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-white btn-sm" onclick="showHelp()">❓ Aide</button>
+    <button class="btn btn-white btn-sm" id="btn-quitter">🚪 Quitter</button>
+  </div>
+
+  <div class="main-area">
+    <div class="welcome-area" id="welcomeArea">
+      <div class="welcome-box">
+        <div class="wb-icon">🔤</div>
+        <div style="flex:1">
+          <h2>Bienvenue dans le Gestionnaire d'Anagrammes XML</h2>
+          <p>Gérez vos groupes d'anagrammes au format XML. Commencez par ouvrir un fichier existant ou créez votre premier groupe.</p>
+          <div class="wb-actions">
+            <button class="btn btn-white btn-sm" onclick="openXML()">📂 Ouvrir un fichier XML</button>
+            <button class="btn btn-yellow btn-sm" onclick="newGroupeWizard()">➕ Créer mon premier groupe</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-header">
+        <span class="list-title">📋 Groupes</span>
+        <span class="list-count" id="listCount">0</span>
+        <input class="list-filter" type="text" placeholder="🔍 Rechercher un mot…" oninput="filterList(this.value)" id="filterInput">
+        <select class="filter-len" id="filterLen" onchange="filterList(document.getElementById('filterInput').value)">
+          <option value="">Toutes longueurs</option>
+        </select>
+      </div>
+
+      <div class="stats-bar" id="statsBar" style="display:none">
+        <div class="stat-item">📦 <strong id="statTotal">0</strong>&nbsp;groupe(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">🔠 <strong id="statMots">0</strong>&nbsp;mot(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">📏 Longueurs : <strong id="statLens">—</strong></div>
+        <div class="stat-sep" id="statFilterSep" style="display:none"></div>
+        <div class="stat-item" id="statFilterInfo" style="display:none">🔍&nbsp;<strong id="statFiltered">0</strong>&nbsp;résultat(s)</div>
+      </div>
+
+      <div class="word-table-wrap">
+        <table class="word-table">
+          <thead>
+            <tr>
+              <th style="width:55px">N°</th>
+              <th style="width:85px">Longueur</th>
+              <th style="width:75px">Groupe</th>
+              <th>Mots</th>
+              <th style="text-align:center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wordTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="status-badge status-clean" id="modifiedIndicator">✅ Aucune modification</span>
+    <span id="statusMsg" style="color:var(--gray-600)">Prêt</span>
+    <span style="flex:1"></span>
+    <span style="font-size:12px;color:var(--gray-400)">v1.0</span>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".xml" onchange="handleFileOpen(event)">
+
+<script>
+const MAX_GROUPES = 500;
+
+let groupesData = [];
+let metaData    = { titre: '', description: '', dictionnaire: '', lien: '', licence: '', regles: [] };
+let currentFilter  = '';
+let currentLenFilter = '';
+let modified    = false;
+let expandedRow = null;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function escX(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// ── XML PARSE ─────────────────────────────────────────────────────────────────
+function parseXML(xmlString) {
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(xmlString, 'text/xml');
+  if (doc.querySelector('parseerror,parsererror')) throw new Error('Fichier XML invalide ou corrompu.');
+
+  // Métadonnées
+  const meta = doc.querySelector('metadonnees');
+  if (meta) {
+    metaData.titre        = (meta.querySelector('titre')?.textContent||'').trim();
+    metaData.description  = (meta.querySelector('description')?.textContent||'').trim();
+    metaData.dictionnaire = (meta.querySelector('source dictionnaire')?.textContent||'').trim();
+    metaData.lien         = (meta.querySelector('source lien')?.textContent||'').trim();
+    metaData.licence      = (meta.querySelector('source licence')?.textContent||'').trim();
+    metaData.regles       = [...meta.querySelectorAll('regles regle')].map(r=>r.textContent.trim());
+    metaData.stats_total  = (meta.querySelector('statistiques total_groupes')?.textContent||'').trim();
+    metaData.stats_long   = (meta.querySelector('statistiques longueurs')?.textContent||'').trim();
+    metaData.stats_gpl    = (meta.querySelector('statistiques groupes_par_longueur')?.textContent||'').trim();
+  }
+
+  // Groupes d'anagrammes
+  const groupes = [];
+  let rowId = 1;
+  doc.querySelectorAll('anagramm').forEach(n => {
+    const mots = [...n.querySelectorAll('mot')].map(m=>m.textContent.trim()).filter(Boolean);
+    groupes.push({
+      rowId:    rowId++,
+      longueur: parseInt(n.getAttribute('longueur')||'0'),
+      groupe:   parseInt(n.getAttribute('groupe')||'0'),
+      mots:     mots
+    });
+  });
+  // Tri par longueur puis groupe
+  groupes.sort((a,b)=> a.longueur!==b.longueur ? a.longueur-b.longueur : a.groupe-b.groupe);
+  groupes.forEach((g,i)=>g.rowId=i+1);
+  return groupes;
+}
+
+// ── XML GENERATE ──────────────────────────────────────────────────────────────
+function generateXML() {
+  const total = groupesData.length;
+  const lens  = [...new Set(groupesData.map(g=>g.longueur))].sort((a,b)=>a-b);
+  const minL  = lens.length ? lens[0] : '';
+  const maxL  = lens.length ? lens[lens.length-1] : '';
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<anagrammes>\n\n`;
+  xml += `  <!-- ============================================================ -->\n`;
+  xml += `  <!-- MÉTADONNÉES                                                   -->\n`;
+  xml += `  <!-- ============================================================ -->\n`;
+  xml += `  <metadonnees>\n`;
+  xml += `    <titre>${escX(metaData.titre||'Anagrammes')}</titre>\n`;
+  xml += `    <description>${escX(metaData.description)}</description>\n`;
+  xml += `    <source>\n`;
+  xml += `      <dictionnaire>${escX(metaData.dictionnaire)}</dictionnaire>\n`;
+  xml += `      <lien>${escX(metaData.lien)}</lien>\n`;
+  xml += `      <licence>${escX(metaData.licence)}</licence>\n`;
+  xml += `    </source>\n`;
+  xml += `    <regles>\n`;
+  (metaData.regles||[]).forEach(r=>{xml+=`      <regle>${escX(r)}</regle>\n`;});
+  xml += `    </regles>\n`;
+  xml += `    <statistiques>\n`;
+  xml += `      <total_groupes>${total}</total_groupes>\n`;
+  xml += `      <longueurs>${minL && maxL ? minL+' à '+maxL+' lettres' : escX(metaData.stats_long||'')}</longueurs>\n`;
+  xml += `      <groupes_par_longueur>${escX(metaData.stats_gpl||'')}</groupes_par_longueur>\n`;
+  xml += `    </statistiques>\n`;
+  xml += `  </metadonnees>\n`;
+
+  // Regrouper par longueur
+  const byLen = {};
+  groupesData.forEach(g=>{
+    if (!byLen[g.longueur]) byLen[g.longueur] = [];
+    byLen[g.longueur].push(g);
+  });
+
+  Object.keys(byLen).sort((a,b)=>a-b).forEach(len=>{
+    xml += `\n  <!-- ============================================================ -->\n`;
+    xml += `  <!-- LONGUEUR ${len.toString().padEnd(51)} -->\n`;
+    xml += `  <!-- ============================================================ -->\n\n`;
+    // Réattribuer les numéros de groupe
+    byLen[len].forEach((g,i)=>{
+      xml += `  <anagramm longueur="${escX(len)}" groupe="${i+1}">\n`;
+      g.mots.forEach(m=>{xml+=`    <mot>${escX(m)}</mot>\n`;});
+      xml += `  </anagramm>\n\n`;
+    });
+  });
+
+  return xml + `</anagrammes>`;
+}
+
+// ── FILE ──────────────────────────────────────────────────────────────────────
+function openXML(){ document.getElementById('fileInput').click(); }
+
+function handleFileOpen(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      groupesData = parseXML(e.target.result);
+      expandedRow = null;
+      setModified(false);
+      updatePageTitle();
+      updateStatus('✅ Fichier chargé : ' + file.name);
+      renderTable();
+    } catch(err) {
+      showInfo('❌ Erreur de lecture','Impossible de lire le fichier :\n'+err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+async function exportXML() {
+  if (groupesData.length===0) {
+    showInfo('⚠️ Rien à enregistrer','La liste est vide.\nAjoutez au moins un groupe avant d\'enregistrer.');
+    return;
+  }
+  const xml      = generateXML();
+  const filename = (metaData.titre||'anagrammes').replace(/[<>:"/\\|?*\x00-\x1f]/g,'_')+'.xml';
+
+  if (window.showSaveFilePicker) {
+    try {
+      const fh = await window.showSaveFilePicker({suggestedName:filename,types:[{description:'Fichier XML',accept:{'application/xml':['.xml']}}]});
+      const w  = await fh.createWritable();
+      await w.write(xml); await w.close();
+      setModified(false); updateStatus('✅ Fichier enregistré');
+      showSaveSuccess(fh.name||filename, false); return;
+    } catch(e){ if(e.name==='AbortError') return; }
+  }
+  const blob = new Blob([xml],{type:'application/xml;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setModified(false); updateStatus('✅ Fichier téléchargé');
+  showSaveSuccess(filename, true);
+}
+
+function showSaveSuccess(filename, isDownload) {
+  const total = groupesData.length;
+  const mots  = groupesData.reduce((acc,g)=>acc+g.mots.length,0);
+  const pathHtml = isDownload
+    ? `<span class="path-label">📁 Téléchargements</span><strong>${escH(filename)}</strong>`
+    : `<span class="path-label">📁 Fichier enregistré</span><strong>${escH(filename)}</strong>`;
+  const o = document.createElement('div'); o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box" style="max-width:440px">
+    <div class="modal-header" style="background:var(--green)"><h2>💾 Sauvegarde réussie</h2>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+    <div class="modal-body"><div class="save-success-body">
+      <div class="save-success-icon">✅</div>
+      <div class="save-success-title">Fichier enregistré !</div>
+      <div class="save-success-path">${pathHtml}</div>
+      <div style="font-size:13px;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:8px 12px">
+        📊 <strong>${total} groupe${total>1?'s':''}</strong> • <strong>${mots} mot${mots>1?'s':''}</strong>
+      </div>
+    </div></div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn btn-green btn-lg" onclick="this.closest('.modal-overlay').remove()">✅ OK</button>
+    </div></div>`;
+  document.body.appendChild(o);
+}
+
+function resetConfig() {
+  showConfirm('🔄 Réinitialiser ?',
+    'Tous les groupes seront effacés de la mémoire.\nCette action est irréversible si vous n\'avez pas encore enregistré.\n\nVoulez-vous continuer ?',
+    ()=>{
+      groupesData=[]; metaData={titre:'',description:'',dictionnaire:'',lien:'',licence:'',regles:[]};
+      expandedRow=null; currentFilter=''; currentLenFilter='';
+      document.getElementById('filterInput').value='';
+      document.getElementById('filterLen').value='';
+      setModified(false); renderTable(); updatePageTitle(); updateStatus('Liste réinitialisée');
+    });
+}
+
+// ── META MODAL ────────────────────────────────────────────────────────────────
+function openMetaModal() {
+  const o = document.createElement('div'); o.className='modal-overlay'; o.id='metaModal';
+  o.innerHTML=`<div class="modal-box" style="max-width:560px">
+    <div class="modal-header"><h2>📋 Métadonnées du fichier</h2>
+      <button class="modal-close" onclick="document.getElementById('metaModal').remove()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-body">
+        <div class="form-section">
+          <label>Titre <span class="req">*</span></label>
+          <input type="text" id="meta_titre" value="${escH(metaData.titre)}" placeholder="Tapez ici le titre du fichier…" maxlength="100">
+        </div>
+        <div class="form-section">
+          <label>Description</label>
+          <textarea id="meta_desc" rows="2" style="resize:none">${escH(metaData.description)}</textarea>
+        </div>
+        <div class="form-section">
+          <label>Dictionnaire source</label>
+          <input type="text" id="meta_dict" value="${escH(metaData.dictionnaire)}" placeholder="Tapez ici le nom du dictionnaire…" maxlength="200">
+        </div>
+        <div class="form-section">
+          <label>Lien source</label>
+          <input type="text" id="meta_lien" value="${escH(metaData.lien)}" placeholder="Tapez ici l’adresse du dictionnaire…" maxlength="300">
+        </div>
+        <div class="form-section">
+          <label>Licence</label>
+          <input type="text" id="meta_licence" value="${escH(metaData.licence)}" placeholder="Tapez ici la licence…" maxlength="200">
+        </div>
+        <div class="form-section">
+          <label>Règles <span style="font-size:11px;font-weight:400;color:var(--gray-400)">(une par ligne)</span></label>
+          <textarea id="meta_regles" rows="4" style="resize:vertical">${escH((metaData.regles||[]).join('\n'))}</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="document.getElementById('metaModal').remove()">❌ Annuler</button>
+      <button class="btn btn-blue btn-lg" onclick="saveMeta()">💾 Enregistrer</button>
+    </div></div>`;
+  document.body.appendChild(o);
+}
+
+window.saveMeta = function() {
+  metaData.titre       = (document.getElementById('meta_titre').value||'').trim();
+  metaData.description = (document.getElementById('meta_desc').value||'').trim();
+  metaData.dictionnaire= (document.getElementById('meta_dict').value||'').trim();
+  metaData.lien        = (document.getElementById('meta_lien').value||'').trim();
+  metaData.licence     = (document.getElementById('meta_licence').value||'').trim();
+  metaData.regles      = (document.getElementById('meta_regles').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  setModified(true);
+  document.getElementById('metaModal').remove();
+  updatePageTitle();
+  updateStatus('✅ Métadonnées mises à jour');
+};
+
+// ── RENDER TABLE ──────────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody  = document.getElementById('wordTableBody');
+  const total  = groupesData.length;
+
+  // Rebuild longueur filter options
+  const lenSel = document.getElementById('filterLen');
+  const prevLen = lenSel.value;
+  const lens = [...new Set(groupesData.map(g=>g.longueur))].sort((a,b)=>a-b);
+  lenSel.innerHTML = '<option value="">Toutes longueurs</option>' +
+    lens.map(l=>`<option value="${l}" ${String(l)===prevLen?'selected':''}>Longueur ${l}</option>`).join('');
+
+  const filtered = groupesData.filter(g => {
+    const lenOk = !currentLenFilter || g.longueur === parseInt(currentLenFilter);
+    if (!lenOk) return false;
+    if (!currentFilter) return true;
+    return g.mots.some(m=>m.toLowerCase().includes(currentFilter));
+  });
+
+  document.getElementById('listCount').textContent = total;
+  const statsBar = document.getElementById('statsBar');
+  if (total>0) {
+    statsBar.style.display='flex';
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statMots').textContent  = groupesData.reduce((a,g)=>a+g.mots.length,0);
+    const allLens = [...new Set(groupesData.map(g=>g.longueur))].sort((a,b)=>a-b);
+    document.getElementById('statLens').textContent  = allLens.length ? allLens[0]+'–'+allLens[allLens.length-1] : '—';
+    const fSep=document.getElementById('statFilterSep'), fInfo=document.getElementById('statFilterInfo');
+    if (currentFilter||currentLenFilter){fSep.style.display='';fInfo.style.display='';document.getElementById('statFiltered').textContent=filtered.length;}
+    else{fSep.style.display='none';fInfo.style.display='none';}
+  } else { statsBar.style.display='none'; }
+
+  document.getElementById('welcomeArea').style.display = total===0?'':'none';
+  updatePageTitle();
+
+  if (filtered.length===0) {
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty-list">
+      <div class="empty-icon">${currentFilter||currentLenFilter?'🔍':'📭'}</div>
+      <p>${currentFilter||currentLenFilter?'Aucun groupe ne correspond à ce filtre.':'Aucun groupe.<br>Utilisez <strong>➕ Nouveau groupe</strong> pour commencer.'}</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  let html='';
+  filtered.forEach(g=>{
+    const idx    = groupesData.indexOf(g);
+    const isOpen = expandedRow===idx;
+    const apercu = g.mots.slice(0,5).join(', ')+(g.mots.length>5?' …':'');
+    html+=`
+      <tr class="${isOpen?'expanded':''}" id="row-${idx}">
+        <td class="td-id">${escH(String(g.rowId))}</td>
+        <td class="td-len"><span class="len-badge">${escH(String(g.longueur))} lettres</span></td>
+        <td class="td-grp" style="color:var(--gray-600);font-weight:600">Gr. ${escH(String(g.groupe))}</td>
+        <td class="td-mots">${escH(apercu)}</td>
+        <td class="td-action"><button class="expand-btn ${isOpen?'open':''}" onclick="toggleExpand(${idx})">${isOpen?'▲ Fermer':'▼ Détails'}</button></td>
+      </tr>`;
+    if (isOpen) {
+      const motsHtml = g.mots.map(m=>`<span class="mot-tag">${escH(m)}</span>`).join('');
+      html+=`
+      <tr class="expanded-row" id="expanded-${idx}"><td colspan="5">
+        <div class="expanded-panel">
+          <div class="detail-fields" style="flex:1">
+            <span class="df-label">📏 Longueur</span><div class="df-value">${escH(String(g.longueur))} lettres</div>
+            <span class="df-label">🔢 Groupe</span><div class="df-value">${escH(String(g.groupe))}</div>
+            <span class="df-label">🔤 Mots (${g.mots.length})</span><div class="df-value"><div class="mots-grid">${motsHtml}</div></div>
+          </div>
+          <div class="expanded-actions">
+            <button class="btn btn-blue" onclick="openEditModal(${idx})">✏️ Modifier</button>
+            <button class="btn btn-red"  onclick="deleteGroupe(${idx})">🗑️ Supprimer</button>
+          </div>
+        </div>
+      </td></tr>`;
+    }
+  });
+  tbody.innerHTML=html;
+}
+
+function toggleExpand(idx){
+  expandedRow=(expandedRow===idx)?null:idx; renderTable();
+  if(expandedRow!==null) setTimeout(()=>{const r=document.getElementById('expanded-'+idx);if(r)r.scrollIntoView({behavior:'smooth',block:'nearest'});},50);
+}
+
+function filterList(val){
+  currentFilter=val.trim().toLowerCase();
+  currentLenFilter=document.getElementById('filterLen').value;
+  expandedRow=null; renderTable();
+}
+
+// ── MOTS EDITOR ───────────────────────────────────────────────────────────────
+function buildMotsEditor(formId, mots) {
+  let html = `<div class="mots-editor" id="${formId}_mots_container">`;
+  mots.forEach((m,i)=>{
+    html+=`<div class="mot-input-row" id="${formId}_mot_row_${i}">
+      <span class="mot-num">${i+1}.</span>
+      <input type="text" class="mot-input" id="${formId}_mot_${i}" value="${escH(m)}" placeholder="Tapez ici le mot ${i+1}…" maxlength="50">
+      <button class="btn-del-mot" onclick="delMot('${formId}',${i})" title="Supprimer">✕</button>
+    </div>`;
+  });
+  html+=`</div>
+  <button class="btn-add-mot" onclick="addMot('${formId}')">➕ Ajouter un mot</button>`;
+  return html;
+}
+
+window._motCounts = {};
+
+window.addMot = function(formId) {
+  const container = document.getElementById(formId+'_mots_container');
+  const rows = container.querySelectorAll('.mot-input-row');
+  const idx = rows.length;
+  const row = document.createElement('div');
+  row.className='mot-input-row'; row.id=`${formId}_mot_row_${idx}`;
+  row.innerHTML=`<span class="mot-num">${idx+1}.</span>
+    <input type="text" class="mot-input" id="${formId}_mot_${idx}" placeholder="Tapez ici le mot ${idx+1}…" maxlength="50">
+    <button class="btn-del-mot" onclick="delMot('${formId}',${idx})" title="Supprimer">✕</button>`;
+  container.appendChild(row);
+  document.getElementById(`${formId}_mot_${idx}`).focus();
+};
+
+window.delMot = function(formId, idx) {
+  const container = document.getElementById(formId+'_mots_container');
+  const rows = [...container.querySelectorAll('.mot-input-row')];
+  if (rows.length <= 2) { showToast('⚠️ Un groupe doit contenir au moins 2 mots.'); return; }
+  // Collect all values
+  const vals = rows.map(r=>r.querySelector('.mot-input').value);
+  vals.splice(idx,1);
+  // Rebuild
+  container.innerHTML = '';
+  vals.forEach((v,i)=>{
+    const row = document.createElement('div');
+    row.className='mot-input-row'; row.id=`${formId}_mot_row_${i}`;
+    row.innerHTML=`<span class="mot-num">${i+1}.</span>
+      <input type="text" class="mot-input" id="${formId}_mot_${i}" value="${escH(v)}" placeholder="Tapez ici le mot ${i+1}…" maxlength="50">
+      <button class="btn-del-mot" onclick="delMot('${formId}',${i})" title="Supprimer">✕</button>`;
+    container.appendChild(row);
+  });
+};
+
+function collectMots(formId) {
+  const container = document.getElementById(formId+'_mots_container');
+  if (!container) return [];
+  return [...container.querySelectorAll('.mot-input')].map(i=>i.value.trim().toLowerCase()).filter(Boolean);
+}
+
+// ── ADD MODAL ─────────────────────────────────────────────────────────────────
+function openAddModal() {
+  if (groupesData.length>=MAX_GROUPES){showInfo('⚠️ Limite atteinte',`Maximum ${MAX_GROUPES} groupes.`);return;}
+  const formId='add';
+  // Suggest longueur & groupe based on existing data
+  const lens = groupesData.map(g=>g.longueur);
+  const suggestLen = lens.length ? Math.max(...lens) : 5;
+  const existingForLen = groupesData.filter(g=>g.longueur===suggestLen);
+  const suggestGrp = existingForLen.length+1;
+
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='addModal';
+  o.innerHTML=`<div class="modal-box">
+    <div class="modal-header">
+      <h2>➕ Nouveau groupe d'anagrammes</h2>
+      <button class="modal-close" onclick="document.getElementById('addModal').remove()">✕</button>
+    </div>
+    <div class="modal-body"><div class="form-body">
+      <div class="form-row">
+        <div class="form-section">
+          <label>Longueur (lettres) <span class="req">*</span></label>
+          <input type="number" id="${formId}_longueur" value="${suggestLen}" min="2" max="30" oninput="updateGroupeSuggestion('${formId}')">
+          <div class="hint">Nombre de lettres de chaque mot du groupe</div>
+        </div>
+        <div class="form-section">
+          <label>N° de groupe <span class="req">*</span></label>
+          <input type="number" id="${formId}_groupe" value="${suggestGrp}" min="1" max="999">
+        </div>
+      </div>
+      <div class="form-section">
+        <label>Mots du groupe <span class="req">*</span> <span style="font-size:11px;font-weight:400;color:var(--gray-400)">(minimum 2 mots)</span></label>
+        <div id="${formId}_mots_wrap">
+          ${buildMotsEditor(formId, ['',''])}
+        </div>
+      </div>
+    </div></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="document.getElementById('addModal').remove()">❌ Annuler</button>
+      <button class="btn btn-blue btn-lg" onclick="saveAdd()">✅ Ajouter</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  document.getElementById(`${formId}_mot_0`).focus();
+}
+
+window.updateGroupeSuggestion = function(formId) {
+  const len = parseInt(document.getElementById(formId+'_longueur').value)||0;
+  const existing = groupesData.filter(g=>g.longueur===len);
+  const grpInput = document.getElementById(formId+'_groupe');
+  if (grpInput) grpInput.value = existing.length+1;
+};
+
+window.saveAdd = function() {
+  const longueur = parseInt(document.getElementById('add_longueur').value)||0;
+  const groupe   = parseInt(document.getElementById('add_groupe').value)||0;
+  const mots     = collectMots('add');
+  if (!longueur||longueur<2){showToast('⚠️ La longueur doit être ≥ 2.');return;}
+  if (!groupe){showToast('⚠️ Le numéro de groupe est obligatoire.');return;}
+  if (mots.length<2){showToast('⚠️ Un groupe doit contenir au moins 2 mots.');return;}
+  const invalid = mots.find(m=>m.length!==longueur);
+  if (invalid){showToast(`⚠️ Le mot "${invalid}" ne fait pas ${longueur} lettres.`);return;}
+  groupesData.push({rowId:0, longueur, groupe, mots});
+  reindex();
+  expandedRow=groupesData.length-1;
+  setModified(true);
+  document.getElementById('addModal').remove();
+  renderTable(); updateStatus(`✅ Groupe longueur ${longueur} ajouté`);
+  setTimeout(()=>{const r=document.getElementById('row-'+(groupesData.length-1));if(r)r.scrollIntoView({behavior:'smooth',block:'center'});},100);
+};
+
+// ── EDIT MODAL ────────────────────────────────────────────────────────────────
+
+// ── ASSISTANT PAS À PAS ───────────────────────────────────────────────────────
+// Même déroulé que les autres éditeurs du site : une étape à la fois, avec une
+// vérification à chaque passage et un récapitulatif avant l'ajout définitif.
+window.newGroupeWizard = function() {
+  if (groupesData.length >= MAX_GROUPES) {
+    showInfo('⚠️ Limite atteinte', `Maximum ${MAX_GROUPES} groupes.`); return;
+  }
+  const formId = 'wz';
+  const totalSteps = 5;
+  let currentStep = 1;
+
+  const lens = groupesData.map(g=>g.longueur);
+  const suggestLen = lens.length ? Math.max(...lens) : 5;
+  const suggestGrp = groupesData.filter(g=>g.longueur===suggestLen).length + 1;
+
+  const o = document.createElement('div');
+  o.className='modal-overlay'; o.id='wizModal';
+  o.innerHTML = `<div class="modal-box" style="max-width:600px">
+    <div class="modal-header">
+      <h2>➕ Ajouter un groupe d'anagrammes — Guide pas à pas</h2>
+      <button class="modal-close" onclick="document.getElementById('wizModal').remove()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="wizard-progress">
+        <div class="wiz-step-dot current" id="wdot1">1</div><div class="wiz-connector" id="wcon1"></div>
+        <div class="wiz-step-dot" id="wdot2">2</div><div class="wiz-connector" id="wcon2"></div>
+        <div class="wiz-step-dot" id="wdot3">3</div><div class="wiz-connector" id="wcon3"></div>
+        <div class="wiz-step-dot" id="wdot4">4</div><div class="wiz-connector" id="wcon4"></div>
+        <div class="wiz-step-dot" id="wdot5">5</div>
+      </div>
+      <div class="wizard-steps">
+
+        <div class="wiz-panel active" id="wizStep1">
+          <div class="wiz-title">👋 Étape 1 — Prêt à ajouter un groupe ?</div>
+          <div class="wiz-sub">Un groupe rassemble des mots formés exactement des mêmes lettres, comme <strong>porte</strong>, <strong>opter</strong> et <strong>trope</strong>.</div>
+          <div style="background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius);padding:14px 16px">
+            <p style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:8px">📝 Ce que vous allez faire :</p>
+            <p style="font-size:14px;color:var(--gray-600);line-height:2">
+              <strong>① Choisir la longueur</strong> — le nombre de lettres de chaque mot<br>
+              <strong>② Donner un numéro</strong> au groupe, pour le repérer<br>
+              <strong>③ Saisir les mots</strong> du groupe, au moins deux<br>
+              <strong>④ Vérifier</strong> et confirmer l'ajout
+            </p>
+          </div>
+          <div class="wiz-note" style="margin-top:12px">
+            💡 <strong>Info :</strong> la collection contient actuellement <strong>${groupesData.length} groupe(s)</strong>.
+            Après l'ajout, pensez à cliquer sur <strong>💾 Enregistrer</strong> pour sauvegarder le fichier.
+          </div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep2">
+          <div class="wiz-title">🔢 Étape 2 — Combien de lettres ?</div>
+          <div class="wiz-sub">Tous les mots d'un même groupe ont forcément le même nombre de lettres, puisqu'ils utilisent exactement les mêmes.</div>
+          <div class="form-section">
+            <label>Longueur des mots <span class="req">*</span></label>
+            <input type="number" id="${formId}_longueur" value="${suggestLen}" min="2" max="30"
+              oninput="wizMajGroupe()" style="font-size:18px;padding:12px;font-weight:800">
+            <div class="hint" style="font-size:13px;margin-top:8px">💡 Entre 2 et 30 lettres. La valeur proposée reprend la dernière longueur utilisée.</div>
+          </div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep3">
+          <div class="wiz-title">🏷️ Étape 3 — Numéro du groupe</div>
+          <div class="wiz-sub">Ce numéro distingue les groupes qui ont la même longueur. Le numéro proposé est le premier disponible.</div>
+          <div class="form-section">
+            <label>N° de groupe <span class="req">*</span></label>
+            <input type="number" id="${formId}_groupe" value="${suggestGrp}" min="1" max="999"
+              style="font-size:18px;padding:12px;font-weight:800">
+            <div class="hint" style="font-size:13px;margin-top:8px" id="wiz_grp_hint"></div>
+          </div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep4">
+          <div class="wiz-title">🔤 Étape 4 — Saisissez les mots</div>
+          <div class="wiz-sub">Au moins deux mots, tous de la même longueur et composés des mêmes lettres. Ils seront enregistrés en minuscules.</div>
+          <div class="form-section">
+            <div id="${formId}_mots_wrap">${buildMotsEditor(formId, ['',''])}</div>
+          </div>
+          <div class="wiz-note">⚠️ <strong>Vérification :</strong> l'assistant contrôle que chaque mot fait bien le nombre de lettres annoncé et que tous sont bien des anagrammes les uns des autres.</div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep5">
+          <div class="wiz-title">✅ Étape 5 — Vérification avant ajout</div>
+          <div class="wiz-sub">Relisez ci-dessous. Si tout est correct, cliquez sur <strong>« ✅ Ajouter le groupe ! »</strong></div>
+          <div class="detail-fields wiz-recap">
+            <span class="df-label">🔢 Longueur</span> <div class="df-value" id="wrecap_len">—</div>
+            <span class="df-label">🏷️ Groupe</span>   <div class="df-value" id="wrecap_grp">—</div>
+            <span class="df-label">🔤 Mots</span>      <div class="df-value wiz-mots" id="wrecap_mots">—</div>
+          </div>
+          <div class="wiz-note">💾 <strong>Rappel :</strong> l'ajout se fait en mémoire. Cliquez ensuite sur <strong>« 💾 Enregistrer »</strong> dans la barre du haut pour écrire le fichier XML.</div>
+        </div>
+
+      </div>
+    </div>
+    <div class="wiz-nav">
+      <span class="wiz-nav-counter">Étape <span id="wiz_step_num">1</span> sur ${totalSteps}</span>
+      <button class="btn btn-gray" id="wizBtnPrev" onclick="wizNav(-1)" style="display:none">◀ Précédent</button>
+      <button class="btn btn-blue btn-lg" id="wizBtnNext" onclick="wizNav(1)">Suivant ▶</button>
+      <button class="btn btn-green btn-lg" id="wizBtnConfirm" onclick="wizConfirm()" style="display:none">✅ Ajouter le groupe !</button>
+    </div></div>`;
+  document.body.appendChild(o);
+
+  // Signature d'un mot : ses lettres triées. Deux anagrammes ont la même.
+  function signature(m){
+    return m.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split('').sort().join('');
+  }
+
+  window.wizMajGroupe = function(){
+    const len = parseInt(document.getElementById(formId+'_longueur').value)||0;
+    const n   = groupesData.filter(g=>g.longueur===len).length + 1;
+    const grp = document.getElementById(formId+'_groupe');
+    if (grp) grp.value = n;
+    const h = document.getElementById('wiz_grp_hint');
+    if (h) h.innerHTML = `💡 Il y a déjà <strong>${n-1} groupe(s)</strong> de ${len} lettres. Le numéro <strong>${n}</strong> est libre.`;
+  };
+  wizMajGroupe();
+
+  function updateWizUI(){
+    for (let i=1;i<=totalSteps;i++){
+      document.getElementById('wizStep'+i).classList.toggle('active', i===currentStep);
+      document.getElementById('wdot'+i).className='wiz-step-dot'+(i<currentStep?' done':i===currentStep?' current':'');
+      if (i<totalSteps) document.getElementById('wcon'+i).className='wiz-connector'+(i<currentStep?' done':'');
+    }
+    document.getElementById('wiz_step_num').textContent    = currentStep;
+    document.getElementById('wizBtnPrev').style.display    = currentStep>1?'':'none';
+    document.getElementById('wizBtnNext').style.display    = currentStep<totalSteps?'':'none';
+    document.getElementById('wizBtnConfirm').style.display = currentStep===totalSteps?'':'none';
+  }
+
+  function buildRecap(){
+    document.getElementById('wrecap_len').textContent  = (document.getElementById(formId+'_longueur').value||'—')+' lettres';
+    document.getElementById('wrecap_grp').textContent  = '#'+(document.getElementById(formId+'_groupe').value||'—');
+    const mots = collectMots(formId);
+    document.getElementById('wrecap_mots').innerHTML = mots.length ? mots.map(escH).join('<br>') : '—';
+  }
+
+  window.wizNav = function(dir){
+    if (dir===1 && currentStep===2){
+      const len = parseInt(document.getElementById(formId+'_longueur').value)||0;
+      if (len<2)  { showToast('⚠️ La longueur doit être d\'au moins 2 lettres.'); return; }
+      if (len>30) { showToast('⚠️ La longueur ne peut pas dépasser 30 lettres.'); return; }
+    }
+    if (dir===1 && currentStep===3){
+      const grp = parseInt(document.getElementById(formId+'_groupe').value)||0;
+      if (!grp) { showToast('⚠️ Le numéro de groupe est obligatoire.'); return; }
+    }
+    if (dir===1 && currentStep===4){
+      const len  = parseInt(document.getElementById(formId+'_longueur').value)||0;
+      const mots = collectMots(formId);
+      if (mots.length<2) { showToast('⚠️ Un groupe doit contenir au moins 2 mots.'); return; }
+      const mauvais = mots.find(m=>m.length!==len);
+      if (mauvais) { showToast(`⚠️ Le mot « ${mauvais} » fait ${mauvais.length} lettres au lieu de ${len}.`); return; }
+      const doublon = mots.find((m,i)=>mots.indexOf(m)!==i);
+      if (doublon) { showToast(`⚠️ Le mot « ${doublon} » est saisi deux fois.`); return; }
+      const ref = signature(mots[0]);
+      const hors = mots.find(m=>signature(m)!==ref);
+      if (hors) { showToast(`⚠️ « ${hors} » n'est pas une anagramme de « ${mots[0]} » : les lettres ne correspondent pas.`); return; }
+    }
+    currentStep += dir;
+    updateWizUI();
+    if (currentStep===totalSteps) buildRecap();
+  };
+
+  window.wizConfirm = function(){
+    const longueur = parseInt(document.getElementById(formId+'_longueur').value)||0;
+    const groupe   = parseInt(document.getElementById(formId+'_groupe').value)||0;
+    const mots     = collectMots(formId);
+    groupesData.push({rowId:0, longueur, groupe, mots});
+    reindex();
+    expandedRow = groupesData.length-1;
+    setModified(true);
+    document.getElementById('wizModal').remove();
+    renderTable();
+    updateStatus(`✅ Groupe de ${longueur} lettres ajouté`);
+    setTimeout(()=>{const r=document.getElementById('row-'+expandedRow); if(r) r.scrollIntoView({behavior:'smooth',block:'center'});},100);
+  };
+};
+
+function openEditModal(idx) {
+  const g=groupesData[idx]; const formId='em';
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='editModal';
+  o.innerHTML=`<div class="modal-box">
+    <div class="modal-header">
+      <h2>✏️ Modifier le groupe (longueur ${escH(String(g.longueur))}, groupe ${escH(String(g.groupe))})</h2>
+      <button class="modal-close" onclick="document.getElementById('editModal').remove()">✕</button>
+    </div>
+    <div class="modal-body"><div class="form-body">
+      <div class="form-row">
+        <div class="form-section">
+          <label>Longueur (lettres) <span class="req">*</span></label>
+          <input type="number" id="${formId}_longueur" value="${escH(String(g.longueur))}" min="2" max="30">
+        </div>
+        <div class="form-section">
+          <label>N° de groupe <span class="req">*</span></label>
+          <input type="number" id="${formId}_groupe" value="${escH(String(g.groupe))}" min="1" max="999">
+        </div>
+      </div>
+      <div class="form-section">
+        <label>Mots du groupe <span class="req">*</span></label>
+        <div id="${formId}_mots_wrap">
+          ${buildMotsEditor(formId, g.mots.length ? g.mots : ['',''])}
+        </div>
+      </div>
+    </div></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="document.getElementById('editModal').remove()">❌ Annuler</button>
+      <button class="btn btn-blue btn-lg" onclick="saveEdit(${idx})">💾 Enregistrer</button>
+    </div></div>`;
+  document.body.appendChild(o);
+}
+
+window.saveEdit = function(idx) {
+  const longueur = parseInt(document.getElementById('em_longueur').value)||0;
+  const groupe   = parseInt(document.getElementById('em_groupe').value)||0;
+  const mots     = collectMots('em');
+  if (!longueur||longueur<2){showToast('⚠️ La longueur doit être ≥ 2.');return;}
+  if (!groupe){showToast('⚠️ Le numéro de groupe est obligatoire.');return;}
+  if (mots.length<2){showToast('⚠️ Un groupe doit contenir au moins 2 mots.');return;}
+  const invalid = mots.find(m=>m.length!==longueur);
+  if (invalid){showToast(`⚠️ Le mot "${invalid}" ne fait pas ${longueur} lettres.`);return;}
+  const g = groupesData[idx];
+  g.longueur=longueur; g.groupe=groupe; g.mots=mots;
+  expandedRow=idx; setModified(true);
+  document.getElementById('editModal').remove();
+  reindex(); renderTable(); updateStatus(`✅ Groupe modifié`);
+};
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function deleteGroupe(idx){
+  const g=groupesData[idx];
+  showConfirm('🗑️ Supprimer ce groupe ?',
+    `Vous allez supprimer définitivement :\n\n  📏 Longueur : ${g.longueur} lettres\n  🔢 Groupe : ${g.groupe}\n  🔤 Mots : ${g.mots.join(', ')}\n\nCette action est irréversible.`,
+    ()=>{groupesData.splice(idx,1);reindex();expandedRow=null;setModified(true);renderTable();updateStatus('🗑️ Groupe supprimé');});
+}
+
+function reindex(){
+  // Re-sort by longueur then groupe, renumber rowId
+  groupesData.sort((a,b)=> a.longueur!==b.longueur ? a.longueur-b.longueur : a.groupe-b.groupe);
+  groupesData.forEach((g,i)=>g.rowId=i+1);
+}
+
+// ── AIDE ──────────────────────────────────────────────────────────────────────
+function showHelp() {
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='helpModal';
+  o.innerHTML=`
+  <div class="modal-box" style="max-width:680px;max-height:92vh">
+    <div class="modal-header">
+      <h2>❓ Aide — Gestionnaire d'Anagrammes XML</h2>
+      <button class="modal-close" onclick="document.getElementById('helpModal').remove()">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;padding:20px 24px">
+
+      <h3 style="color:var(--blue);font-size:15px;margin-bottom:10px;border-bottom:2px solid var(--blue-border);padding-bottom:6px">🗂️ Vue d'ensemble</h3>
+      <p style="font-size:14px;line-height:1.8;color:var(--gray-600);margin-bottom:14px">
+        Cette application gère des fichiers XML de groupes d'anagrammes. Chaque groupe contient des mots de même longueur qui sont des anagrammes les uns des autres.
+      </p>
+
+      <h3 style="color:var(--blue);font-size:15px;margin-bottom:10px;border-bottom:2px solid var(--blue-border);padding-bottom:6px">📄 Structure XML</h3>
+      <pre style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:#1e3a5c;line-height:1.8;overflow-x:auto">&lt;anagrammes&gt;
+  &lt;metadonnees&gt;
+    &lt;titre&gt;Anagrammes&lt;/titre&gt;
+    &lt;description&gt;…&lt;/description&gt;
+    &lt;source&gt;…&lt;/source&gt;
+    &lt;regles&gt;&lt;regle&gt;…&lt;/regle&gt;&lt;/regles&gt;
+    &lt;statistiques&gt;…&lt;/statistiques&gt;
+  &lt;/metadonnees&gt;
+  &lt;anagramm longueur="5" groupe="1"&gt;
+    &lt;mot&gt;opter&lt;/mot&gt;
+    &lt;mot&gt;porte&lt;/mot&gt;
+    &lt;mot&gt;toper&lt;/mot&gt;
+  &lt;/anagramm&gt;
+&lt;/anagrammes&gt;</pre>
+
+      <h3 style="color:var(--blue);font-size:15px;margin:14px 0 10px;border-bottom:2px solid var(--blue-border);padding-bottom:6px">⚠️ Règles de validation</h3>
+      <ul style="font-size:14px;line-height:1.9;color:var(--gray-600);padding-left:22px;margin-bottom:8px">
+        <li>Un groupe doit contenir <strong>au moins 2 mots</strong>.</li>
+        <li>Tous les mots d'un groupe doivent avoir le même nombre de lettres que la <strong>longueur déclarée</strong>.</li>
+        <li>Les mots sont automatiquement <strong>mis en minuscules</strong>.</li>
+        <li>Les numéros de groupes sont <strong>réattribués automatiquement</strong> à l'enregistrement (par longueur).</li>
+      </ul>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-blue btn-lg" onclick="document.getElementById('helpModal').remove()">✅ Fermer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const old=document.querySelector('.toast-erreur');if(old)old.remove();
+  const t=document.createElement('div');t.className='toast-erreur';t.textContent=msg;
+  document.body.appendChild(t);
+  const timer=setTimeout(()=>{t.classList.add('toast-out');setTimeout(()=>{if(t.parentNode)t.remove();},300);},2700);
+  t.style.pointerEvents='auto';t.style.cursor='pointer';
+  t.addEventListener('click',()=>{clearTimeout(timer);t.classList.add('toast-out');setTimeout(()=>{if(t.parentNode)t.remove();},300);});
+}
+
+// ── DIALOGS ───────────────────────────────────────────────────────────────────
+function showInfo(title,message){
+  const o=document.createElement('div');o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box" style="max-width:420px">
+    <div class="modal-header"><h2>${title}</h2><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+    <div class="modal-body" style="padding:20px 24px"><p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p></div>
+    <div class="modal-footer"><button class="btn btn-blue btn-lg" onclick="this.closest('.modal-overlay').remove()">OK</button></div>
+  </div>`;document.body.appendChild(o);
+}
+
+function showConfirm(title,message,onOk){
+  const o=document.createElement('div');o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box" style="max-width:440px">
+    <div class="modal-header" style="background:var(--red)"><h2>${title}</h2><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+    <div class="modal-body" style="padding:20px 24px"><p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">❌ Non, annuler</button>
+      <button class="btn btn-red btn-lg" id="_confirmYes">✅ Oui, confirmer</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  o.querySelector('#_confirmYes').addEventListener('click',()=>{o.remove();onOk();});
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+function setModified(val){
+  modified=val;
+  const el=document.getElementById('modifiedIndicator');
+  el.textContent=val?'⚠️ Modifications non sauvegardées':'✅ Aucune modification';
+  el.className='status-badge '+(val?'status-dirty':'status-clean');
+}
+function updateStatus(msg){document.getElementById('statusMsg').textContent=msg;}
+function updatePageTitle(){
+  document.title=(metaData.titre?'🔤 '+metaData.titre:'🔤 Gestionnaire Anagrammes XML');
+}
+window.addEventListener('beforeunload',e=>{if(modified){e.preventDefault();e.returnValue='';}});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderTable();
+</script>
+
+<!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
+<script src="../../assets/js/ressources.js"></script>
+<script src="../../assets/js/bibliotheque.js" data-jeu="editeurana" data-base="../../"></script>
+<script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
+</body>
+</html>

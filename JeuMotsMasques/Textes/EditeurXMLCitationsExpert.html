@@ -139,6 +139,21 @@ textarea{resize:vertical}
 .dialog-box h3{font-size:14px;color:var(--primary);margin-bottom:12px}
 .dialog-box p{font-size:12px;line-height:1.5;margin-bottom:16px;color:var(--text-light)}
 .dialog-buttons{display:flex;gap:8px;justify-content:flex-end}
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
 </style>
 </head>
 <body>
@@ -154,7 +169,7 @@ textarea{resize:vertical}
     <div style="flex:1"></div>
     <button onclick="showHelp()" title="Aide">❓ Aide</button>
     <div class="sep"></div>
-    <button onclick="quitterApp()" title="Quitter">🚪 Quitter</button>
+    <button onclick="quitterApp()" title="Quitter" id="btn-quitter">🚪 Quitter</button>
   </div>
 
   <div class="main">
@@ -473,10 +488,10 @@ function loadEditForm() {
       <input type="text" id="f_index" value="${escapeAttr(c.index)}" readonly style="width:80px">
       
       <label>Auteur :</label>
-      <input type="text" id="f_auteur" value="${escapeAttr(c.auteur)}" placeholder="Auteur…" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8">
+      <input type="text" id="f_auteur" value="${escapeAttr(c.auteur)}" placeholder="Tapez ici le nom de l'auteur…" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8">
       
       <label>Livre :</label>
-      <input type="text" id="f_livre" value="${escapeAttr(c.livre)}" placeholder="Titre du livre…" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8">
+      <input type="text" id="f_livre" value="${escapeAttr(c.livre)}" placeholder="Tapez ici le titre du livre…" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8">
       
       <label>Texte :</label>
       <textarea id="f_texte" rows="8" style="width:100%;background:#fff;color:#1e293b;border-color:#94a3b8" oninput="updateTextCounter()">${escapeHTML(c.texte)}</textarea>
@@ -861,5 +876,6 @@ init();
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
 <script src="../../assets/js/ressources.js"></script>
 <script src="../../assets/js/bibliotheque.js" data-jeu="editeurcit" data-base="../../"></script>
+<script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
 </body>
 </html>

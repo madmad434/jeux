@@ -349,6 +349,21 @@
     .kb-key { min-width: 24px; height: 32px; font-size: 0.65rem; }
     .modal { padding: 20px; }
   }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
 </style>
 </head>
 <body>
@@ -416,6 +431,7 @@
     </div>
     <hr class="divider">
     <button class="btn btn-secondary btn-sm" onclick="openRules()">📖 Règles du jeu</button>
+    <button class="btn btn-secondary btn-sm" id="btn-quitter-accueil">✕ Quitter</button>
   </div>
 </div>
 
@@ -1386,5 +1402,9 @@ function exporterPDF() {
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
 <script src="../assets/js/ressources.js"></script>
 <script src="../assets/js/bibliotheque.js" data-jeu="anagramme" data-base="../"></script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="anagramme" data-base="../"></script>
 </body>
 </html>

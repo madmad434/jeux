@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/webp" href="../../assets/favicons/jeux.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>❓ Gestionnaire Quiz XML v2.0</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a4a8a;--blue-mid:#2563eb;--blue-light:#3b82f6;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#86efac;
+  --red:#b91c1c;--red-bg:#fef2f2;--red-border:#fca5a5;
+  --orange:#c2410c;--orange-bg:#fff7ed;--orange-border:#fdba74;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#c4b5fd;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
+  --gray-400:#94a3b8;--gray-600:#475569;--gray-700:#334155;--gray-900:#0f172a;
+  --white:#ffffff;--radius:10px;--radius-sm:6px;
+  --shadow:0 2px 8px rgba(0,0,0,.08);
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;color:var(--gray-900);background:var(--gray-100)}
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--blue);flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.2);flex-wrap:wrap}
+.app-title{font-weight:800;color:#fff;font-size:17px;white-space:nowrap;letter-spacing:-.3px}
+.toolbar-sep{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px;flex-shrink:0}
+.toolbar-spacer{flex:1 1 0;min-width:0}
+@media (max-width:900px){.toolbar-spacer{display:none}.toolbar-sep{display:none}}
+
+
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.statusbar{display:flex;align-items:center;gap:12px;padding:6px 16px;background:var(--white);border-top:2px solid var(--gray-200);font-size:13px;color:var(--gray-600);flex-shrink:0;flex-wrap:wrap}
+
+.btn{cursor:pointer;font-family:inherit;font-size:14px;border:2px solid transparent;border-radius:var(--radius-sm);padding:7px 15px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-white{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+.btn-white:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.6)}
+.btn-yellow{background:#fbbf24;color:#78350f;border-color:#f59e0b}
+.btn-yellow:hover{background:#f59e0b}
+.btn-green{background:#22c55e;color:#fff;border-color:#16a34a}
+.btn-green:hover{background:#16a34a}
+.btn-red{background:#ef4444;color:#fff;border-color:#dc2626}
+.btn-red:hover{background:#dc2626}
+.btn-gray{background:var(--white);color:var(--gray-700);border-color:var(--gray-300)}
+.btn-gray:hover{background:var(--gray-100)}
+.btn-blue{background:var(--blue-mid);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:var(--blue)}
+.btn-purple{background:var(--purple);color:#fff;border-color:#6d28d9}
+.btn-purple:hover{background:#6d28d9}
+.btn-sm{font-size:12px;padding:5px 11px}
+.btn-lg{font-size:16px;padding:10px 22px;border-radius:var(--radius)}
+
+/* LIST */
+.list-section{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px 12px;min-height:0}
+.list-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap}
+.list-title{font-weight:700;font-size:14px;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px}
+.list-count{background:var(--blue-mid);color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}
+.list-filter{flex:1;min-width:180px;max-width:280px;padding:6px 12px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:border .15s}
+.list-filter:focus{border-color:var(--blue-light)}
+.filter-sel{padding:6px 10px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;outline:none;background:var(--white);max-width:230px}
+
+/* STATS */
+.stats-bar{display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);font-size:13px;color:var(--blue);font-weight:600;flex-shrink:0;margin-bottom:8px;flex-wrap:wrap}
+.stat-item{display:flex;align-items:center;gap:5px}
+.stat-sep{width:1px;height:16px;background:var(--blue-border)}
+
+/* TABLE */
+.word-table-wrap{flex:1;overflow-y:auto;border:2px solid var(--gray-200);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow)}
+.word-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.word-table th{background:var(--blue);color:#fff;font-size:13px;font-weight:700;padding:10px 12px;text-align:left;position:sticky;top:0;z-index:2;overflow:hidden}
+.word-table td{padding:9px 10px;border-bottom:1px solid var(--gray-100);font-size:14px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.word-table tr:last-child td{border-bottom:none}
+.word-table tr:hover td{background:var(--blue-bg)}
+.word-table tr.expanded td{background:var(--blue-bg)}
+.td-id{font-weight:700;color:var(--blue-mid);width:52px;min-width:52px}
+.td-type{width:110px;min-width:110px}
+.td-theme{width:210px;min-width:150px;font-size:13px;color:var(--gray-700)}
+.td-text{font-size:13px;color:var(--gray-700)}
+.td-action{text-align:center;width:110px;min-width:110px}
+.type-badge{border-radius:20px;padding:2px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+.type-single{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue-mid)}
+.type-multiple{background:var(--orange-bg);border:1px solid var(--orange-border);color:var(--orange)}
+.theme-badge{background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:20px;padding:2px 9px;font-size:12px;font-weight:700;color:var(--purple)}
+.expand-btn{background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:4px 10px;font-size:12px;font-weight:700;color:var(--blue-mid);cursor:pointer;transition:all .15s;white-space:nowrap}
+.expand-btn:hover{background:var(--blue-mid);color:#fff}
+.expand-btn.open{background:var(--blue-mid);color:#fff}
+
+/* EXPANDED */
+.expanded-row td{padding:0;overflow:visible;white-space:normal}
+.expanded-panel{padding:14px 16px;background:linear-gradient(to bottom,var(--blue-bg),#fafcff);border-top:2px solid var(--blue-border);display:flex;gap:16px;align-items:flex-start}
+.detail-fields{flex:1;min-width:0;display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:start}
+.df-label{font-size:12px;font-weight:700;color:var(--blue);text-align:right;white-space:nowrap;padding-right:2px;padding-top:10px}
+.df-value{background:var(--white);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:7px 12px;font-size:13px;font-weight:400;color:var(--gray-900);user-select:text;min-height:34px;word-break:break-word;white-space:normal;line-height:1.6}
+.opt-line{display:flex;gap:8px;align-items:flex-start;padding:4px 6px;border-radius:var(--radius-sm)}
+.opt-line+.opt-line{margin-top:3px}
+.opt-line.ok{background:var(--green-bg);border:1px solid var(--green-border)}
+.opt-key{font-weight:800;color:var(--gray-600);min-width:20px}
+.opt-line.ok .opt-key{color:var(--green)}
+.opt-line.ok .opt-txt{color:var(--green);font-weight:600}
+.expanded-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;justify-content:center;padding-top:2px}
+
+/* EMPTY */
+.empty-list{padding:40px;text-align:center;color:var(--gray-400)}
+.empty-list .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-list p{font-size:15px;line-height:1.6}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:10px}
+.modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:700px;max-height:96vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:11px 18px;background:var(--blue);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-radius:14px 14px 0 0}
+.modal-header h2{color:#fff;font-size:15px;font-weight:800}
+.modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:background .15s;flex-shrink:0}
+.modal-close:hover{background:rgba(255,255,255,.4)}
+.modal-body{overflow-y:auto;flex:1;min-height:0}
+.modal-footer{padding:10px 18px;border-top:2px solid var(--gray-100);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:var(--gray-50);border-radius:0 0 14px 14px}
+
+/* FORM */
+.form-body{padding:14px 18px}
+.form-section{margin-bottom:10px}
+.form-section label{display:block;font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:4px}
+.form-section label .req{color:var(--red)}
+.form-section input[type="text"],.form-section input[type="number"],.form-section select,.form-section textarea{width:100%;padding:6px 10px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;transition:border .15s;color:var(--gray-900);background:var(--white)}
+.form-section input:focus,.form-section select:focus,.form-section textarea:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:12px;color:var(--gray-400);margin-top:3px}
+
+/* OPTIONS EDITOR */
+.mots-editor{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.mot-input-row{display:flex;align-items:center;gap:6px}
+.mot-num{font-weight:800;color:var(--purple);min-width:20px;font-size:14px}
+.mot-input{flex:1;padding:6px 10px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;transition:border .15s}
+.mot-input:focus{border-color:var(--purple-border);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.ok-wrap{display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);border:1.5px solid var(--green-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:12px;font-weight:700;color:var(--green);cursor:pointer;white-space:nowrap}
+.ok-wrap input{cursor:pointer;accent-color:#16a34a;margin:0}
+.btn-del-mot{background:var(--red-bg);border:1.5px solid var(--red-border);border-radius:var(--radius-sm);color:var(--red);cursor:pointer;padding:4px 8px;font-size:13px;font-weight:700;transition:all .15s}
+.btn-del-mot:hover{background:var(--red);color:#fff}
+.btn-add-mot{background:var(--green-bg);border:2px dashed var(--green-border);border-radius:var(--radius-sm);color:var(--green);cursor:pointer;padding:7px 14px;font-size:13px;font-weight:700;transition:all .15s;width:100%;margin-top:4px}
+.btn-add-mot:hover{background:var(--green);color:#fff;border-style:solid}
+
+/* STATUS */
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-weight:700;padding:3px 10px;border-radius:20px;font-size:13px}
+.status-clean{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.status-dirty{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+
+/* WELCOME */
+.welcome-area{padding:14px 14px 6px;flex-shrink:0}
+.welcome-box{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-mid) 100%);border-radius:var(--radius);padding:14px 18px;color:#fff;display:flex;align-items:center;gap:14px}
+.welcome-box .wb-icon{font-size:32px;flex-shrink:0}
+.welcome-box h2{font-size:15px;font-weight:800;margin-bottom:3px}
+.welcome-box p{font-size:13px;opacity:.85;line-height:1.5}
+.welcome-box .wb-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* SAVE SUCCESS */
+.save-success-body{padding:20px;text-align:center}
+.save-success-icon{font-size:48px;margin-bottom:8px}
+.save-success-title{font-size:18px;font-weight:800;color:var(--green);margin-bottom:10px}
+.save-success-path{background:var(--green-bg);border:2px solid var(--green-border);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--green);font-weight:600;margin:8px 0;word-break:break-all;text-align:left;line-height:1.8}
+.save-success-path .path-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;display:block}
+
+/* TOAST */
+.toast-erreur{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);background:var(--red);color:#fff;border-radius:var(--radius);padding:14px 24px;font-size:15px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.35);z-index:9999;text-align:center;max-width:380px;line-height:1.5;pointer-events:none;animation:toastIn .2s ease forwards}
+.toast-erreur.toast-out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes toastOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(.85)}}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
+#fileInput{display:none}
+
+/* ── ASSISTANT PAS À PAS (même présentation que les autres éditeurs) ── */
+.wizard-steps{padding:0 20px 10px}
+.wizard-progress{display:flex;align-items:center;margin-bottom:20px;padding:16px 20px 0}
+.wiz-step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;transition:all .3s;border:3px solid var(--gray-200);color:var(--gray-400);background:var(--white)}
+.wiz-step-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.wiz-step-dot.current{background:var(--blue-mid);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-bg)}
+.wiz-connector{flex:1;height:3px;background:var(--gray-200)}
+.wiz-connector.done{background:var(--green)}
+.wiz-panel{display:none}
+.wiz-panel.active{display:block}
+.wiz-title{font-size:19px;font-weight:800;color:var(--blue);margin-bottom:6px}
+.wiz-sub{font-size:14px;color:var(--gray-600);margin-bottom:16px;line-height:1.6}
+.wiz-note{background:var(--orange-bg);border-left:4px solid var(--orange-border);padding:12px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--orange);line-height:1.6;margin-top:12px}
+.wiz-nav{display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:2px solid var(--gray-100);background:var(--gray-50)}
+.wiz-nav-counter{font-size:13px;color:var(--gray-400);flex:1}
+.wiz-recap{background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="toolbar">
+    <span class="app-title">❓ Quiz XML</span>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-white" onclick="openXML()">📂 Ouvrir</button>
+    <button class="btn btn-white" onclick="exportXML()">💾 Enregistrer</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-white btn-sm" onclick="openConfigModal()">⚙️ Configuration</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-yellow" onclick="newQuestionWizard()">➕ Nouvelle question</button>
+    <button class="btn btn-white btn-sm" onclick="openAddModal()" title="Formulaire complet, sans guide">📋 Saisie directe</button>
+    <button class="btn btn-white btn-sm" onclick="resetConfig()">🔄 Réinitialiser</button>
+    <div class="toolbar-spacer"></div>
+    <button class="btn btn-white btn-sm" onclick="showHelp()">❓ Aide</button>
+    <button class="btn btn-white btn-sm" id="btn-quitter">🚪 Quitter</button>
+  </div>
+
+  <div class="main-area">
+    <div class="welcome-area" id="welcomeArea">
+      <div class="welcome-box">
+        <div class="wb-icon">❓</div>
+        <div style="flex:1">
+          <h2>Bienvenue dans le Gestionnaire de Quiz XML</h2>
+          <p>Gérez vos questions de quiz au format XML (questions à réponse unique ou multiple, avec thème et explication). Commencez par ouvrir un fichier existant ou créez votre première question.</p>
+          <div class="wb-actions">
+            <button class="btn btn-white btn-sm" onclick="openXML()">📂 Ouvrir un fichier XML</button>
+            <button class="btn btn-yellow btn-sm" onclick="newQuestionWizard()">➕ Créer ma première question</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-header">
+        <span class="list-title">📋 Questions</span>
+        <span class="list-count" id="listCount">0</span>
+        <input class="list-filter" type="text" placeholder="🔍 Rechercher (énoncé, option, explication)…" oninput="filterList()" id="filterInput">
+        <select class="filter-sel" id="filterTheme" onchange="filterList()">
+          <option value="">Tous les thèmes</option>
+        </select>
+        <select class="filter-sel" id="filterType" onchange="filterList()">
+          <option value="">Tous les types</option>
+          <option value="single">Réponse unique</option>
+          <option value="multiple">Réponses multiples</option>
+          <option value="__long__">⚠️ Réponses trop longues</option>
+        </select>
+        <button class="btn btn-yellow btn-sm" onclick="newQuestionWizard()" title="Ajouter une question (Ctrl+N)">➕ Nouvelle question</button>
+      </div>
+
+      <div class="stats-bar" id="statsBar" style="display:none">
+        <div class="stat-item">📦 <strong id="statTotal">0</strong>&nbsp;question(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">🔘 <strong id="statSingle">0</strong>&nbsp;unique(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">☑️ <strong id="statMultiple">0</strong>&nbsp;multiple(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">🏷️ <strong id="statThemes">0</strong>&nbsp;thème(s)</div>
+        <div class="stat-sep" id="statFilterSep" style="display:none"></div>
+        <div class="stat-item" id="statFilterInfo" style="display:none">🔍&nbsp;<strong id="statFiltered">0</strong>&nbsp;résultat(s)</div>
+      </div>
+
+      <div class="word-table-wrap">
+        <table class="word-table">
+          <thead>
+            <tr>
+              <th style="width:55px">N°</th>
+              <th style="width:110px">Type</th>
+              <th style="width:210px">Thème</th>
+              <th>Question</th>
+              <th style="text-align:center;width:110px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wordTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="status-badge status-clean" id="modifiedIndicator">✅ Aucune modification</span>
+    <span id="statusMsg" style="color:var(--gray-600)">Prêt</span>
+    <span style="flex:1"></span>
+    <span style="font-size:12px;color:var(--gray-400)">v2.0 — format &lt;quiz&gt;</span>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".xml" onchange="handleFileOpen(event)">
+
+<script>
+const MAX_QUESTIONS = 500;
+const MAX_OPTIONS   = 8;    // nombre maximum de réponses par question
+const MAX_OPT_LEN   = 90;   // longueur maximale du texte d'une réponse
+const LETTERS = 'ABCDEFGH'.split('');
+
+let questionsData = [];
+let configData    = { title: '' };
+let currentFilter = '';
+let currentTheme  = '';
+let currentType   = '';
+let modified      = false;
+let loadWarnings  = [];
+let loadDropped   = false;
+let expandedRow   = null;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function escX(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escA(s){return escX(s).replace(/"/g,'&quot;')}
+function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function clean(s){return String(s==null?'':s).replace(/\s+/g,' ').trim()}
+
+// ── XML PARSE ─────────────────────────────────────────────────────────────────
+function parseXML(xmlString) {
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(xmlString, 'text/xml');
+  if (doc.querySelector('parsererror')) throw new Error('Fichier XML invalide ou corrompu.');
+  if (doc.documentElement.tagName !== 'quiz')
+    throw new Error('Racine attendue : <quiz>. Racine trouvée : <'+doc.documentElement.tagName+'>.');
+
+  // Configuration
+  const cfg = doc.querySelector('quiz > config');
+  configData = {
+    title:    clean(cfg?.querySelector('title')?.textContent)
+  };
+
+  // Questions
+  const list = [];
+  let warnCount = 0, warnLen = 0; const longQ = [];
+  doc.querySelectorAll('quiz > questions > question').forEach(n => {
+    let opts = [...n.querySelectorAll('options > option')].map((o,i)=>({
+      id:   (o.getAttribute('id') || LETTERS[i] || '?').trim().toUpperCase(),
+      text: clean(o.textContent)
+    })).filter(o=>o.text);
+    if (opts.length > MAX_OPTIONS) { warnCount++; opts = opts.slice(0, MAX_OPTIONS); }
+    if (opts.some(o=>o.text.length > MAX_OPT_LEN)) { warnLen++; longQ.push(list.length+1); }
+
+    const answers = (n.querySelector('answer')?.textContent || '')
+      .split(/[,;\s]+/).map(a=>a.trim().toUpperCase()).filter(Boolean);
+
+    let type = (n.getAttribute('type')||'').trim().toLowerCase();
+    if (type !== 'single' && type !== 'multiple') type = answers.length>1 ? 'multiple' : 'single';
+
+    list.push({
+      id:          parseInt(n.getAttribute('id')||'0') || list.length+1,
+      type:        type,
+      theme:       clean(n.getAttribute('theme')) || 'Sans thème',
+      text:        clean(n.querySelector('text')?.textContent),
+      options:     opts,
+      answers:     answers.filter(a=>opts.some(o=>o.id===a)),
+      explanation: clean(n.querySelector('explanation')?.textContent)
+    });
+  });
+  if (!list.length) throw new Error('Aucune balise <question> trouvée dans le fichier.');
+  loadWarnings = [];
+  loadDropped  = warnCount > 0;
+  if (warnCount) loadWarnings.push(warnCount+' question(s) comportaient plus de '+MAX_OPTIONS+' réponses : les réponses en trop ont été ignorées.');
+  if (warnLen)   loadWarnings.push(warnLen+' question(s) contiennent une réponse de plus de '+MAX_OPT_LEN+' caractères (n° '+longQ.join(', ')+').\n  Le texte est conservé tel quel, mais il devra être raccourci pour pouvoir enregistrer une modification de ces questions.\n  Le filtre « ⚠️ Réponses trop longues » permet de les retrouver.');
+  return list;
+}
+
+// ── XML GENERATE ──────────────────────────────────────────────────────────────
+function banner(txt){
+  const line = '  <!-- ============================================================ -->\n';
+  const label = ' '+String(txt).replace(/-{2,}/g,'-')+' ';
+  const inner = ('='.repeat(Math.max(0, Math.floor((59-label.length)/2))) + label).padEnd(59,'=');
+  return line + '  <!-- ' + inner + ' -->\n' + line;
+}
+
+function generateXML() {
+  let xml  = '<?xml version="1.0" encoding="UTF-8"?>\n<quiz>\n';
+  xml += '    <config>\n';
+  xml += '        <title>'+escX(configData.title||'Quiz')+'</title>\n';
+  xml += '    </config>\n';
+  xml += '    <questions>\n';
+
+  // Regroupement par thème, dans l'ordre d'apparition
+  const themes = [];
+  questionsData.forEach(q=>{ if(!themes.includes(q.theme)) themes.push(q.theme); });
+
+  let num = 1;
+  themes.forEach(th=>{
+    xml += '\n'+banner(th.toUpperCase()).replace(/^ {2}/gm,'        ');
+    questionsData.filter(q=>q.theme===th).forEach(q=>{
+      xml += '        <question id="'+num+'" type="'+escA(q.type)+'" theme="'+escA(q.theme)+'">\n';
+      xml += '            <text>'+escX(q.text)+'</text>\n';
+      xml += '            <options>\n';
+      q.options.forEach(o=>{
+        xml += '                <option id="'+escA(o.id)+'">'+escX(o.text)+'</option>\n';
+      });
+      xml += '            </options>\n';
+      xml += '            <answer>'+escX(q.answers.join(','))+'</answer>\n';
+      xml += '            <explanation>'+escX(q.explanation)+'</explanation>\n';
+      xml += '        </question>\n\n';
+      num++;
+    });
+  });
+
+  xml += '    </questions>\n</quiz>';
+  return xml;
+}
+
+// ── FILE ──────────────────────────────────────────────────────────────────────
+function openXML(){ document.getElementById('fileInput').click(); }
+
+function handleFileOpen(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      questionsData = parseXML(e.target.result);
+      reindex();
+      expandedRow = null;
+      currentFilter=''; currentTheme=''; currentType='';
+      document.getElementById('filterInput').value='';
+      document.getElementById('filterType').value='';
+      setModified(false);
+      updatePageTitle();
+      updateStatus('✅ Fichier chargé : ' + file.name);
+      renderTable();
+      if (loadWarnings.length) {
+        if (loadDropped) setModified(true);
+        showInfo('⚠️ Points de vigilance','Le fichier a été chargé. Attention toutefois :\n\n• '+loadWarnings.join('\n\n• '));
+      }
+    } catch(err) {
+      showInfo('❌ Erreur de lecture','Impossible de lire le fichier :\n'+err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+async function exportXML() {
+  if (questionsData.length===0) {
+    showInfo('⚠️ Rien à enregistrer','La liste est vide.\nAjoutez au moins une question avant d\'enregistrer.');
+    return;
+  }
+  const xml      = generateXML();
+  const filename = (configData.title||'questions').replace(/[<>:"/\\|?*\x00-\x1f]/g,'_')+'.xml';
+
+  if (window.showSaveFilePicker) {
+    try {
+      const fh = await window.showSaveFilePicker({suggestedName:filename,types:[{description:'Fichier XML',accept:{'application/xml':['.xml']}}]});
+      const w  = await fh.createWritable();
+      await w.write(xml); await w.close();
+      setModified(false); updateStatus('✅ Fichier enregistré');
+      showSaveSuccess(fh.name||filename, false); return;
+    } catch(e){ if(e.name==='AbortError') return; }
+  }
+  const blob = new Blob([xml],{type:'application/xml;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setModified(false); updateStatus('✅ Fichier téléchargé');
+  showSaveSuccess(filename, true);
+}
+
+function showSaveSuccess(filename, isDownload) {
+  const total  = questionsData.length;
+  const themes = new Set(questionsData.map(q=>q.theme)).size;
+  const pathHtml = isDownload
+    ? `<span class="path-label">📁 Téléchargements</span><strong>${escH(filename)}</strong>`
+    : `<span class="path-label">📁 Fichier enregistré</span><strong>${escH(filename)}</strong>`;
+  const o = document.createElement('div'); o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box" style="max-width:440px">
+    <div class="modal-header" style="background:var(--green)"><h2>💾 Sauvegarde réussie</h2>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+    <div class="modal-body"><div class="save-success-body">
+      <div class="save-success-icon">✅</div>
+      <div class="save-success-title">Fichier enregistré !</div>
+      <div class="save-success-path">${pathHtml}</div>
+      <div style="font-size:13px;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:8px 12px">
+        📊 <strong>${total} question${total>1?'s':''}</strong> • <strong>${themes} thème${themes>1?'s':''}</strong>
+      </div>
+    </div></div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn btn-green btn-lg" onclick="this.closest('.modal-overlay').remove()">✅ OK</button>
+    </div></div>`;
+  document.body.appendChild(o);
+}
+
+function resetConfig() {
+  showConfirm('🔄 Réinitialiser ?',
+    'Toutes les questions seront effacées de la mémoire.\nCette action est irréversible si vous n\'avez pas encore enregistré.\n\nVoulez-vous continuer ?',
+    ()=>{
+      questionsData=[]; configData={title:''};
+      expandedRow=null; currentFilter=''; currentTheme=''; currentType='';
+      document.getElementById('filterInput').value='';
+      document.getElementById('filterType').value='';
+      setModified(false); renderTable(); updatePageTitle(); updateStatus('Liste réinitialisée');
+    });
+}
+
+// ── CONFIG MODAL ──────────────────────────────────────────────────────────────
+function openConfigModal() {
+  const o = document.createElement('div'); o.className='modal-overlay'; o.id='cfgModal';
+  o.innerHTML=`<div class="modal-box" style="max-width:520px">
+    <div class="modal-header"><h2>⚙️ Configuration du quiz</h2>
+      <button class="modal-close" onclick="document.getElementById('cfgModal').remove()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-body">
+        <div class="form-section">
+          <label>Titre du quiz <span class="req">*</span></label>
+          <input type="text" id="cfg_title" value="${escH(configData.title)}" placeholder="Tapez ici le titre du questionnaire…" maxlength="150">
+          <div class="hint">Sert aussi de nom de fichier proposé à l'enregistrement.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="document.getElementById('cfgModal').remove()">❌ Annuler</button>
+      <button class="btn btn-blue btn-lg" onclick="saveConfig()">💾 Enregistrer</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  document.getElementById('cfg_title').focus();
+}
+
+window.saveConfig = function() {
+  configData.title    = (document.getElementById('cfg_title').value||'').trim();
+  setModified(true);
+  document.getElementById('cfgModal').remove();
+  updatePageTitle();
+  updateStatus('✅ Configuration mise à jour');
+};
+
+function hasLongOption(q){ return q.options.some(o=>o.text.length > MAX_OPT_LEN); }
+
+// ── RENDER TABLE ──────────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('wordTableBody');
+  const total = questionsData.length;
+
+  // Reconstruire la liste des thèmes
+  const themeSel = document.getElementById('filterTheme');
+  const themes = [...new Set(questionsData.map(q=>q.theme))].sort((a,b)=>a.localeCompare(b,'fr'));
+  themeSel.innerHTML = '<option value="">Tous les thèmes</option>' +
+    themes.map(t=>`<option value="${escH(t)}" ${t===currentTheme?'selected':''}>${escH(t)}</option>`).join('');
+
+  const filtered = questionsData.filter(q => {
+    if (currentTheme && q.theme !== currentTheme) return false;
+    if (currentType === '__long__') { if (!hasLongOption(q)) return false; }
+    else if (currentType && q.type !== currentType) return false;
+    if (!currentFilter) return true;
+    const hay = (q.text+' '+q.explanation+' '+q.options.map(o=>o.text).join(' ')+' '+q.theme).toLowerCase();
+    return hay.includes(currentFilter);
+  });
+
+  document.getElementById('listCount').textContent = total;
+  const statsBar = document.getElementById('statsBar');
+  if (total>0) {
+    statsBar.style.display='flex';
+    document.getElementById('statTotal').textContent    = total;
+    document.getElementById('statSingle').textContent   = questionsData.filter(q=>q.type==='single').length;
+    document.getElementById('statMultiple').textContent = questionsData.filter(q=>q.type==='multiple').length;
+    document.getElementById('statThemes').textContent   = themes.length;
+    const fSep=document.getElementById('statFilterSep'), fInfo=document.getElementById('statFilterInfo');
+    if (currentFilter||currentTheme||currentType){fSep.style.display='';fInfo.style.display='';document.getElementById('statFiltered').textContent=filtered.length;}
+    else{fSep.style.display='none';fInfo.style.display='none';}
+  } else { statsBar.style.display='none'; }
+
+  document.getElementById('welcomeArea').style.display = total===0?'':'none';
+  updatePageTitle();
+
+  if (filtered.length===0) {
+    const f = currentFilter||currentTheme||currentType;
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty-list">
+      <div class="empty-icon">${f?'🔍':'📭'}</div>
+      <p>${f?'Aucune question ne correspond à ce filtre.':'Aucune question.<br>Utilisez <strong>➕ Nouvelle question</strong> pour commencer.'}</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  let html='';
+  filtered.forEach(q=>{
+    const idx    = questionsData.indexOf(q);
+    const isOpen = expandedRow===idx;
+    const typeLbl = q.type==='multiple' ? '☑️ Multiple' : '🔘 Unique';
+    html+=`
+      <tr class="${isOpen?'expanded':''}" id="row-${idx}">
+        <td class="td-id">${escH(String(q.id))}${hasLongOption(q)?' <span title="Une réponse dépasse '+MAX_OPT_LEN+' caractères">⚠️</span>':''}</td>
+        <td class="td-type"><span class="type-badge type-${q.type}">${typeLbl}</span></td>
+        <td class="td-theme"><span class="theme-badge">${escH(q.theme)}</span></td>
+        <td class="td-text" title="${escH(q.text)}">${escH(q.text)}</td>
+        <td class="td-action"><button class="expand-btn ${isOpen?'open':''}" onclick="toggleExpand(${idx})">${isOpen?'▲ Fermer':'▼ Détails'}</button></td>
+      </tr>`;
+    if (isOpen) {
+      const optsHtml = q.options.map(o=>{
+        const ok = q.answers.includes(o.id);
+        const long = o.text.length > MAX_OPT_LEN;
+        return `<div class="opt-line ${ok?'ok':''}"><span class="opt-key">${escH(o.id)}.</span><span class="opt-txt">${escH(o.text)}${ok?' ✔':''}${long?` <strong style="color:var(--orange)">⚠️ ${o.text.length} caractères</strong>`:''}</span></div>`;
+      }).join('');
+      html+=`
+      <tr class="expanded-row" id="expanded-${idx}"><td colspan="5">
+        <div class="expanded-panel">
+          <div class="detail-fields" style="flex:1">
+            <span class="df-label">📝 Énoncé</span><div class="df-value">${escH(q.text)}</div>
+            <span class="df-label">🏷️ Thème</span><div class="df-value">${escH(q.theme)}</div>
+            <span class="df-label">🔠 Options (${q.options.length})</span><div class="df-value">${optsHtml}</div>
+            <span class="df-label">✅ Réponse</span><div class="df-value" style="font-weight:700;color:var(--green)">${escH(q.answers.join(', '))||'—'}</div>
+            <span class="df-label">💡 Explication</span><div class="df-value">${escH(q.explanation)||'<span style="color:var(--gray-400)">—</span>'}</div>
+          </div>
+          <div class="expanded-actions">
+            <button class="btn btn-blue"   onclick="openEditModal(${idx})">✏️ Modifier</button>
+            <button class="btn btn-purple" onclick="duplicateQuestion(${idx})">📄 Dupliquer</button>
+            <button class="btn btn-red"    onclick="deleteQuestion(${idx})">🗑️ Supprimer</button>
+          </div>
+        </div>
+      </td></tr>`;
+    }
+  });
+  tbody.innerHTML=html;
+}
+
+function toggleExpand(idx){
+  expandedRow=(expandedRow===idx)?null:idx; renderTable();
+  if(expandedRow!==null) setTimeout(()=>{const r=document.getElementById('expanded-'+idx);if(r)r.scrollIntoView({behavior:'smooth',block:'nearest'});},50);
+}
+
+function filterList(){
+  currentFilter = (document.getElementById('filterInput').value||'').trim().toLowerCase();
+  currentTheme  = document.getElementById('filterTheme').value;
+  currentType   = document.getElementById('filterType').value;
+  expandedRow=null; renderTable();
+}
+
+// ── OPTIONS EDITOR ────────────────────────────────────────────────────────────
+function optionRowHtml(formId, i, text, correct, type) {
+  const inputType = type==='multiple' ? 'checkbox' : 'radio';
+  return `<div class="mot-input-row" id="${formId}_opt_row_${i}">
+      <span class="mot-num">${LETTERS[i]}.</span>
+      <input type="text" class="mot-input" id="${formId}_opt_${i}" value="${escH(text)}" placeholder="Tapez ici la réponse ${LETTERS[i]}…" maxlength="${MAX_OPT_LEN}" oninput="updateOptCount('${formId}')">
+      <label class="ok-wrap" title="Cocher si c'est une bonne réponse">
+        <input type="${inputType}" name="${formId}_ok" class="opt-ok" ${correct?'checked':''}> OK
+      </label>
+      <button class="btn-del-mot" onclick="delOption('${formId}',${i})" title="Supprimer cette option">✕</button>
+    </div>`;
+}
+
+function buildOptionsEditor(formId, options, answers, type) {
+  let html = `<div class="mots-editor" id="${formId}_opts_container">`;
+  options.forEach((o,i)=>{ html += optionRowHtml(formId,i,o.text,answers.includes(o.id),type); });
+  html += `</div>
+    <button class="btn-add-mot" id="${formId}_add_btn" onclick="addOption('${formId}')">➕ Ajouter une réponse</button>
+    <div class="hint" id="${formId}_opt_count"></div>`;
+  return html;
+}
+
+function readEditorState(formId) {
+  const c = document.getElementById(formId+'_opts_container');
+  if (!c) return [];
+  return [...c.querySelectorAll('.mot-input-row')].map(r=>({
+    text:    r.querySelector('.mot-input').value,
+    correct: r.querySelector('.opt-ok').checked
+  }));
+}
+
+function rebuildEditor(formId, state, type) {
+  const c = document.getElementById(formId+'_opts_container');
+  c.innerHTML = state.slice(0,MAX_OPTIONS).map((s,i)=>optionRowHtml(formId,i,s.text.slice(0,MAX_OPT_LEN),s.correct,type)).join('');
+  updateOptCount(formId);
+  // En mode "unique", ne conserver que la première case cochée
+  if (type!=='multiple') {
+    const oks=[...c.querySelectorAll('.opt-ok')].filter(x=>x.checked);
+    oks.slice(1).forEach(x=>x.checked=false);
+  }
+}
+
+window.updateOptCount = function(formId){
+  const el = document.getElementById(formId+'_opt_count'); if(!el) return;
+  const rows = readEditorState(formId);
+  const near = rows.filter(r=>r.text.length >= MAX_OPT_LEN).length;
+  el.innerHTML = rows.length+' réponse'+(rows.length>1?'s':'')+' sur '+MAX_OPTIONS+' possibles.'+
+    (near? ' <strong style="color:var(--orange)">⚠️ '+near+' réponse'+(near>1?'s ont':' a')+' atteint la limite de '+MAX_OPT_LEN+' caractères : le texte ne peut plus être allongé.</strong>' : '');
+  const btn = document.getElementById(formId+'_add_btn');
+  if (btn) { const full = rows.length >= MAX_OPTIONS;
+    btn.disabled = full; btn.style.opacity = full?'.45':''; btn.style.cursor = full?'not-allowed':'pointer';
+    btn.textContent = full ? '⛔ Maximum '+MAX_OPTIONS+' réponses atteint' : '➕ Ajouter une réponse'; }
+};
+
+window.addOption = function(formId) {
+  const state = readEditorState(formId);
+  if (state.length >= MAX_OPTIONS) { showToast('⚠️ Maximum '+MAX_OPTIONS+' réponses par question.'); return; }
+  state.push({text:'',correct:false});
+  rebuildEditor(formId, state, currentFormType(formId));
+  const el = document.getElementById(`${formId}_opt_${state.length-1}`); if (el) el.focus();
+};
+
+window.delOption = function(formId, i) {
+  const state = readEditorState(formId);
+  if (state.length <= 2) { showToast('⚠️ Une question doit proposer au moins 2 options.'); return; }
+  state.splice(i,1);
+  rebuildEditor(formId, state, currentFormType(formId));
+};
+
+function currentFormType(formId){
+  const sel = document.getElementById(formId+'_type');
+  return sel ? sel.value : 'single';
+}
+
+window.onTypeChange = function(formId) {
+  rebuildEditor(formId, readEditorState(formId), currentFormType(formId));
+};
+
+function collectQuestion(formId) {
+  const type  = currentFormType(formId);
+  const theme = getTheme(formId);
+  const text  = (document.getElementById(formId+'_text').value||'').trim();
+  const expl  = (document.getElementById(formId+'_expl').value||'').trim();
+  const rows  = readEditorState(formId).filter(r=>r.text.trim());
+
+  if (!theme)          { showToast('⚠️ Choisissez un thème existant ou saisissez le nom du nouveau thème.'); return null; }
+  if (!text)           { showToast('⚠️ L\'énoncé de la question est obligatoire.'); return null; }
+  if (rows.length<2)   { showToast('⚠️ Il faut au moins 2 réponses non vides.'); return null; }
+  if (rows.length>MAX_OPTIONS) { showToast('⚠️ Maximum '+MAX_OPTIONS+' réponses par question.'); return null; }
+  const tooLong = rows.find(r=>r.text.trim().length > MAX_OPT_LEN);
+  if (tooLong)         { showToast('⚠️ Réponse trop longue ('+tooLong.text.trim().length+' caractères) : '+MAX_OPT_LEN+' maximum.'); return null; }
+
+  const options=[], answers=[];
+  rows.forEach((r,i)=>{
+    const id = LETTERS[i];
+    options.push({id, text:r.text.trim()});
+    if (r.correct) answers.push(id);
+  });
+
+  if (answers.length===0) { showToast('⚠️ Cochez au moins une bonne réponse (OK).'); return null; }
+  if (type==='single' && answers.length>1) { showToast('⚠️ Type « réponse unique » : une seule bonne réponse.'); return null; }
+  if (type==='multiple' && answers.length===options.length) { showToast('⚠️ Toutes les réponses ne peuvent pas être correctes.'); return null; }
+
+  return { type, theme, text, options, answers, explanation: expl };
+}
+
+function allThemes(){
+  return [...new Set(questionsData.map(q=>q.theme))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'fr'));
+}
+
+function themeFieldHtml(formId, theme){
+  const themes = allThemes();
+  const known  = theme && themes.includes(theme);
+  const isNew  = !themes.length || (theme && !known);
+  const opts = themes.map(t=>`<option value="${escH(t)}" ${t===theme?'selected':''}>${escH(t)}</option>`).join('');
+  return `<select id="${formId}_theme_sel" onchange="onThemeSelChange('${formId}')">
+      ${themes.length?'':'<option value="" disabled selected>— aucun thème existant —</option>'}
+      ${opts}
+      <option value="__new__" ${isNew?'selected':''}>➕ Nouveau thème…</option>
+    </select>
+    <input type="text" id="${formId}_theme_new" value="${escH(isNew?(theme||''):'')}" placeholder="Tapez ici le nom du nouveau thème…" maxlength="120" style="margin-top:6px;${isNew?'':'display:none'}">`;
+}
+
+window.onThemeSelChange = function(formId){
+  const sel = document.getElementById(formId+'_theme_sel');
+  const inp = document.getElementById(formId+'_theme_new');
+  const isNew = sel.value === '__new__';
+  inp.style.display = isNew ? '' : 'none';
+  if (isNew) inp.focus();
+};
+
+function getTheme(formId){
+  const sel = document.getElementById(formId+'_theme_sel');
+  if (!sel) return '';
+  if (sel.value === '__new__') return (document.getElementById(formId+'_theme_new').value||'').trim();
+  return sel.value;
+}
+
+function questionFormHtml(formId, q) {
+  return `<div class="form-body">
+      <div class="form-row">
+        <div class="form-section">
+          <label>Thème <span class="req">*</span></label>
+          ${themeFieldHtml(formId, q.theme)}
+          <div class="hint">Choisissez un thème existant ou créez-en un nouveau. Les questions sont regroupées par thème dans le XML.</div>
+        </div>
+        <div class="form-section">
+          <label>Type de question <span class="req">*</span></label>
+          <select id="${formId}_type" onchange="onTypeChange('${formId}')">
+            <option value="single"   ${q.type!=='multiple'?'selected':''}>🔘 Réponse unique (single)</option>
+            <option value="multiple" ${q.type==='multiple'?'selected':''}>☑️ Réponses multiples (multiple)</option>
+          </select>
+          <div class="hint">Le type pilote les cases « OK » (rond = 1 seule réponse).</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <label>Énoncé de la question <span class="req">*</span></label>
+        <textarea id="${formId}_text" rows="2" style="resize:vertical" placeholder="Tapez ici l'énoncé de la nouvelle question…">${escH(q.text)}</textarea>
+      </div>
+      <div class="form-section">
+        <label>Réponses proposées <span class="req">*</span></label>
+        <div class="hint" style="margin:0 0 6px">Saisissez de 2 à ${MAX_OPTIONS} réponses (${MAX_OPT_LEN} caractères maximum chacune), puis cochez la case <strong>OK</strong> à droite de chaque bonne réponse.</div>
+        ${buildOptionsEditor(formId, q.options.length?q.options:[{id:'A',text:''},{id:'B',text:''}], q.answers, q.type)}
+      </div>
+      <div class="form-section">
+        <label>Explication <span style="font-size:11px;font-weight:400;color:var(--gray-400)">(affichée après la réponse)</span></label>
+        <textarea id="${formId}_expl" rows="3" style="resize:vertical" placeholder="Tapez ici l'explication de la bonne réponse…">${escH(q.explanation)}</textarea>
+      </div>
+    </div>`;
+}
+
+// ── ADD MODAL ─────────────────────────────────────────────────────────────────
+function openAddModal() {
+  if (questionsData.length>=MAX_QUESTIONS){showInfo('⚠️ Limite atteinte',`Maximum ${MAX_QUESTIONS} questions.`);return;}
+  const formId='add';
+  const last = questionsData[questionsData.length-1];
+  const blank = { type:'single', theme:last?last.theme:'', text:'', options:[{id:'A',text:''},{id:'B',text:''},{id:'C',text:''},{id:'D',text:''}], answers:[], explanation:'' };
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='addModal';
+  o.innerHTML=`<div class="modal-box">
+    <div class="modal-header">
+      <h2>➕ Nouvelle question</h2>
+      <button class="modal-close" onclick="document.getElementById('addModal').remove()">✕</button>
+    </div>
+    <div class="modal-body">${questionFormHtml(formId, blank)}</div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="document.getElementById('addModal').remove()">❌ Annuler</button>
+      <button class="btn btn-blue btn-lg" onclick="saveAdd()">✅ Ajouter</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  updateOptCount(formId);
+  document.getElementById(formId+'_text').focus();
+}
+
+window.saveAdd = function() {
+  const q = collectQuestion('add');
+  if (!q) return;
+  questionsData.push(q);
+  reindex();
+  const idx = questionsData.length-1;
+  expandedRow = idx;
+  setModified(true);
+  document.getElementById('addModal').remove();
+  renderTable(); updateStatus('✅ Question ajoutée');
+  setTimeout(()=>{const r=document.getElementById('row-'+idx);if(r)r.scrollIntoView({behavior:'smooth',block:'center'});},100);
+};
+
+
+// ── ASSISTANT PAS À PAS ───────────────────────────────────────────────────────
+// Même déroulé que les autres éditeurs du site : une étape à la fois, un point
+// de progression par étape, et une vérification avant l'ajout définitif.
+window.newQuestionWizard = function() {
+  if (questionsData.length >= MAX_QUESTIONS) {
+    showInfo('⚠️ Limite atteinte', `Maximum ${MAX_QUESTIONS} questions.`); return;
+  }
+  const formId = 'wz';
+  const totalSteps = 5;
+  let currentStep = 1;
+  const last = questionsData[questionsData.length-1];
+  const blank = { type:'single', theme:last?last.theme:'', text:'',
+                  options:[{id:'A',text:''},{id:'B',text:''},{id:'C',text:''},{id:'D',text:''}],
+                  answers:[], explanation:'' };
+
+  const o = document.createElement('div');
+  o.className = 'modal-overlay'; o.id = 'wizModal';
+  o.innerHTML = `<div class="modal-box" style="max-width:600px">
+    <div class="modal-header">
+      <h2>➕ Ajouter une question — Guide pas à pas</h2>
+      <button class="modal-close" onclick="document.getElementById('wizModal').remove()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="wizard-progress">
+        <div class="wiz-step-dot current" id="wdot1">1</div><div class="wiz-connector" id="wcon1"></div>
+        <div class="wiz-step-dot" id="wdot2">2</div><div class="wiz-connector" id="wcon2"></div>
+        <div class="wiz-step-dot" id="wdot3">3</div><div class="wiz-connector" id="wcon3"></div>
+        <div class="wiz-step-dot" id="wdot4">4</div><div class="wiz-connector" id="wcon4"></div>
+        <div class="wiz-step-dot" id="wdot5">5</div>
+      </div>
+      <div class="wizard-steps">
+
+        <div class="wiz-panel active" id="wizStep1">
+          <div class="wiz-title">👋 Étape 1 — Prêt à ajouter une question ?</div>
+          <div class="wiz-sub">Ce guide vous accompagne étape par étape. Vous pourrez revenir en arrière à tout moment.</div>
+          <div style="background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius);padding:14px 16px">
+            <p style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:8px">📝 Ce que vous allez faire :</p>
+            <p style="font-size:14px;color:var(--gray-600);line-height:2">
+              <strong>① Choisir un thème</strong> — il regroupe les questions dans le fichier<br>
+              <strong>② Écrire l'énoncé</strong> et choisir le type de question<br>
+              <strong>③ Saisir les réponses</strong> et cocher la ou les bonnes<br>
+              <strong>④ Ajouter une explication</strong>, puis vérifier avant d'ajouter
+            </p>
+          </div>
+          <div class="wiz-note" style="margin-top:12px">
+            💡 <strong>Info :</strong> le questionnaire contient actuellement <strong>${questionsData.length} question(s)</strong>.
+            Après l'ajout, pensez à cliquer sur <strong>💾 Enregistrer</strong> pour sauvegarder le fichier.
+          </div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep2">
+          <div class="wiz-title">🏷️ Étape 2 — Choisissez un thème</div>
+          <div class="wiz-sub">Le thème regroupe les questions qui se ressemblent (ex : « Acteurs et actrices »). Choisissez-en un existant ou créez-en un nouveau.</div>
+          <div class="form-section">
+            <label>Thème <span class="req">*</span></label>
+            ${themeFieldHtml(formId, blank.theme)}
+            <div class="hint" style="font-size:13px;margin-top:8px">💡 Pour créer un thème, choisissez <strong>« ➕ Nouveau thème… »</strong> puis tapez son nom.</div>
+          </div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep3">
+          <div class="wiz-title">📝 Étape 3 — Écrivez la question</div>
+          <div class="wiz-sub">Formulez l'énoncé tel qu'il apparaîtra à l'écran, puis indiquez si le joueur devra cocher une seule réponse ou plusieurs.</div>
+          <div class="form-section">
+            <label>Énoncé <span class="req">*</span></label>
+            <textarea id="${formId}_text" rows="3" style="resize:vertical;font-size:15px" placeholder="Tapez ici l'énoncé de la nouvelle question…"></textarea>
+          </div>
+          <div class="form-section">
+            <label>Type de question <span class="req">*</span></label>
+            <select id="${formId}_type" onchange="onTypeChange('${formId}')">
+              <option value="single" selected>🔘 Réponse unique (une seule bonne réponse)</option>
+              <option value="multiple">☑️ Réponses multiples (plusieurs bonnes réponses)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep4">
+          <div class="wiz-title">🔠 Étape 4 — Saisissez les réponses</div>
+          <div class="wiz-sub">De 2 à ${MAX_OPTIONS} réponses, ${MAX_OPT_LEN} caractères maximum chacune. Cochez <strong>OK</strong> à droite de chaque bonne réponse.</div>
+          <div class="form-section">
+            ${buildOptionsEditor(formId, blank.options, blank.answers, blank.type)}
+          </div>
+          <div class="wiz-note">⚠️ <strong>À savoir :</strong> en « réponse unique », une seule case OK peut être cochée. En « réponses multiples », il en faut au moins une, mais pas toutes.</div>
+        </div>
+
+        <div class="wiz-panel" id="wizStep5">
+          <div class="wiz-title">✅ Étape 5 — Explication et vérification</div>
+          <div class="wiz-sub">L'explication s'affiche au joueur une fois qu'il a répondu. Relisez ensuite le récapitulatif avant d'ajouter.</div>
+          <div class="form-section">
+            <label>Explication <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(facultative)</span></label>
+            <textarea id="${formId}_expl" rows="3" style="resize:vertical" placeholder="Tapez ici l'explication de la bonne réponse…"></textarea>
+          </div>
+          <div class="detail-fields wiz-recap">
+            <span class="df-label">🔢 Numéro</span>      <div class="df-value" id="wrecap_id">—</div>
+            <span class="df-label">🏷️ Thème</span>       <div class="df-value" id="wrecap_theme">—</div>
+            <span class="df-label">🔘 Type</span>        <div class="df-value" id="wrecap_type">—</div>
+            <span class="df-label">📝 Énoncé</span>      <div class="df-value" id="wrecap_text">—</div>
+            <span class="df-label">🔠 Réponses</span>    <div class="df-value" id="wrecap_opts">—</div>
+          </div>
+          <div class="wiz-note">💾 <strong>Rappel :</strong> l'ajout se fait en mémoire. Cliquez ensuite sur <strong>💾 Enregistrer</strong> dans la barre du haut pour écrire le fichier XML.</div>
+        </div>
+
+      </div>
+    </div>
+    <div class="wiz-nav">
+      <span class="wiz-nav-counter">Étape <span id="wiz_step_num">1</span> sur ${totalSteps}</span>
+      <button class="btn btn-gray" id="wizBtnPrev" onclick="wizNav(-1)" style="display:none">◀ Précédent</button>
+      <button class="btn btn-blue btn-lg" id="wizBtnNext" onclick="wizNav(1)">Suivant ▶</button>
+      <button class="btn btn-green btn-lg" id="wizBtnConfirm" onclick="wizConfirm()" style="display:none">✅ Ajouter la question !</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  updateOptCount(formId);
+
+  function updateWizUI() {
+    for (let i=1; i<=totalSteps; i++) {
+      document.getElementById('wizStep'+i).classList.toggle('active', i===currentStep);
+      document.getElementById('wdot'+i).className = 'wiz-step-dot' + (i<currentStep?' done':i===currentStep?' current':'');
+      if (i<totalSteps) document.getElementById('wcon'+i).className = 'wiz-connector' + (i<currentStep?' done':'');
+    }
+    document.getElementById('wiz_step_num').textContent    = currentStep;
+    document.getElementById('wizBtnPrev').style.display    = currentStep>1 ? '' : 'none';
+    document.getElementById('wizBtnNext').style.display    = currentStep<totalSteps ? '' : 'none';
+    document.getElementById('wizBtnConfirm').style.display = currentStep===totalSteps ? '' : 'none';
+  }
+
+  function buildRecap() {
+    const rows = readEditorState(formId).filter(r=>r.text.trim());
+    const type = currentFormType(formId);
+    document.getElementById('wrecap_id').textContent    = '#' + (questionsData.length+1);
+    document.getElementById('wrecap_theme').textContent = getTheme(formId) || '—';
+    document.getElementById('wrecap_type').textContent  = type==='multiple' ? 'Réponses multiples' : 'Réponse unique';
+    document.getElementById('wrecap_text').textContent  = (document.getElementById(formId+'_text').value||'').trim() || '—';
+    document.getElementById('wrecap_opts').innerHTML    = rows.length
+      ? rows.map((r,i)=>`${LETTERS[i]}. ${escH(r.text.trim())}${r.correct?' <strong style="color:var(--green)">✔ bonne réponse</strong>':''}`).join('<br>')
+      : '—';
+  }
+
+  window.wizNav = function(dir) {
+    if (dir === 1 && currentStep === 2 && !getTheme(formId)) {
+      showToast('⚠️ Choisissez un thème existant ou saisissez le nom du nouveau thème.'); return;
+    }
+    if (dir === 1 && currentStep === 3) {
+      if (!(document.getElementById(formId+'_text').value||'').trim()) {
+        showToast("⚠️ L'énoncé de la question est obligatoire."); return;
+      }
+    }
+    if (dir === 1 && currentStep === 4) {
+      const rows = readEditorState(formId).filter(r=>r.text.trim());
+      if (rows.length < 2)  { showToast('⚠️ Il faut au moins 2 réponses non vides.'); return; }
+      const tooLong = rows.find(r=>r.text.trim().length > MAX_OPT_LEN);
+      if (tooLong)          { showToast('⚠️ Réponse trop longue ('+tooLong.text.trim().length+' caractères) : '+MAX_OPT_LEN+' maximum.'); return; }
+      const oks = rows.filter(r=>r.correct);
+      if (oks.length === 0) { showToast('⚠️ Cochez au moins une bonne réponse (OK).'); return; }
+      if (currentFormType(formId)==='multiple' && oks.length===rows.length) {
+        showToast('⚠️ Toutes les réponses ne peuvent pas être correctes.'); return;
+      }
+    }
+    currentStep += dir;
+    updateWizUI();
+    if (currentStep === totalSteps) buildRecap();
+  };
+
+  window.wizConfirm = function() {
+    const q = collectQuestion(formId);
+    if (!q) return;
+    questionsData.push(q);
+    reindex();
+    expandedRow = questionsData.length-1;
+    setModified(true);
+    document.getElementById('wizModal').remove();
+    renderTable(); updateStatus('✅ Question ajoutée');
+    setTimeout(()=>{const r=document.getElementById('row-'+expandedRow); if(r) r.scrollIntoView({behavior:'smooth',block:'center'});},100);
+  };
+};
+
+// ── EDIT MODAL ────────────────────────────────────────────────────────────────
+function openEditModal(idx) {
+  const q=questionsData[idx]; const formId='em';
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='editModal';
+  o.innerHTML=`<div class="modal-box">
+    <div class="modal-header">
+      <h2>✏️ Modifier la question n°${escH(String(q.id))}</h2>
+      <button class="modal-close" onclick="document.getElementById('editModal').remove()">✕</button>
+    </div>
+    <div class="modal-body">${questionFormHtml(formId, q)}</div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="document.getElementById('editModal').remove()">❌ Annuler</button>
+      <button class="btn btn-blue btn-lg" onclick="saveEdit(${idx})">💾 Enregistrer</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  updateOptCount(formId);
+}
+
+window.saveEdit = function(idx) {
+  const nq = collectQuestion('em');
+  if (!nq) return;
+  const q = questionsData[idx];
+  q.type=nq.type; q.theme=nq.theme; q.text=nq.text;
+  q.options=nq.options; q.answers=nq.answers; q.explanation=nq.explanation;
+  expandedRow=idx; setModified(true);
+  document.getElementById('editModal').remove();
+  reindex(); renderTable(); updateStatus('✅ Question modifiée');
+};
+
+// ── DUPLICATE / DELETE ────────────────────────────────────────────────────────
+function duplicateQuestion(idx){
+  if (questionsData.length>=MAX_QUESTIONS){showInfo('⚠️ Limite atteinte',`Maximum ${MAX_QUESTIONS} questions.`);return;}
+  const src = questionsData[idx];
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.text = copy.text + ' (copie)';
+  questionsData.splice(idx+1, 0, copy);
+  reindex(); expandedRow=idx+1; setModified(true); renderTable();
+  updateStatus('📄 Question dupliquée');
+}
+
+function deleteQuestion(idx){
+  const q=questionsData[idx];
+  showConfirm('🗑️ Supprimer cette question ?',
+    `Vous allez supprimer définitivement :\n\n  N° : ${q.id}\n  🏷️ Thème : ${q.theme}\n  📝 ${q.text}\n\nCette action est irréversible.`,
+    ()=>{questionsData.splice(idx,1);reindex();expandedRow=null;setModified(true);renderTable();updateStatus('🗑️ Question supprimée');});
+}
+
+function reindex(){
+  questionsData.forEach((q,i)=>q.id=i+1);
+}
+
+// ── AIDE ──────────────────────────────────────────────────────────────────────
+function showHelp() {
+  const o=document.createElement('div'); o.className='modal-overlay'; o.id='helpModal';
+  o.innerHTML=`
+  <div class="modal-box" style="max-width:700px;max-height:92vh">
+    <div class="modal-header">
+      <h2>❓ Aide — Gestionnaire de Quiz XML</h2>
+      <button class="modal-close" onclick="document.getElementById('helpModal').remove()">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;padding:20px 24px">
+
+      <h3 style="color:var(--blue);font-size:15px;margin-bottom:10px;border-bottom:2px solid var(--blue-border);padding-bottom:6px">🗂️ Vue d'ensemble</h3>
+      <p style="font-size:14px;line-height:1.8;color:var(--gray-600);margin-bottom:14px">
+        Cette application gère des fichiers XML de quiz. Chaque question possède un thème, un type
+        (réponse unique ou réponses multiples), un énoncé, des options identifiées par lettre,
+        la ou les bonnes réponses, et une explication.
+      </p>
+
+      <h3 style="color:var(--blue);font-size:15px;margin-bottom:10px;border-bottom:2px solid var(--blue-border);padding-bottom:6px">📄 Structure XML</h3>
+      <pre style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:#1e3a5c;line-height:1.7;overflow-x:auto">&lt;quiz&gt;
+  &lt;config&gt;
+    &lt;title&gt;Quiz Informatique - Niveau Débutant&lt;/title&gt;
+  &lt;/config&gt;
+  &lt;questions&gt;
+    &lt;question id="1" type="single" theme="Matériel informatique"&gt;
+      &lt;text&gt;Quel composant est le « cerveau » de l'ordinateur ?&lt;/text&gt;
+      &lt;options&gt;
+        &lt;option id="A"&gt;La carte graphique (GPU)&lt;/option&gt;
+        &lt;option id="B"&gt;Le processeur (CPU)&lt;/option&gt;
+      &lt;/options&gt;
+      &lt;answer&gt;B&lt;/answer&gt;
+      &lt;explanation&gt;…&lt;/explanation&gt;
+    &lt;/question&gt;
+  &lt;/questions&gt;
+&lt;/quiz&gt;</pre>
+
+      <h3 style="color:var(--blue);font-size:15px;margin:14px 0 10px;border-bottom:2px solid var(--blue-border);padding-bottom:6px">⚠️ Règles de validation</h3>
+      <ul style="font-size:14px;line-height:1.9;color:var(--gray-600);padding-left:22px;margin-bottom:8px">
+        <li>Thème et énoncé <strong>obligatoires</strong>.</li>
+        <li><strong>De 2 à 8 réponses</strong> non vides ; les réponses vides sont ignorées.</li>
+        <li>Le texte de chaque réponse est limité à <strong>80 caractères</strong>.</li>
+        <li>À l'ouverture d'un fichier, les réponses au-delà de la 8e sont écartées ; les textes de plus de 80 caractères sont conservés mais signalés par ⚠️ (filtre « Réponses trop longues »).</li>
+        <li><strong>Au moins une bonne réponse</strong> cochée (« OK »).</li>
+        <li>Type <code>single</code> : <strong>exactement une</strong> bonne réponse. Type <code>multiple</code> : plusieurs, mais pas toutes.</li>
+        <li>Les lettres des réponses (A, B, C…) et les numéros de questions sont <strong>réattribués automatiquement</strong>.</li>
+        <li>À l'enregistrement, les questions sont <strong>regroupées par thème</strong> avec un bandeau de commentaire.</li>
+      </ul>
+
+      <h3 style="color:var(--blue);font-size:15px;margin:14px 0 10px;border-bottom:2px solid var(--blue-border);padding-bottom:6px">🔎 Filtres</h3>
+      <ul style="font-size:14px;line-height:1.9;color:var(--gray-600);padding-left:22px">
+        <li>La recherche porte sur l'énoncé, les options, l'explication et le thème.</li>
+        <li>Les listes déroulantes filtrent par thème et par type.</li>
+      </ul>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-blue btn-lg" onclick="document.getElementById('helpModal').remove()">✅ Fermer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const old=document.querySelector('.toast-erreur');if(old)old.remove();
+  const t=document.createElement('div');t.className='toast-erreur';t.textContent=msg;
+  document.body.appendChild(t);
+  const timer=setTimeout(()=>{t.classList.add('toast-out');setTimeout(()=>{if(t.parentNode)t.remove();},300);},2700);
+  t.style.pointerEvents='auto';t.style.cursor='pointer';
+  t.addEventListener('click',()=>{clearTimeout(timer);t.classList.add('toast-out');setTimeout(()=>{if(t.parentNode)t.remove();},300);});
+}
+
+// ── DIALOGS ───────────────────────────────────────────────────────────────────
+function showInfo(title,message){
+  const o=document.createElement('div');o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box" style="max-width:440px">
+    <div class="modal-header"><h2>${title}</h2><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+    <div class="modal-body" style="padding:20px 24px"><p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p></div>
+    <div class="modal-footer"><button class="btn btn-blue btn-lg" onclick="this.closest('.modal-overlay').remove()">OK</button></div>
+  </div>`;document.body.appendChild(o);
+}
+
+function showConfirm(title,message,onOk){
+  const o=document.createElement('div');o.className='modal-overlay';
+  o.innerHTML=`<div class="modal-box" style="max-width:460px">
+    <div class="modal-header" style="background:var(--red)"><h2>${title}</h2><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+    <div class="modal-body" style="padding:20px 24px"><p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p></div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">❌ Non, annuler</button>
+      <button class="btn btn-red btn-lg" id="_confirmYes">✅ Oui, confirmer</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  o.querySelector('#_confirmYes').addEventListener('click',()=>{o.remove();onOk();});
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+function setModified(val){
+  modified=val;
+  const el=document.getElementById('modifiedIndicator');
+  el.textContent=val?'⚠️ Modifications non sauvegardées':'✅ Aucune modification';
+  el.className='status-badge '+(val?'status-dirty':'status-clean');
+}
+function updateStatus(msg){document.getElementById('statusMsg').textContent=msg;}
+function updatePageTitle(){
+  document.title=(configData.title?'❓ '+configData.title:'❓ Gestionnaire Quiz XML');
+}
+window.addEventListener('beforeunload',e=>{if(modified){e.preventDefault();e.returnValue='';}});
+
+// Raccourcis clavier : Ctrl+N = nouvelle question, Ctrl+S = enregistrer, Échap = fermer la modale
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){const m=[...document.querySelectorAll('.modal-overlay')].pop(); if(m){m.remove(); e.preventDefault();} return;}
+  if(!(e.ctrlKey||e.metaKey)) return;
+  const k=e.key.toLowerCase();
+  if(k==='n'){e.preventDefault(); if(!document.querySelector('.modal-overlay')) newQuestionWizard();}
+  if(k==='s'){e.preventDefault(); exportXML();}
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderTable();
+</script>
+
+<!-- Modules communs du site -->
+<script src="../../assets/js/ressources.js"></script>
+<script src="../../assets/js/bibliotheque.js" data-jeu="editeurquizz" data-base="../../"></script>
+<script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
+</body>
+</html>

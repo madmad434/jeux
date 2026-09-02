@@ -197,6 +197,21 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,Blink
 ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
 #fileInput{display:none}
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
 </style>
 </head>
 <body>
@@ -212,7 +227,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,Blink
     <button class="btn btn-white btn-sm" onclick="resetConfig()">🔄 Réinitialiser</button>
     <div style="flex:1"></div>
     <button class="btn btn-white btn-sm" onclick="showHelp()">❓ Aide</button>
-    <button class="btn btn-white btn-sm" onclick="quitterApp()">🚪 Quitter</button>
+    <button class="btn btn-white btn-sm" onclick="quitterApp()" id="btn-quitter">🚪 Quitter</button>
   </div>
 
   <div class="main-area">
@@ -543,14 +558,14 @@ function openEditModal(idx) {
         <div class="form-section">
           <label>Catégorie <span class="req">*</span></label>
           <select id="em_cat_select" onchange="handleCatSelect('em_cat_select','em_cat_custom')">${catOptions}</select>
-          <input type="text" id="em_cat_custom" placeholder="Tapez votre nouvelle catégorie…"
+          <input type="text" id="em_cat_custom" placeholder="Tapez ici le nom de la nouvelle catégorie…"
             value="${isCustomCat ? escH(mot.categorie) : ''}"
             style="margin-top:8px;display:${isCustomCat?'block':'none'}">
           <div class="hint">Choisissez une catégorie ou sélectionnez <strong>"➕ Autre"</strong> pour en créer une nouvelle.</div>
         </div>
         <div class="form-section">
           <label>Mot <span class="req">*</span> <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} lettres)</span></label>
-          <input type="text" id="em_valeur" value="${escH(mot.valeur)}" placeholder="Exemple : ELEPHANT"
+          <input type="text" id="em_valeur" value="${escH(mot.valeur)}" placeholder="Tapez ici le nouveau mot…"
             oninput="updateCounter('em_valeur','em_counter')" maxlength="50">
           <div class="char-counter ok" id="em_counter">${mot.valeur.length} / ${MAX_TEXT_CHARS} lettres</div>
           <div class="hint">Le mot sera automatiquement mis en <strong>MAJUSCULES</strong>. Entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} caractères.</div>
@@ -688,7 +703,7 @@ function newMotWizard() {
             <div class="form-section">
               <label>Catégorie <span class="req">*</span></label>
               <select id="wiz_cat_select" onchange="handleCatSelect('wiz_cat_select','wiz_cat_custom')" style="font-size:16px;padding:12px">${catOptions}</select>
-              <input type="text" id="wiz_cat_custom" placeholder="Tapez le nom de la nouvelle catégorie…" style="margin-top:10px;display:none;font-size:16px;padding:12px">
+              <input type="text" id="wiz_cat_custom" placeholder="Tapez ici le nom de la nouvelle catégorie…" style="margin-top:10px;display:none;font-size:16px;padding:12px">
               <div class="hint" style="font-size:13px;margin-top:8px">💡 Si votre catégorie n'est pas dans la liste, sélectionnez <strong>"➕ Autre"</strong> et tapez son nom.</div>
             </div>
           </div>
@@ -698,7 +713,7 @@ function newMotWizard() {
             <div class="wiz-sub">Saisissez le mot à ajouter. Les lettres minuscules seront automatiquement transformées en MAJUSCULES.</div>
             <div class="form-section">
               <label>Mot <span class="req">*</span> <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} lettres)</span></label>
-              <input type="text" id="wiz_valeur" placeholder="Exemple : ELEPHANT"
+              <input type="text" id="wiz_valeur" placeholder="Tapez ici le nouveau mot…"
                 oninput="updateCounter('wiz_valeur','wiz_counter')"
                 maxlength="50" style="font-size:20px;padding:14px;font-weight:800;letter-spacing:2px">
               <div class="char-counter ok" id="wiz_counter" style="font-size:15px;margin-top:8px">0 / ${MAX_TEXT_CHARS} lettres</div>
@@ -1084,5 +1099,6 @@ renderTable();
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
 <script src="../../assets/js/ressources.js"></script>
 <script src="../../assets/js/bibliotheque.js" data-jeu="editeurmot" data-base="../../"></script>
+<script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
 </body>
 </html>

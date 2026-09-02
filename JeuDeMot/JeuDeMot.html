@@ -479,6 +479,21 @@
     .kb-key.wide { min-width: 40px; }
     .modal { padding: 20px; }
   }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
 </style>
 </head>
 <body>
@@ -559,6 +574,7 @@
     </div>
     <hr class="divider">
     <button class="btn btn-secondary btn-sm" onclick="openRules()">📖 Règles du jeu</button>
+    <button class="btn btn-secondary btn-sm" id="btn-quitter-accueil">✕ Quitter</button>
   </div>
 </div>
 
@@ -1743,32 +1759,11 @@ function sauvegarderPartie() {
       elapsedMot
     }
   };
-  const json      = JSON.stringify(data);
-  const suggested = lastSaveName || `${stamp()}_JeuDeMot.json`;
-
-  // Chrome/Edge : showSaveFilePicker — choisir dossier ET nom
-  if (window.showSaveFilePicker) {
-    (async () => {
-      try {
-        const h = await window.showSaveFilePicker({
-          suggestedName: suggested,
-          types: [{ description: 'Sauvegarde Jeu de Mot', accept: { 'application/json': ['.json'] } }]
-        });
-        const w = await h.createWritable();
-        await w.write(json); await w.close();
-        lastSaveName = h.name;
-        showInfo('💾','Partie sauvegardée',`Fichier : « ${h.name} »\nDans le dossier que vous avez choisi.`);
-      } catch(err) {
-        if (err.name === 'AbortError') return; // annulé
-        downloadSaveJson(json, suggested, `Enregistrement direct impossible.\nFichier déposé dans les téléchargements.`);
-      }
-    })();
-  } else {
-    // Firefox/Safari : prompt pour le nom, téléchargement automatique
-    let name = prompt('Nom du fichier de sauvegarde :', suggested);
-    if (name === null) return;
-    downloadSaveJson(json, name.trim() || suggested);
-  }
+  Partie.enregistrer({
+    json: JSON.stringify(data),
+    nomPropose: lastSaveName || `${stamp()}_JeuDeMot.json`,
+    jeu: 'Jeu de Mot'
+  });
 }
 
 function downloadSaveJson(json, name, warn) {
@@ -1789,18 +1784,19 @@ function chargerPartie(e) {
   if (!file) return;
   const fr = new FileReader();
   fr.onload = ev => restaurerPartie(ev.target.result, file.name);
-  fr.onerror = () => showInfo('⚠️','Erreur de lecture','Impossible de lire ce fichier.');
+  fr.onerror = () => Partie.refuserReprise({nomFichier:file.name, raison:"Le fichier n'a pas pu être lu par le navigateur."});
   fr.readAsText(file);
 }
 
 function restaurerPartie(text, filename) {
+  const nom = filename || 'sauvegarde';
   let d;
   try { d = JSON.parse(text); } catch(e) {
-    showInfo('⚠️','Fichier invalide','Ce fichier ne peut pas être lu (JSON invalide).');
+    Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas lisible : son contenu n'est pas au format JSON."});
     return;
   }
   if (!d || (d.app !== 'jeudemot' && d.app !== 'motus') || !d.session || !d.config || !d.flatMots) {
-    showInfo('⚠️','Fichier invalide',"Ce fichier n'est pas une sauvegarde de ce jeu.");
+    Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas une sauvegarde du Jeu de Mot."});
     return;
   }
 
@@ -1875,8 +1871,10 @@ function restaurerPartie(text, filename) {
     if (config.aideFlash && !session.fini) startFlashLED();
 
     const savedAt = d.savedAt ? new Date(d.savedAt).toLocaleString('fr-FR') : '?';
-    showInfo('📂','Partie restaurée',
-      `Sauvegarde du ${savedAt}\nMot ${session.motIndex+1}/${config.nbMots} — ${session.essaiIndex} essai(s) joué(s)\nScore : ${session.score} pts`);
+    Partie.confirmerReprise({
+      nomFichier: nom,
+      resume: `sauvegarde du ${savedAt} — mot ${session.motIndex+1}/${config.nbMots}, score ${session.score} pts`
+    });
   };
 
   // Confirmer si une partie est en cours
@@ -1899,5 +1897,10 @@ function fermerModal(id) {
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
 <script src="../assets/js/ressources.js"></script>
 <script src="../assets/js/bibliotheque.js" data-jeu="jeudemot" data-base="../"></script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="jeudemot" data-base="../"></script>
+<script src="../assets/js/partie.js" data-base="../"></script>
 </body>
 </html>

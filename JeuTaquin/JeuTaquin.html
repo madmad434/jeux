@@ -281,6 +281,21 @@
     #sidepanel { width:120px; min-width:100px; }
 
   }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
 </style>
 </head>
 <body>
@@ -578,7 +593,7 @@ const gridArea=$('grid-area');
 gridArea.addEventListener('drop',e=>{
   const f=e.dataTransfer&&e.dataTransfer.files[0]; if(!f) return;
   if(f.name.toLowerCase().endsWith('.json')||f.type==='application/json'){   // sauvegarde déposée
-    const fr=new FileReader(); fr.onload=()=>loadGame(fr.result); fr.readAsText(f);
+    const fr=new FileReader(); fr.onload=()=>loadGame(fr.result,f.name); fr.readAsText(f);
   } else setPicture(f);
 });
 
@@ -993,32 +1008,14 @@ function saveGame(){
     tiles:state.tiles.map(t=>({num:t.num,sym:t.sym,r:t.r,c:t.c})),
     image:(state.imageMode&&state.picture)?{name:state.picture.name,data:state.picture.url}:null
   };
-  const json=JSON.stringify(data);
-  const suggested=lastSaveName||`${stamp()}_Taquin.json`;
-
-  /* Navigateurs compatibles (Chrome, Edge, Opera) : vraie boîte « Enregistrer sous »
-     permettant de choisir le DOSSIER et le NOM du fichier. */
-  if(window.showSaveFilePicker){
-    (async()=>{
-      try{
-        const h=await window.showSaveFilePicker({
-          suggestedName:suggested,
-          types:[{description:'Sauvegarde Taquin',accept:{'application/json':['.json']}}]
-        });
-        const w=await h.createWritable(); await w.write(json); await w.close();
-        lastSaveName=h.name;
-        hideVal();
-        showDialog(`Partie enregistrée sous « ${h.name} », dans le dossier que vous avez choisi.`,'💾 Sauvegarde effectuée','💾');
-      }catch(err){
-        if(err.name==='AbortError') return;                 // annulé par l'utilisateur
-        downloadSave(json,suggested,'⚠ Enregistrement direct impossible ('+err.message+') : le fichier a été téléchargé.');
-      }
-    })();
-  } else {
-    let name=prompt("Nom du fichier de sauvegarde :\n(votre navigateur le déposera dans son dossier de téléchargements)",suggested);
-    if(name===null) return;
-    downloadSave(json,name.trim()||suggested);
-  }
+  // Déroulé commun à tous les jeux : nom demandé, puis confirmation
+  // indiquant le fichier écrit et l'endroit où il a été déposé.
+  Partie.enregistrer({
+    json: JSON.stringify(data),
+    nomPropose: lastSaveName || `${stamp()}_Taquin.json`,
+    jeu: 'Taquin'
+  });
+  hideVal();
 }
 
 function downloadSave(json,name,warn){
@@ -1035,11 +1032,16 @@ function downloadSave(json,name,warn){
   }catch(err){ showVal('⚠ Sauvegarde impossible : '+err.message); }
 }
 
-function loadGame(text){
+function loadGame(text, nomFichier){
+  const nom = nomFichier || lastSaveName || 'sauvegarde';
   let d;
-  try{ d=JSON.parse(text); }catch(e){ showVal("⚠ Fichier illisible : ce n'est pas une sauvegarde valide."); return; }
-  if(!d||d.app!=='taquin'||!Array.isArray(d.tiles)||!d.rows||!d.cols){ showVal("⚠ Ce fichier n'est pas une sauvegarde de Taquin."); return; }
-  if(d.tiles.length!==d.rows*d.cols-1||!d.blank){ showVal('⚠ Sauvegarde incomplète ou corrompue.'); return; }
+  try{ d=JSON.parse(text); }
+  catch(e){ Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas lisible : son contenu n'est pas au format JSON."}); return; }
+  if(!d||d.app!=='taquin'||!Array.isArray(d.tiles)||!d.rows||!d.cols){
+    Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas une sauvegarde du Taquin."}); return; }
+  if(d.tiles.length!==d.rows*d.cols-1||!d.blank){
+    Partie.refuserReprise({nomFichier:nom, raison:'La sauvegarde est incomplète ou abîmée : la grille ne correspond pas.'}); return; }
+  reprisePrete = {nom, d};
   if(d.theme==='image'&&d.image&&d.image.data){
     const img=new Image();
     img.onload=()=>{ imgPicture={name:d.image.name||'image',url:d.image.data,img}; updateImgInfo(); applyLoaded(d); };
@@ -1047,6 +1049,8 @@ function loadGame(text){
     img.src=d.image.data;
   } else applyLoaded(d);
 }
+
+let reprisePrete = null;
 
 function applyLoaded(d){
   clearTimers(); overlay.classList.remove('show');
@@ -1093,6 +1097,13 @@ function applyLoaded(d){
     `Grille ${d.rows}×${d.cols} — ${state.moves} coup(s) joué(s), ${Math.floor(state.elapsed/60)} min ${state.elapsed%60} s écoulées. Bonne continuation !`,
     '📂 Partie rechargée','🧩');
   checkVictory();
+  if (reprisePrete) {
+    Partie.confirmerReprise({
+      nomFichier: reprisePrete.nom,
+      resume: `grille ${d.rows}×${d.cols} — ${d.moves||0} coup(s) joué(s)`
+    });
+    lastSaveName = reprisePrete.nom; reprisePrete = null;
+  }
 }
 
 $('btn-save').addEventListener('click',saveGame);
@@ -1100,7 +1111,7 @@ $('btn-load').addEventListener('click',()=>$('inp-save').click());
 $('inp-save').addEventListener('change',e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return;
   const fr=new FileReader();
-  fr.onload=()=>loadGame(fr.result);
+  fr.onload=()=>loadGame(fr.result,f.name);
   fr.onerror=()=>showVal('⚠ Impossible de lire ce fichier.');
   fr.readAsText(f);
 });
@@ -1117,5 +1128,10 @@ window.addEventListener('resize',()=>{
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
 <script src="../assets/js/ressources.js"></script>
 <script src="../assets/js/bibliotheque.js" data-jeu="taquin" data-base="../"></script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="taquin" data-base="../"></script>
+<script src="../assets/js/partie.js" data-base="../"></script>
 </body>
 </html>

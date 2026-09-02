@@ -37,15 +37,32 @@
   if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
 
   var CFG = {
-    jeudemot:    { input:'#file-input',   avant:'label[for="file-input"]',      type:'xml',   titre:'Listes de mots' },
-    editeurmot:  { input:'#fileInput',    avant:'button[onclick*="openXML"]',   type:'xml',   titre:'Listes de mots' },
-    anagramme:   { input:'#file-input',   avant:'label[for="file-input"]',      type:'xml',   titre:"Listes d'anagrammes" },
-    motsmasques: { input:'#file-input',   avant:'button[onclick*="file-input"]',type:'xml',   titre:'Textes et citations' },
-    puzzle:      { input:'#file-input',   avant:'#upload-row',                  type:'image', titre:'Photos' },
-    taquin:      { input:'#inp-img-file', avant:'#btn-img-file',                type:'image', titre:'Photos' },
-    editeurana:  { input:'#fileInput',    avant:'button[onclick*="openXML"]',   type:'xml',   titre:"Listes d'anagrammes" },
-    editeurcit:  { input:'#fileInput',    avant:'button[onclick*="openXML"]',   type:'xml',   titre:'Textes et citations' }
+    quizz:        { input:'#xml-input',   avant:'.load-file-btn',                local:'.load-file-btn',                type:'xml', titre:'Questionnaires' },
+    editeurquizz: { input:'#fileInput',   avant:'button[onclick*="openXML"]',    local:'button[onclick*="openXML"]',    type:'xml', titre:'Questionnaires' },
+    jeudemot:    { input:'#file-input',   avant:'label[for="file-input"]',       local:'label[for="file-input"]',        type:'xml',   titre:'Listes de mots' },
+    editeurmot:  { input:'#fileInput',    avant:'button[onclick*="openXML"]',    local:'button[onclick*="openXML"]',     type:'xml',   titre:'Listes de mots' },
+    anagramme:   { input:'#file-input',   avant:'label[for="file-input"]',       local:'label[for="file-input"]',        type:'xml',   titre:"Listes d'anagrammes" },
+    motsmasques: { input:'#file-input',   avant:'button[onclick*="file-input"]', local:'button[onclick*="file-input"]',  type:'xml',   titre:'Textes et citations' },
+    puzzle:      { input:'#file-input',   avant:'#upload-row',                   local:'#btn-open, #upload-hint',        type:'image', titre:'Photos' },
+    taquin:      { input:'#inp-img-file', avant:'#btn-img-file',                 local:'#btn-img-file',                  type:'image', titre:'Photos' },
+    editeurana:  { input:'#fileInput',    avant:'button[onclick*="openXML"]',    local:'button[onclick*="openXML"]',     type:'xml',   titre:"Listes d'anagrammes" },
+    editeurcit:  { input:'#fileInput',    avant:'button[onclick*="openXML"]',    local:'button[onclick*="openXML"]',     type:'xml',   titre:'Textes et citations' }
   };
+
+  /* Icone de disque du bouton "depuis mon ordinateur". */
+  var ICONE_DISQUE =
+    '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">' +
+      '<rect x="1.4" y="8.8" width="17.2" height="9.4" rx="2.6" fill="#38B6FF"/>' +
+      '<rect x="1.4" y="8.8" width="17.2" height="3.2" rx="1.6" fill="#0B4E75" opacity=".22"/>' +
+      '<rect x="4" y="13.6" width="7.4" height="2.6" rx="1.3" fill="#fff" opacity=".92"/>' +
+      '<circle cx="15.4" cy="14.9" r="1.6" fill="#fff"/>' +
+      '<path d="M10 1.2v5.8M6.8 4.4 10 1.2l3.2 3.2" fill="none" stroke="#0B4E75" ' +
+        'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
+
+  /* Mettre a false pour laisser les deux boutons cote a cote en ligne. */
+  var MASQUER_BOUTON_LOCAL = true;
+
 
   var cfg = CFG[cle];
   var liste = (window.__RESSOURCES__ || {})[cle];
@@ -59,7 +76,13 @@
     'display:inline-block;transition:background .18s ease}',
     '.bib-btn:hover{background:#38B6FF;border-color:#38B6FF}',
     '.bib-btn:focus-visible{outline:3px solid #0B4E75;outline-offset:2px}',
-    '.bib-local{display:block;font-size:.76rem;line-height:1.4;color:#2A6E96;margin:0 0 8px;opacity:.9}',
+    '.bib-local{display:flex;align-items:center;gap:7px;font:inherit;font-size:.78rem;',
+    'font-weight:700;line-height:1.3;color:#0B4E75;background:#fff;border:2px solid #8FDCFF;',
+    'border-radius:9px;padding:6px 12px 6px 9px;margin:0 0 8px;cursor:pointer;',
+    'white-space:nowrap;width:max-content;transition:border-color .18s ease,background .18s ease}',
+    '.bib-local:hover{border-color:#38B6FF;background:#E1F4FF}',
+    '.bib-local svg{flex-shrink:0;display:block}',
+    '.bib-local:focus-visible{outline:3px solid #0B4E75;outline-offset:2px}',
     '.bib-ov{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;',
     'background:rgba(4,40,64,.55);backdrop-filter:blur(3px);padding:18px}',
     '.bib-ov[hidden]{display:none}',
@@ -105,11 +128,22 @@
     cible.insertAdjacentElement('beforebegin', b);
     if (rang === 0) btn = b;
 
-    var note = document.createElement('small');
-    note.className = 'bib-local';
-    note.textContent = "L'autre bouton, lui, cherche un fichier sur votre ordinateur.";
-    cible.insertAdjacentElement('beforebegin', note);
+    // Repli discret : charger quand meme un fichier depuis sa propre machine.
+    var lien = document.createElement('button');
+    lien.type = 'button';
+    lien.className = 'bib-local';
+    lien.title = 'Ouvrir un fichier enregistré sur cet ordinateur';
+    lien.innerHTML = ICONE_DISQUE + '<span>ou depuis mon ordinateur</span>';
+    lien.addEventListener('click', function () { input.click(); });
+    cible.insertAdjacentElement('beforebegin', lien);
   });
+
+  // En ligne, le bouton d'origine fait double emploi : on le retire du decor.
+  if (MASQUER_BOUTON_LOCAL && cfg.local) {
+    Array.prototype.forEach.call(document.querySelectorAll(cfg.local), function (el) {
+      el.style.display = 'none';
+    });
+  }
 
   /* ── Fenetre de choix ──────────────────────────────────────────────── */
   var ov = document.createElement('div');
@@ -150,8 +184,19 @@
   function remplir() {
     etat.textContent = 'Vérification des fichiers disponibles…';
     Promise.all(liste.map(function (res) {
-      return fetch(base + res, { method: 'HEAD' })
-        .then(function (r) { return r.ok ? res : null; })
+      var url = base + res;
+      return fetch(url, { method: 'HEAD' })
+        .then(function (r) {
+          if (r.ok) return res;
+          // Certains serveurs n'acceptent pas HEAD (405 / 501) : on retente
+          // avec un GET limite au premier octet.
+          if (r.status === 405 || r.status === 501) {
+            return fetch(url, { headers: { 'Range': 'bytes=0-0' } })
+              .then(function (r2) { return r2.ok ? res : null; })
+              .catch(function () { return null; });
+          }
+          return null;
+        })
         .catch(function () { return null; });
     })).then(function (resultats) {
       var dispo = resultats.filter(Boolean);

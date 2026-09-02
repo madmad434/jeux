@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Quiz Informatique</title>
+<link rel="icon" type="image/webp" href="../assets/favicons/quizz.webp">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',Arial,sans-serif;font-size:13px;}
+
+:root{
+  /* ── Charte graphique JF ── */
+  --bl:        #C2F6FF;   /* bleu clair — zones de jeu */
+  --bl-strong: #A5EEFD;
+  --bd:        #38B6FF;   /* bleu foncé — header/chrome */
+  --bd-hover:  #25A0E8;
+  --bd-pale:   #D8F5FF;
+  --text:      #003a5c;
+  --text-soft: #005580;
+  --border:    #7DD8F7;
+  --shadow:    0 2px 12px rgba(0,80,130,0.15);
+
+  /* Alias utilisés dans le code existant */
+  --primary:      #38B6FF;
+  --primary2:     #25A0E8;
+  --accent:       #38B6FF;
+  --accent2:      #25A0E8;
+  --success:      #16a34a;
+  --success2:     #15803d;
+  --success-bg:   #dcfce7;
+  --danger:       #dc2626;
+  --danger2:      #b91c1c;
+  --danger-bg:    #fee2e2;
+  --warn:         #f59e0b;
+  --warn2:        #d97706;
+  --bg-main:      var(--bd);
+  --card:         var(--bl);
+  --card-shadow:  var(--shadow);
+  --text-muted:   #005580;
+  --border-focus: var(--bd);
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;
+  --mono:'JetBrains Mono',monospace;
+}
+
+/* ── TOOLTIP ── */
+[data-tip]{position:relative;}
+[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:#1e293b;color:#fff;font-size:11px;font-weight:600;
+  white-space:nowrap;padding:5px 10px;border-radius:6px;
+  pointer-events:none;opacity:0;transition:opacity .18s;z-index:1000;
+  font-family:'Nunito',sans-serif;letter-spacing:.2px;
+}
+[data-tip]::before{
+  content:'';position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:#1e293b;
+  pointer-events:none;opacity:0;transition:opacity .18s;z-index:1000;
+}
+[data-tip]:hover::after,[data-tip]:hover::before{opacity:1;}
+/* Tooltip vers le bas (pour éléments en haut de page) */
+[data-tip-down]::after{
+  content:attr(data-tip-down);
+  position:absolute;top:calc(100% + 8px);bottom:auto;left:50%;transform:translateX(-50%);
+  background:#1e293b;color:#fff;font-size:11px;font-weight:600;
+  white-space:nowrap;padding:5px 10px;border-radius:6px;
+  pointer-events:none;opacity:0;transition:opacity .18s;z-index:1000;
+  font-family:'Nunito',sans-serif;letter-spacing:.2px;
+}
+[data-tip-down]::before{
+  content:'';position:absolute;top:calc(100% + 3px);bottom:auto;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-bottom-color:#1e293b;
+  pointer-events:none;opacity:0;transition:opacity .18s;z-index:1000;
+}
+[data-tip-down]:hover::after,[data-tip-down]:hover::before{opacity:1;}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ── BUTTONS ── */
+.btn{border:none;border-radius:var(--radius-sm);padding:9px 18px;font-size:13px;
+  font-weight:700;cursor:pointer;transition:.2s;font-family:inherit;
+  display:inline-flex;align-items:center;gap:6px;letter-spacing:.3px;}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.2);}
+.btn:active:not(:disabled){transform:translateY(0);}
+.btn:disabled{opacity:.4;cursor:default;transform:none;}
+.btn-primary{background:var(--bd);color:#fff;box-shadow:0 4px 14px rgba(56,182,255,.35);}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.3);}
+.btn-danger{background:var(--danger);color:#fff;box-shadow:0 4px 14px rgba(220,38,38,.25);}
+.btn-warn{background:var(--warn);color:#fff;}
+.btn-dark{background:var(--bd-hover);color:#fff;}
+.btn-ghost{background:rgba(194,246,255,.12);color:var(--bl);border:1px solid rgba(194,246,255,.3);}
+.btn-ghost:hover:not(:disabled){background:rgba(194,246,255,.25);}
+.btn-accent{background:var(--bd);color:#fff;box-shadow:0 4px 14px rgba(56,182,255,.3);}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:6px;}
+.btn-nav{padding:11px 24px;font-size:14px;border-radius:10px;font-weight:800;}
+
+/* ══════════════════════════════════════════════
+   SCREEN — CHARGEMENT
+══════════════════════════════════════════════ */
+#scr-load{align-items:center;justify-content:center;background:var(--bd);}
+/* animated bg */
+#scr-load::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 20% 50%,rgba(37,160,232,.45) 0%,transparent 60%),
+             radial-gradient(circle at 80% 20%,rgba(56,182,255,.35) 0%,transparent 50%),
+             radial-gradient(circle at 60% 80%,rgba(194,246,255,.2) 0%,transparent 40%);
+  pointer-events:none;
+}
+.load-card{
+  background:var(--bl);border-radius:20px;padding:24px 44px;text-align:center;
+  box-shadow:0 8px 40px rgba(0,80,130,.3);width:620px;max-width:95vw;
+  border:2px solid var(--bl-strong);
+  position:relative;animation:slideUp .4s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.load-logo{font-size:38px;margin-bottom:6px;filter:drop-shadow(0 4px 8px rgba(79,70,229,.3));}
+.load-title{font-size:22px;font-weight:900;color:var(--bd-hover);margin-bottom:1px;letter-spacing:-.5px;}
+.load-sub{font-size:13px;color:var(--text-soft);margin-bottom:16px;font-weight:600;}
+#xml-input{display:none;}
+.load-file-btn{
+  width:100%;padding:11px;border:2.5px dashed var(--bd);border-radius:12px;
+  background:var(--bd-pale);color:var(--bd-hover);
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.load-file-btn:hover{background:var(--bl-strong);transform:translateY(-1px);}
+#load-status{min-height:18px;font-size:12px;margin-top:6px;color:var(--success);font-weight:600;}
+#load-status.err{color:var(--danger);}
+#id-section{margin-top:12px;display:none;flex-direction:column;gap:6px;text-align:left;}
+#id-section label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;}
+#input-id{
+  border:2px solid var(--border);border-radius:var(--radius-sm);padding:9px 14px;
+  font-size:13px;font-weight:600;outline:none;width:100%;font-family:inherit;transition:.2s;color:var(--text);
+  background:var(--bl);
+}
+#input-id:focus{border-color:var(--bd);box-shadow:0 0 0 3px rgba(56,182,255,.2);}
+.load-actions{display:flex;flex-direction:row;gap:8px;margin-top:8px;}
+.load-actions .btn{flex:1;font-size:13px;padding:10px;}
+.load-options{
+  display:flex;flex-direction:column;gap:0;
+  margin:10px 0 0;padding:12px 14px;
+  background:var(--bd-pale);border:1px solid var(--border);border-radius:12px;
+  text-align:left;
+}
+.load-opt-row{display:flex;gap:0;align-items:flex-start;}
+.load-opt-group{display:flex;flex-direction:column;gap:5px;flex:1;}
+.load-opt-sep{width:1px;background:var(--border);margin:0 12px;align-self:stretch;}
+.load-opt-title{font-size:11px;font-weight:800;color:var(--bd-hover);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+.load-opt-radio{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text);padding:2px 0;}
+.load-opt-radio input{accent-color:var(--bd);width:14px;height:14px;flex-shrink:0;}
+
+
+/* ══════════════════════════════════════════════
+   SCREEN — QUIZ
+══════════════════════════════════════════════ */
+#scr-quiz{background:var(--bg-main);}
+
+/* Topbar */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;background:rgba(0,0,0,.25);
+  border-bottom:1px solid rgba(255,255,255,.12);flex-shrink:0;backdrop-filter:blur(8px);
+}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.quiz-title{color:var(--bl);font-size:16px;font-weight:800;letter-spacing:-.3px;}
+.user-badge{
+  background:rgba(194,246,255,.12);color:var(--bl);border-radius:20px;
+  padding:4px 14px;font-size:12px;font-weight:700;border:1px solid rgba(194,246,255,.25);
+}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.timer{
+  background:rgba(0,40,80,.35);color:var(--bl);border-radius:8px;padding:5px 14px;
+  font-size:17px;font-weight:700;font-family:var(--mono);letter-spacing:2px;
+  border:1px solid rgba(194,246,255,.2);
+}
+
+/* Sidebar */
+.quiz-main{flex:1;display:flex;overflow:hidden;background:var(--bd);}
+.q-sidebar{
+  width:108px;display:flex;flex-direction:column;
+  background:var(--bd-hover);overflow:hidden;flex-shrink:0;padding:6px;
+  border-right:1px solid rgba(194,246,255,.15);
+}
+.q-sidebar-counter{
+  color:rgba(194,246,255,.85);font-size:11px;font-weight:800;
+  text-align:center;padding:3px;flex-shrink:0;
+  border-bottom:1px solid rgba(194,246,255,.15);margin-bottom:6px;letter-spacing:.3px;
+}
+.q-sidebar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;flex:1;}
+.gcell{
+  border-radius:5px;border:none;cursor:pointer;
+  font-size:9px;font-weight:800;color:rgba(194,246,255,.8);
+  background:rgba(194,246,255,.12);transition:.15s;
+  display:flex;align-items:center;justify-content:center;min-height:0;
+  font-family:var(--mono);
+}
+.gcell:hover{filter:brightness(1.3);transform:scale(1.08);}
+.gcell.ok{background:var(--success);color:#fff;}
+.gcell.nok{background:var(--danger);color:#fff;}
+.gcell.cur{outline:2px solid var(--bl);outline-offset:1px;background:var(--bl);color:var(--bd-hover);font-weight:900;}
+
+/* Quiz body */
+.quiz-body{
+  flex:1;display:flex;flex-direction:column;padding:12px 10px 6px;gap:8px;
+  overflow:hidden;min-height:0;background:var(--bd);
+}
+.quiz-center-row{
+  display:flex;gap:10px;align-items:stretch;
+  height:320px;flex-shrink:0;
+}
+
+/* ── Colonnes de propositions (aspect console) ── */
+.opts-col{
+  display:flex;flex-direction:column;gap:6px;flex:0 0 27%;min-width:0;
+  background:linear-gradient(180deg,#f5efe0 0%,#ede8d5 100%);
+  border-radius:16px;padding:22px 8px;
+  border:3px solid #c8b882;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.12),0 4px 16px rgba(0,0,0,.2);
+  position:relative;
+  overflow:hidden;
+  height:100%;box-sizing:border-box;
+}
+/* Rivets décoratifs console */
+.opts-col::before,.opts-col::after{
+  content:'';position:absolute;width:10px;height:10px;
+  background:radial-gradient(circle,#a09060 30%,#706040 100%);
+  border-radius:50%;border:1px solid #504030;
+  z-index:1;pointer-events:none;
+}
+.opts-col::before{top:6px;left:6px;}
+.opts-col::after{bottom:6px;right:6px;}
+
+/* Question card — aspect écran console */
+.q-card{
+  background:#ffffff;flex:1;min-width:0;
+  display:flex;flex-direction:column;overflow:hidden;
+  /* Bordure pellicule photo : alternance de perforations simulées via box-shadow + border */
+  border:4px solid #1a1a2e;
+  border-radius:6px;
+  /* Perforations simulées par repeating-linear-gradient sur les bords */
+  outline:6px solid #ffffff;
+  outline-offset:-10px;
+  box-shadow:
+    0 0 0 10px #1a1a2e,
+    0 0 0 12px #2d2d4e,
+    0 8px 32px rgba(0,0,0,.5),
+    inset 0 0 20px rgba(0,0,0,.04);
+  position:relative;
+}
+/* Bande pellicule en haut et en bas */
+.q-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:18px;
+  background:repeating-linear-gradient(90deg,#1a1a2e 0px,#1a1a2e 14px,#f0f0f0 14px,#f0f0f0 20px,#1a1a2e 20px,#1a1a2e 26px,transparent 26px);
+  z-index:1;
+}
+.q-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:18px;
+  background:repeating-linear-gradient(90deg,#1a1a2e 0px,#1a1a2e 14px,#f0f0f0 14px,#f0f0f0 20px,#1a1a2e 20px,#1a1a2e 26px,transparent 26px);
+  z-index:1;
+}
+.q-hdr{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap;padding:22px 14px 0;position:relative;z-index:2;}
+.q-num{
+  background:#1a1a2e;color:#C2F6FF;
+  border-radius:5px;padding:3px 10px;font-size:12px;font-weight:800;white-space:nowrap;
+  border:1px solid #38B6FF;letter-spacing:.5px;
+}
+.q-theme{
+  background:#f0ede0;color:#6a5020;border-radius:5px;
+  padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.3px;
+  border:1px solid #c8b882;
+}
+.q-typebadge{
+  background:#1a1a2e;color:#a0f0a0;
+  border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;
+  border:1px solid #3a8a3a;letter-spacing:.3px;
+}
+.q-text{
+  font-size:20px;font-weight:800;color:#1a1a2e;line-height:1.4;
+  flex:1;overflow-y:auto;word-wrap:break-word;white-space:pre-wrap;
+  padding:10px 20px 28px;text-align:center;
+  display:flex;align-items:center;justify-content:center;
+}
+.multi-warn{
+  background:#fef3c7;border:1px solid #fcd34d;border-radius:7px;
+  padding:5px 10px;font-size:11px;color:#92400e;margin-top:4px;flex-shrink:0;font-weight:600;
+}
+
+/* Option buttons — style console */
+.opts-list{display:none;}
+.opt-btn{
+  border:2px solid #b8a870;border-radius:10px;padding:8px 10px;cursor:pointer;
+  font-size:15px;font-weight:700;background:linear-gradient(135deg,#fdf8ee,#f5ead0);
+  text-align:left;transition:.16s;display:flex;align-items:center;gap:7px;color:#3a2e10;
+  font-family:inherit;width:100%;word-break:break-word;white-space:normal;
+  box-shadow:0 2px 6px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.6);
+  flex:1;min-height:0;position:relative;overflow:hidden;
+}
+/* Span texte : prend toute la largeur, scroll si trop long */
+.opt-txt{
+  flex:1;min-width:0;max-height:100%;overflow-y:auto;
+  line-height:1.3;word-break:break-word;overflow-wrap:anywhere;
+}
+/* Après réponse : badge positionné en bas, padding bas pour lui faire de la place */
+.opt-btn.sel,.opt-btn.good,.opt-btn.bad,.opt-btn.reveal{padding-bottom:26px;}
+.opt-btn.sel::after,.opt-btn.good::after,.opt-btn.bad::after,.opt-btn.reveal::after{
+  position:absolute;left:50%;bottom:4px;transform:translateX(-50%);
+  width:auto;height:auto;border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:900;letter-spacing:.4px;padding:2px 10px;
+  pointer-events:none;
+}
+.opt-btn:hover:not(:disabled){
+  background:linear-gradient(135deg,#fff8e0,#f5e8b0);border-color:#8a7040;
+  box-shadow:0 4px 12px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.7);
+  transform:scale(1.02);
+}
+/* Sélectionné (choix multiple avant validation) */
+.opt-btn.sel{
+  border-color:#25A0E8;background:linear-gradient(135deg,#d8f5ff,#b8eaff);
+  color:#003a5c;
+  box-shadow:0 0 0 2px rgba(56,182,255,.4),inset 0 1px 0 rgba(255,255,255,.5);
+}
+.opt-btn.sel::after{content:'✔ sélectionnée';color:#fff;background:#0288d1;}
+.opt-btn.sel:hover:not(:disabled){
+  background:linear-gradient(135deg,#c2f0ff,#a5e4ff);border-color:#25A0E8;
+}
+/* Bonne réponse cochée par le joueur */
+.opt-btn.good{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-color:#16a34a;color:#064e3b;}
+.opt-btn.good::after{content:'✔ cochée';color:#fff;background:#16a34a;}
+/* Mauvaise réponse cochée */
+.opt-btn.bad{background:linear-gradient(135deg,#fee2e2,#fecaca);border-color:#dc2626;color:#7f1d1d;}
+.opt-btn.bad::after{content:'✘ cochée';color:#fff;background:#dc2626;}
+/* Bonne réponse non cochée — oubliée */
+.opt-btn.reveal{
+  background:repeating-linear-gradient(135deg,#f1fbf4 0 10px,#e3f6ea 10px 20px);
+  border:2px dashed #f59e0b;color:#3f5f4a;
+}
+.opt-btn.reveal::after{content:'⚠ oubliée';color:#7c4a03;background:#fcd34d;}
+.opt-btn.reveal .opt-ltr{background:linear-gradient(135deg,#f59e0b,#d97706);border-color:#b45309;color:#fff;}
+.opt-btn:disabled{cursor:default;opacity:.85;}
+.opt-ltr{
+  min-width:24px;height:24px;border-radius:6px;
+  background:linear-gradient(135deg,#8a7040,#6a5020);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:11px;color:#fde68a;flex-shrink:0;
+  pointer-events:none;border:1px solid #504010;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.opt-btn.good .opt-ltr{background:linear-gradient(135deg,var(--success),var(--success2));color:#fff;border-color:var(--success2);}
+.opt-btn.bad .opt-ltr{background:linear-gradient(135deg,var(--danger),var(--danger2));color:#fff;border-color:var(--danger2);}
+.opt-btn.sel .opt-ltr{background:linear-gradient(135deg,#38B6FF,#25A0E8);color:#fff;border-color:#1a8ad4;}
+
+/* Text input mode (options=0) */
+.text-answer-wrap{
+  display:flex;flex-direction:column;gap:8px;
+  grid-column:1/-1;
+}
+.text-answer-input{
+  border:2px solid var(--border);border-radius:10px;padding:10px 14px;
+  font-size:14px;font-weight:600;font-family:inherit;outline:none;
+  background:var(--bl);color:var(--text);transition:.2s;
+  width:100%;
+}
+.text-answer-input:focus{border-color:var(--bd);box-shadow:0 0 0 3px rgba(56,182,255,.2);}
+.text-answer-input:disabled{background:var(--bl-strong);cursor:default;}
+.text-answer-result{
+  background:var(--bl);border-radius:10px;padding:10px 14px;
+  font-size:13px;font-weight:700;border:2px solid;
+}
+.text-answer-result.good{border-color:var(--success);color:#064e3b;background:var(--success-bg);}
+.text-answer-result.nok{border-color:var(--danger);color:#7f1d1d;background:var(--danger-bg);}
+.text-rules-hint{
+  font-size:11px;color:#78350f;background:#fef9c3;border:1px solid #fde047;
+  border-radius:8px;padding:7px 12px;line-height:1.6;font-weight:600;
+}
+
+/* Feedback strip */
+.fb-strip{display:none;border-radius:10px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 20px rgba(0,80,130,.2);}
+.fb-strip.open{display:flex;flex-direction:column;}
+.fb-strip-head{display:flex;align-items:center;gap:8px;padding:6px 14px;flex-shrink:0;}
+.fb-strip-head.ok{background:var(--success-bg);border-bottom:2px solid var(--success);}
+.fb-strip-head.nok{background:var(--danger-bg);border-bottom:2px solid var(--danger);}
+.fb-strip-smiley{font-size:24px;flex-shrink:0;}
+.fb-strip-verdict{font-size:17px;font-weight:800;}
+.fb-strip-head.ok .fb-strip-verdict{color:#065f46;}
+.fb-strip-head.nok .fb-strip-verdict{color:#7f1d1d;}
+.fb-strip-recap{
+  margin-left:auto;font-size:12px;font-weight:800;font-family:var(--mono);
+  letter-spacing:.3px;padding:3px 10px;border-radius:20px;
+  background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.12);white-space:nowrap;
+}
+.fb-strip-head.ok .fb-strip-recap{color:#065f46;}
+.fb-strip-head.nok .fb-strip-recap{color:#7f1d1d;}
+.fb-strip-expl{
+  flex:1;overflow-y:auto;padding:10px 16px;font-size:17px;
+  color:var(--text);line-height:1.6;background:var(--bd-pale);
+  word-wrap:break-word;white-space:pre-wrap;
+}
+
+/* ══════════════════════════════════════════════
+   NAV — Panneau arcade
+══════════════════════════════════════════════ */
+.nav-zone{
+  display:flex;align-items:center;gap:14px;
+  flex-shrink:0;padding:10px 20px 12px;
+  background:linear-gradient(180deg,#1c1c30 0%,#12121f 100%);
+  border-top:4px solid #2a2a48;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.06);
+  position:relative;
+}
+/* Rainure décorative centrale */
+.nav-zone::after{
+  content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+  width:60px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;
+  pointer-events:none;
+}
+.prog-info{
+  color:rgba(200,220,255,.6);font-size:11px;font-weight:800;
+  margin-right:auto;letter-spacing:.8px;text-transform:uppercase;
+  font-family:var(--mono);
+}
+
+/* Boutons nav — style joystick arcade */
+.btn-nav{
+  padding:11px 24px;font-size:15px;border-radius:12px;font-weight:900;
+  letter-spacing:.3px;
+  border:none !important;
+  box-shadow:none !important;
+  text-shadow:none;
+  transition:none;
+}
+.btn-nav::before{display:none !important;}
+.btn-nav:hover:not(:disabled){filter:none;box-shadow:none !important;}
+.btn-nav:active:not(:disabled){filter:none;box-shadow:none !important;}
+.btn-nav.btn-dark   {background:linear-gradient(180deg,#5a6070,#3a404e);color:#d0d8f0;}
+.btn-nav.btn-primary{background:linear-gradient(180deg,#4fc3f7,#0288d1);color:#fff;}
+.btn-nav.btn-success{background:linear-gradient(180deg,#66bb6a,#2e7d32);color:#fff;}
+.btn-nav.btn-danger {background:linear-gradient(180deg,#ef5350,#b71c1c);color:#fff;}
+.btn-nav.btn-accent {background:linear-gradient(180deg,#ffa726,#e65100);color:#fff;}
+
+/* Bouton Rechercher — jaune arcade (centré) */
+#btn-search-q{
+  background:linear-gradient(180deg,#ffee58 0%,#f9a825 100%) !important;
+  color:#1a1a00 !important;font-weight:900 !important;
+  border:none !important;border-radius:12px !important;
+  font-size:14px;padding:9px 20px;letter-spacing:.3px;
+  box-shadow:0 5px 0 #e65100,0 6px 14px rgba(249,168,37,.4) !important;
+}
+#btn-search-q:hover{filter:brightness(1.08);transform:translateY(-2px);}
+#btn-search-q:active{transform:translateY(2px);box-shadow:0 2px 0 #e65100,0 3px 8px rgba(249,168,37,.3) !important;}
+
+/* ══════════════════════════════════════════════
+   SCREEN — RÉSULTATS
+══════════════════════════════════════════════ */
+#scr-results{background:var(--bd);overflow:hidden;}
+.res-wrap{flex:1;overflow:auto;padding:12px;background:var(--bd);}
+.res-card{background:var(--bl);border-radius:16px;padding:16px;max-width:960px;margin:0 auto;box-shadow:var(--shadow);border:2px solid var(--bl-strong);}
+.res-h{text-align:center;margin-bottom:10px;}
+.res-h h2{font-size:18px;font-weight:900;color:var(--bd-hover);letter-spacing:-.5px;}
+.res-id{font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:600;}
+.score-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0;}
+.score-box{
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:#fff;border-radius:12px;padding:10px 18px;text-align:center;
+  box-shadow:0 4px 16px rgba(79,70,229,.3);
+}
+.score-box .v{font-size:22px;font-weight:900;font-family:var(--mono);}
+.score-box .l{font-size:10px;opacity:.82;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.res-tbl{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;}
+.res-tbl th{
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:#fff;padding:7px 8px;text-align:left;font-weight:800;font-size:11px;
+}
+.res-tbl th:first-child{border-radius:8px 0 0 0;}
+.res-tbl th:last-child{border-radius:0 8px 0 0;}
+.res-tbl td{padding:5px 8px;border-bottom:1px solid #f1f5f9;vertical-align:top;word-break:break-word;}
+.res-tbl tr.tok{background:#f0fff4;}
+.res-tbl tr.tnok{background:#fff5f5;}
+.s-ok{color:var(--success);font-weight:800;font-size:14px;}
+.s-nok{color:var(--danger);font-weight:800;font-size:14px;}
+.res-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
+
+/* ══════════════════════════════════════════════
+   DIALOGS
+══════════════════════════════════════════════ */
+.custom-dlg-ov{
+  position:fixed;inset:0;background:rgba(0,40,80,.7);
+  z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+}
+.custom-dlg{
+  background:var(--bl);border-radius:16px;padding:28px 32px;
+  text-align:center;box-shadow:0 8px 40px rgba(0,80,130,.35);max-width:380px;width:90%;
+  animation:slideUp .25s ease;border:2px solid var(--bl-strong);
+}
+.custom-dlg .dlg-icon{font-size:40px;margin-bottom:10px;}
+.custom-dlg .dlg-title{font-size:16px;font-weight:800;color:var(--bd-hover);margin-bottom:6px;}
+.custom-dlg .dlg-txt{font-size:13px;color:var(--text-soft);margin-bottom:16px;line-height:1.5;}
+.custom-dlg .dlg-btns{display:flex;gap:10px;justify-content:center;}
+
+/* ══════════════════════════════════════════════
+   PRINT
+══════════════════════════════════════════════ */
+@media print{
+  body,html{height:auto;overflow:visible;}
+  .screen{position:static;height:auto;display:block!important;}
+  #scr-load,#scr-quiz{display:none!important;}
+  #scr-results{display:block!important;background:#fff;}
+  .res-wrap{overflow:visible;}
+  .res-actions,.topbar{display:none!important;}
+}
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     SCREEN : CHARGEMENT
+════════════════════════════════════════ -->
+<div id="scr-load" class="screen active">
+  <div class="load-card">
+    <div class="load-logo">🖥️</div>
+    <h1 class="load-title">Quizz</h1>
+    <p class="load-sub">Jeux &amp; Entraînement</p>
+    <input type="file" id="xml-input" accept=".xml">
+    <button class="load-file-btn" data-tip="Sélectionner un fichier Questions.xml"
+      onclick="document.getElementById('xml-input').click()">
+      📂 Charger le fichier Questions.xml
+    </button>
+    <div id="load-status"></div>
+    <div id="id-section">
+      <label for="input-id">Identifiant :</label>
+      <input type="text" id="input-id" placeholder="Saisissez votre identifiant" autocomplete="off">
+      <!-- Options avant démarrage -->
+      <div class="load-options">
+        <div class="load-opt-row">
+          <div class="load-opt-group">
+            <div class="load-opt-title">📋 Ordre des questions</div>
+            <label class="load-opt-radio">
+              <input type="radio" name="load-order" id="load-order-rnd" onchange="setOrder('random')" checked>
+              <span>Aléatoire</span>
+            </label>
+            <label class="load-opt-radio">
+              <input type="radio" name="load-order" id="load-order-seq" onchange="setOrder('seq')">
+              <span>Séquentiel</span>
+            </label>
+          </div>
+          <div class="load-opt-sep"></div>
+          <div class="load-opt-group">
+            <div class="load-opt-title">🔍 Bouton Rechercher</div>
+            <label class="load-opt-radio">
+              <input type="radio" name="load-search" id="load-search-empty" onchange="setSearchMode('empty')" checked>
+              <span>Ouvre Google vide</span>
+            </label>
+            <label class="load-opt-radio">
+              <input type="radio" name="load-search" id="load-search-with" onchange="setSearchMode('with')">
+              <span>Pré-rempli avec la question</span>
+            </label>
+          </div>
+          <div class="load-opt-sep"></div>
+          <div class="load-opt-group" style="align-items:center;">
+            <div class="load-opt-title">🔊 Son</div>
+            <button id="btn-sound-load" onclick="toggleSound()"
+              style="font-size:22px;background:none;border:2px solid #e2e8f0;border-radius:10px;
+                     padding:3px 14px;cursor:pointer;line-height:1.4;width:100%;">🔊</button>
+          </div>
+        </div>
+        <button onclick="showHelp()"
+          style="width:100%;margin-top:8px;font-size:12px;font-weight:700;font-family:inherit;
+                 border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;
+                 background:var(--bd-pale);color:var(--bd-hover);">
+          Aide — Règles du jeu
+        </button>
+      </div>
+    </div><!-- fin id-section -->
+    <div class="load-actions">
+      <button class="btn btn-success" onclick="startQuiz()">▶ Démarrer le Quiz</button>
+      <button class="btn btn-danger" onclick="doQuit()">✖ Quitter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN : QUIZ
+════════════════════════════════════════ -->
+<div id="scr-quiz" class="screen">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="quiz-title" id="quiz-title"></span>
+      <span class="user-badge" id="user-badge"></span>
+    </div>
+    <div class="topbar-right">
+      <span class="timer" id="timer">00:00</span>
+      <button class="btn btn-ghost btn-sm" onclick="showHelp()" data-tip-down="Afficher les règles du quiz">❓ Aide</button>
+      <button class="btn btn-danger btn-sm" onclick="doQuit()" data-tip-down="Quitter le quiz">✖ Quitter</button>
+    </div>
+  </div>
+  <!-- Main -->
+  <div class="quiz-main">
+    <!-- Sidebar -->
+    <div class="q-sidebar">
+      <div class="q-sidebar-counter" id="prog-info"></div>
+      <div class="q-sidebar-grid" id="grid-nav"></div>
+    </div>
+    <!-- Body -->
+    <div class="quiz-body" id="quiz-body">
+      <div class="quiz-center-row">
+        <div class="opts-col" id="opts-col-left"></div>
+        <div class="q-card">
+          <div class="q-hdr">
+            <span class="q-num" id="q-num"></span>
+            <span class="q-theme" id="q-theme"></span>
+            <span class="q-typebadge" id="q-type"></span>
+          </div>
+          <div class="q-text" id="q-text"></div>
+        </div>
+        <div class="opts-col" id="opts-col-right"></div>
+      </div>
+      <!-- Text answer zone (shown when options=0) -->
+      <div id="text-answer-zone" style="display:none;padding:0 4px;flex-shrink:0;">
+        <div class="text-answer-wrap">
+          <input type="text" class="text-answer-input" id="text-answer-input"
+            placeholder="Tapez votre réponse ici…"
+            onkeydown="if(event.key==='Enter')validateText()">
+          <div id="text-answer-result" class="text-answer-result" style="display:none;"></div>
+          <div class="text-rules-hint">
+            ⚠️ Majuscules/minuscules ignorées — <strong>Accents obligatoires</strong> — Caractères ignorés : <strong>. , ; : ! ? « » " ' ( ) [ ] { } / \</strong> — Tirets remplacés par espace — Mots supplémentaires tolérés — 1 faute de frappe tolérée (mots ≥5 lettres)
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;min-height:0;"></div>
+      <!-- Feedback -->
+      <div class="fb-strip" id="fb-panel">
+        <div class="fb-strip-head" id="fb-panel-head">
+          <span class="fb-strip-smiley" id="fb-smiley"></span>
+          <span class="fb-strip-verdict" id="fb-verdict"></span>
+          <span class="fb-strip-recap" id="fb-recap"></span>
+        </div>
+        <div class="fb-strip-expl" id="fb-expl-text"></div>
+      </div>
+      <div class="opts-list" id="opts-list" style="display:none"></div>
+      <div class="feedback" id="feedback" style="display:none"></div>
+    </div>
+  </div>
+  <!-- Nav -->
+  <div class="nav-zone">
+    <span class="prog-info" id="nav-prog"></span>
+    <button class="btn btn-dark btn-nav" id="btn-prev" onclick="go(-1)"
+      data-tip="Question précédente">◀ Précédent</button>
+    <button class="btn btn-accent btn-nav" id="btn-val-text" onclick="validateText()"
+      style="display:none" data-tip="Valider ma saisie">✔ Valider</button>
+    <button class="btn btn-success btn-nav" id="btn-val" onclick="validateMulti()"
+      style="display:none" data-tip="Valider la sélection multiple">✔ Valider ma réponse</button>
+    <button id="btn-search-q" class="btn btn-accent btn-sm" onclick="searchCurrentQuestion()"
+      data-tip="Rechercher la question sur internet"
+      style="position:absolute;left:50%;transform:translateX(-50%);">🔍 Rechercher</button>
+    <button class="btn btn-primary btn-nav" id="btn-next" onclick="go(1)"
+      data-tip="Question suivante">Suivant ▶</button>
+    <button class="btn btn-danger btn-nav" id="btn-fin" onclick="finishQuiz()"
+      style="display:none" data-tip="Terminer et voir les résultats">🏁 Terminer</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN : RÉSULTATS
+════════════════════════════════════════ -->
+<div id="scr-results" class="screen">
+  <div class="res-wrap">
+    <div class="res-card">
+      <div class="res-h">
+        <h2>🏆 Résultats du Quiz</h2>
+        <div class="res-id" id="res-id-line"></div>
+      </div>
+      <div class="score-row" id="score-row"></div>
+      <table class="res-tbl">
+        <thead><tr>
+          <th style="width:26px">#</th>
+          <th style="width:28px">✓/✗</th>
+          <th style="width:22%">Question</th>
+          <th style="width:16%">Votre réponse</th>
+          <th style="width:16%">Bonne réponse</th>
+          <th>Explication</th>
+        </tr></thead>
+        <tbody id="res-tbody"></tbody>
+      </table>
+      <div class="res-actions">
+        <button class="btn btn-dark" onclick="window.print()" data-tip="Imprimer / Sauver en PDF">🖨️ Exporter PDF</button>
+        <button class="btn btn-success" onclick="restartQuiz()" data-tip="Recommencer avec le même fichier">🔄 Recommencer</button>
+        <button class="btn btn-danger" onclick="doQuit()" data-tip="Fermer l'application">✖ Quitter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+const LETTERS = ['A','B','C','D','E','F','G','H','I','J'];
+
+let quiz     = {config:{title:''},questions:[]};
+let curQ     = 0;
+let answers  = [];
+let results  = [];
+let timerSec = 0;
+let timerTick= null;
+let userId   = '';
+
+/* ── OPTIONS ── */
+let optSearchMode = 'empty';  // 'empty' | 'with'
+let optOrder      = 'random'; // 'seq' | 'random'
+let optSound      = true;
+let _searchTab    = null;     // référence à l'onglet de recherche ouvert
+let _shuffleMap   = [];       // mapping index affiché → index original
+
+/* ── UTILS ── */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function pad2(n){return String(n).padStart(2,'0');}
+function fmtTime(s){return pad2(Math.floor(s/60))+':'+pad2(s%60);}
+function esc(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function doQuit(){
+  customConfirm('Quitter l\'application ?','❓','Toute progression non sauvegardée sera perdue.',
+    ()=>{ try{ window.close(); } catch(e){} window.location.href='about:blank'; },
+    null,'Quitter','Annuler');
+}
+
+/* ── DIALOGS ── */
+function customConfirm(title,icon,text,onOk,onCancel,okLabel='OK',cancelLabel='Annuler'){
+  const ov=document.createElement('div'); ov.className='custom-dlg-ov';
+  ov.innerHTML=`<div class="custom-dlg">
+    <div class="dlg-icon">${icon}</div>
+    <div class="dlg-title">${esc(title)}</div>
+    <div class="dlg-txt">${esc(text)}</div>
+    <div class="dlg-btns">
+      <button id="dlg-cancel" class="btn btn-dark btn-sm">${esc(cancelLabel)}</button>
+      <button id="dlg-ok" class="btn btn-danger btn-sm">${esc(okLabel)}</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const close=()=>document.body.removeChild(ov);
+  document.getElementById('dlg-cancel').onclick=()=>{close();if(onCancel)onCancel();};
+  document.getElementById('dlg-ok').onclick=()=>{close();if(onOk)onOk();};
+}
+
+function customAlert(msg,icon='ℹ️'){
+  const ov=document.createElement('div'); ov.className='custom-dlg-ov';
+  ov.innerHTML=`<div class="custom-dlg">
+    <div class="dlg-icon">${icon}</div>
+    <div class="dlg-txt" style="font-size:13px;color:#333;margin-bottom:16px;">${msg}</div>
+    <div class="dlg-btns"><button id="dlg-a-ok" class="btn btn-primary btn-sm">OK</button></div>
+  </div>`;
+  document.body.appendChild(ov);
+  document.getElementById('dlg-a-ok').onclick=()=>document.body.removeChild(ov);
+}
+
+/* ── CHARGEMENT XML ── */
+document.getElementById('xml-input').addEventListener('change',function(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      parseXML(ev.target.result);
+      const st=document.getElementById('load-status');
+      st.textContent='✔ Chargé : '+quiz.questions.length+' question(s) — "'+quiz.config.title+'"';
+      st.className='';
+      document.getElementById('id-section').style.display='flex';
+    }catch(err){
+      const st=document.getElementById('load-status');
+      st.textContent='✘ Erreur : '+err.message; st.className='err';
+    }
+  };
+  r.readAsText(file,'UTF-8'); e.target.value='';
+});
+
+function parseXML(str){
+  const doc=(new DOMParser()).parseFromString(str,'text/xml');
+  if(doc.querySelector('parsererror')) throw new Error('XML invalide ou mal formé');
+  const cfg=doc.querySelector('config');
+  quiz.config.title   =cfg?(cfg.querySelector('title')||{textContent:'Quiz'}).textContent:'Quiz';
+  quiz.questions=[];
+  doc.querySelectorAll('question').forEach(q=>{
+    const opts=[];
+    q.querySelectorAll('option').forEach(o=>opts.push({id:o.getAttribute('id'),text:o.textContent}));
+    const ans=(q.querySelector('answer')||{textContent:''}).textContent.trim().split(',').map(a=>a.trim()).filter(Boolean);
+    quiz.questions.push({
+      id:q.getAttribute('id'),
+      type:q.getAttribute('type')||'single',
+      theme:q.getAttribute('theme')||'',
+      text:(q.querySelector('text')||{textContent:''}).textContent.trim(),
+      options:opts,
+      answer:ans,
+      explanation:(q.querySelector('explanation')||{textContent:''}).textContent.trim()
+    });
+  });
+  if(!quiz.questions.length) throw new Error('Aucune question trouvée dans le fichier XML');
+}
+
+/* ── DÉMARRER ── */
+function startQuiz(){
+  if(!quiz.questions.length){customAlert('Veuillez d\'abord charger un fichier Questions.xml.','📂');return;}
+  const id=document.getElementById('input-id').value.trim();
+  if(!id){customAlert('Veuillez saisir votre identifiant avant de démarrer.','⚠️');return;}
+  userId=id; initQuiz();
+}
+
+function initQuiz(){
+  curQ=0;
+  /* Ordre des questions */
+  if(optOrder==='random'){
+    _shuffleMap=[...quiz.questions.keys()];
+    for(let i=_shuffleMap.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [_shuffleMap[i],_shuffleMap[j]]=[_shuffleMap[j],_shuffleMap[i]];
+    }
+  } else {
+    _shuffleMap=[...quiz.questions.keys()];
+  }
+  answers=quiz.questions.map(()=>null);
+  results=quiz.questions.map(()=>null);
+  timerSec=0;
+  clearInterval(timerTick);
+  timerTick=setInterval(()=>{timerSec++;document.getElementById('timer').textContent=fmtTime(timerSec);},1000);
+  document.getElementById('quiz-title').textContent=quiz.config.title||'Quiz Informatique';
+  document.getElementById('user-badge').textContent='👤 '+userId;
+  buildGrid(); show('scr-quiz'); renderQ();
+}
+
+/* ── GRILLE ── */
+function buildGrid(){
+  const g=document.getElementById('grid-nav'); g.innerHTML='';
+  quiz.questions.forEach((q,i)=>{
+    const c=document.createElement('button');
+    c.className='gcell'; c.textContent=i+1; c.id='gc'+(i+1);
+    c.addEventListener('click',()=>jumpTo(i)); g.appendChild(c);
+  });
+  updateGrid();
+}
+
+function updateGrid(){
+  quiz.questions.forEach((q,i)=>{
+    const c=document.getElementById('gc'+(i+1)); if(!c) return;
+    c.className='gcell';
+    if(results[i]) c.classList.add(results[i].ok?'ok':'nok');
+    if(i===curQ){c.classList.add('cur');c.scrollIntoView({block:'nearest'});}
+  });
+}
+
+/* ── RENDU QUESTION ── */
+function renderQ(){
+  closeFbModal();
+  const realIdx=_shuffleMap.length?_shuffleMap[curQ]:curQ;
+  const q    =quiz.questions[realIdx];
+  const total=quiz.questions.length;
+  const done =results[curQ]!==null;
+  const isTextMode = q.options.length===0;
+
+  document.getElementById('q-num').textContent  ='Q'+(curQ+1);
+  document.getElementById('q-theme').textContent=q.theme;
+  document.getElementById('q-type').textContent =isTextMode ? '✏️ Réponse libre' : (q.type==='multiple'?'📋 Choix multiple':'🔘 Choix unique');
+  document.getElementById('q-text').textContent =q.text;
+  document.getElementById('prog-info').textContent=(curQ+1)+' / '+total;
+  document.getElementById('nav-prog').textContent='Question '+(curQ+1)+' / '+total;
+
+  const colLeft =document.getElementById('opts-col-left');
+  const colRight=document.getElementById('opts-col-right');
+  const textZone=document.getElementById('text-answer-zone');
+  colLeft.innerHTML=''; colRight.innerHTML='';
+
+  if(isTextMode){
+    /* Mode texte libre */
+    textZone.style.display='block';
+    const inp=document.getElementById('text-answer-input');
+    const res=document.getElementById('text-answer-result');
+    const hint=document.querySelector('.text-rules-hint');
+    res.style.display='none';
+    if(done){
+      const r=results[curQ];
+      inp.value=answers[curQ]||'';
+      inp.disabled=true;
+      if(hint) hint.style.display='none';
+      if(!r.ok){
+        res.style.display='block';
+        res.className='text-answer-result nok';
+        res.textContent='Réponse attendue : '+q.answer.join(', ');
+      }
+    } else {
+      inp.value=''; inp.disabled=false;
+      if(hint) hint.style.display='';
+      setTimeout(()=>inp.focus(),50);
+    }
+  } else {
+    textZone.style.display='none';
+    const sel=answers[curQ]||[];
+    q.options.forEach((opt,idx)=>{
+      const btn=document.createElement('button');
+      btn.className='opt-btn';
+      const ltr=document.createElement('span'); ltr.className='opt-ltr'; ltr.textContent=opt.id;
+      const txt=document.createElement('span'); txt.className='opt-txt';
+      const len=opt.text.length;
+      txt.textContent = len>125 ? opt.text.substring(0,125)+'…' : opt.text;
+      if(len>125) txt.title=opt.text;
+      txt.style.fontSize = len>100?'12px':len>60?'13px':'';
+      btn.appendChild(ltr); btn.appendChild(txt);
+      if(!done){
+        btn.disabled=false;
+        if(q.type==='single') btn.addEventListener('click',()=>pickSingle(opt.id));
+        else btn.addEventListener('click',()=>toggleMulti(opt.id,btn));
+        if(sel.includes(opt.id)) btn.classList.add('sel');
+      } else {
+        btn.disabled=true;
+        const isCorrect=q.answer.includes(opt.id);
+        const wasChosen=sel.includes(opt.id);
+        if(wasChosen&&isCorrect) btn.classList.add('good');
+        else if(wasChosen)       btn.classList.add('bad');
+        else if(isCorrect)       btn.classList.add('reveal');
+      }
+      if(idx%2===0) colLeft.appendChild(btn);
+      else          colRight.appendChild(btn);
+    });
+  }
+
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('btn-prev').disabled=curQ===0;
+  const isLast=curQ===total-1;
+  document.getElementById('btn-next').style.display=isLast?'none':'inline-flex';
+  document.getElementById('btn-fin').style.display =isLast?'inline-flex':'none';
+  document.getElementById('btn-val').style.display =(q.type==='multiple'&&!done&&!isTextMode)?'inline-flex':'none';
+  document.getElementById('btn-val-text').style.display=(isTextMode&&!done)?'inline-flex':'none';
+
+  updateGrid();
+
+  /* Si déjà répondu et explication disponible, ré-afficher le feedback */
+  if(done && results[curQ]){
+    showFbModal(results[curQ].ok, q.explanation);
+  }
+}
+
+/* ── SÉLECTION ── */
+function pickSingle(id){
+  const realIdx=_shuffleMap.length?_shuffleMap[curQ]:curQ;
+  const q=quiz.questions[realIdx];
+  answers[curQ]=[id];
+  const ok=q.answer.length===1&&q.answer[0]===id;
+  results[curQ]={ok,given:[id],expected:q.answer};
+  playSound(ok); renderQ(); showFbModal(ok,q.explanation);
+}
+
+function toggleMulti(id,btn){
+  if(!answers[curQ]) answers[curQ]=[];
+  const idx=answers[curQ].indexOf(id);
+  if(idx===-1){answers[curQ].push(id);btn.classList.add('sel');}
+  else{answers[curQ].splice(idx,1);btn.classList.remove('sel');}
+}
+
+function validateMulti(){
+  const realIdx=_shuffleMap.length?_shuffleMap[curQ]:curQ;
+  const q=quiz.questions[realIdx];
+  const sel=answers[curQ]||[];
+  if(!sel.length){customAlert('Sélectionnez au moins une réponse.','⚠️');return;}
+  const ok=JSON.stringify([...sel].sort())===JSON.stringify([...q.answer].sort());
+  results[curQ]={ok,given:[...sel],expected:q.answer};
+  playSound(ok); renderQ(); showFbModal(ok,q.explanation);
+}
+
+function validateText(){
+  const realIdx=_shuffleMap.length?_shuffleMap[curQ]:curQ;
+  const q=quiz.questions[realIdx];
+  if(results[curQ]!==null) return;
+  const val=document.getElementById('text-answer-input').value.trim();
+  if(!val){customAlert('Saisissez une réponse avant de valider.','⚠️');return;}
+
+  /* Normalisation : minuscules + ponctuation supprimée */
+  const norm=s=>s.toLowerCase().replace(/[\-–—]/g,' ').replace(/[.,;:!?«»""''()\[\]{}\\/]/g,'').replace(/\s+/g,' ').trim();
+
+  /* Distance de Levenshtein */
+  function lev(a,b){
+    if(!a.length) return b.length; if(!b.length) return a.length;
+    const dp=Array.from({length:a.length+1},(_,i)=>[i,...Array(b.length).fill(0)]);
+    for(let j=1;j<=b.length;j++) dp[0][j]=j;
+    for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    return dp[a.length][b.length];
+  }
+
+  /* Correspondance floue d'un mot : 1 faute tolérée si ≥5 lettres */
+  function wordMatch(w,ref){ return w===ref||(w.length>=5&&lev(w,ref)<=1); }
+
+  /* Correspondance flexible :
+     Direction A — tous les mots attendus dans le saisi (mots en trop tolérés)
+       ex: "la comédie francaise" valide "comédie française"
+     Direction B — tous les mots saisis dans l'attendu, chacun ≥5 lettres
+       ex: "messi" valide "Lionel Messi" ; "comédie" seul ✗ (7 lettres mais direction A échoue
+       et comédie seul n'est pas suffisant — sauf si l'attendu n'a qu'un mot) */
+  function flexMatch(given,expected){
+    const gw=norm(given).split(' ').filter(Boolean);
+    const ew=norm(expected).split(' ').filter(Boolean);
+    /* Direction A : tous les mots attendus couverts par le saisi */
+    if(ew.every(eWord=>gw.some(gWord=>wordMatch(gWord,eWord)))) return true;
+    /* Direction B : tous les mots saisis couverts par l'attendu,
+       et chaque mot saisi fait ≥5 lettres (évite "de", "la", "11"...) */
+    if(gw.every(gWord=>gWord.length>=5&&ew.some(eWord=>wordMatch(gWord,eWord)))) return true;
+    return false;
+  }
+
+  const ok=q.answer.some(a=> norm(a)===norm(val) || flexMatch(val,a));
+  answers[curQ]=val;
+  results[curQ]={ok,given:[val],expected:q.answer};
+  const hint=document.querySelector('.text-rules-hint');
+  if(hint) hint.style.display='none';
+  playSound(ok); renderQ(); showFbModal(ok,q.explanation);
+}
+
+/* ── FEEDBACK ── */
+function showFbModal(ok,explanation){
+  document.getElementById('fb-smiley').textContent=ok?'✅':'❌';
+  document.getElementById('fb-verdict').textContent=ok?'Bonne réponse !':'Mauvaise réponse !';
+  /* Récap : sélectionnées vs attendues (affiché seulement si plusieurs réponses attendues) */
+  const rec=document.getElementById('fb-recap'); const r=results[curQ];
+  if(rec){
+    if(r && Array.isArray(r.given) && Array.isArray(r.expected) && r.expected.length>1){
+      rec.textContent='Vous : '+([...r.given].sort().join(',')||'—')+'   •   Attendu : '+[...r.expected].sort().join(',');
+      rec.style.display='';
+    } else { rec.textContent=''; rec.style.display='none'; }
+  }
+  const head=document.getElementById('fb-panel-head');
+  head.className='fb-strip-head '+(ok?'ok':'nok');
+  document.getElementById('fb-expl-text').textContent=explanation||'(Pas d\'explication disponible)';
+  const strip=document.getElementById('fb-panel');
+  strip.classList.add('open');
+  strip.style.height=''; strip.style.maxHeight='120px';
+}
+
+function closeFbModal(){const p=document.getElementById('fb-panel');if(p)p.classList.remove('open');}
+
+function go(dir){
+  closeFbModal();
+  const n=curQ+dir; if(n<0||n>=quiz.questions.length) return;
+  curQ=n; renderQ();
+  const c=document.getElementById('gc'+(curQ+1));
+  if(c) c.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+function jumpTo(i){
+  closeFbModal(); curQ=i; renderQ();
+  const c=document.getElementById('gc'+(curQ+1));
+  if(c) c.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+/* ── RECHERCHE INTERNET ── */
+function searchCurrentQuestion(){
+  const realIdx=_shuffleMap.length?_shuffleMap[curQ]:curQ;
+  const q=quiz.questions[realIdx];
+  const url = optSearchMode==='with'
+    ? 'https://www.google.com/search?q='+encodeURIComponent(q.text)
+    : 'https://www.google.com/';
+  /* Réutiliser l'onglet si encore ouvert */
+  if(_searchTab && !_searchTab.closed){
+    _searchTab.location.href=url;
+    _searchTab.focus();
+  } else {
+    _searchTab=window.open(url,'quiz_search');
+  }
+}
+
+/* ── SON ── */
+let _audioCtx=null;
+function _getAudio(){
+  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+function playSound(ok){
+  if(!optSound) return;
+  try{
+    const ctx=_getAudio();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    if(ok){
+      osc.frequency.setValueAtTime(880,ctx.currentTime);
+      osc.frequency.setValueAtTime(1100,ctx.currentTime+0.1);
+      gain.gain.setValueAtTime(0.3,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
+      osc.start(); osc.stop(ctx.currentTime+0.4);
+    } else {
+      osc.frequency.setValueAtTime(300,ctx.currentTime);
+      osc.frequency.setValueAtTime(220,ctx.currentTime+0.15);
+      gain.gain.setValueAtTime(0.3,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
+      osc.start(); osc.stop(ctx.currentTime+0.5);
+    }
+  }catch(e){}
+}
+
+/* ── TERMINER ── */
+function finishQuiz(){
+  closeFbModal();
+  const unanswered=results.filter(r=>r===null).length;
+  if(unanswered>0){
+    customConfirm('Questions sans réponse','⚠️',
+      unanswered+' question(s) restent sans réponse. Terminer quand même ?',
+      doFinish,null,'Terminer quand même','Continuer le quiz');
+  } else doFinish();
+}
+
+function doFinish(){
+  clearInterval(timerTick);
+  buildResults(); show('scr-results');
+}
+
+/* ── RÉSULTATS ── */
+function buildResults(){
+  const total   =quiz.questions.length;
+  const answered=results.filter(r=>r!==null).length;
+  const nbOk    =results.filter(r=>r&&r.ok).length;
+  const pct     =total>0?Math.round(nbOk/total*100):0;
+
+  document.getElementById('res-id-line').innerHTML='👤 Identifiant : <strong>'+esc(userId)+'</strong>';
+
+  const sc=document.getElementById('score-row');
+  sc.innerHTML=`
+    <div class="score-box"><div class="v">${nbOk}/${total}</div><div class="l">Bonnes réponses</div></div>
+    <div class="score-box" style="background:linear-gradient(135deg,${pct>=50?'#10b981,#059669':'#ef4444,#dc2626'})">
+      <div class="v">${pct}%</div><div class="l">Réussite globale</div></div>
+    <div class="score-box" style="background:linear-gradient(135deg,#334155,#1e293b)">
+      <div class="v">${fmtTime(timerSec)}</div><div class="l">Durée totale</div></div>
+    <div class="score-box" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+      <div class="v">${answered}/${total}</div><div class="l">Questions répondues</div></div>`;
+
+  const tbody=document.getElementById('res-tbody');
+  tbody.innerHTML='';
+  _shuffleMap.forEach((realIdx,displayIdx)=>{
+    const q=quiz.questions[realIdx];
+    const i=displayIdx;
+    const r=results[i]; const isOk=r&&r.ok;
+    const tr=document.createElement('tr'); tr.className=isOk?'tok':'tnok';
+    let givenText='(sans réponse)';
+    if(r&&r.given.length){
+      if(q.options.length===0){
+        givenText=r.given[0];
+      } else {
+        givenText=r.given.map(id=>{const o=q.options.find(op=>op.id===id);return id+(o?': '+o.text:'');}).join(' / ');
+      }
+    }
+    let expText='';
+    if(q.options.length===0){
+      expText=q.answer.join(', ');
+    } else {
+      expText=q.answer.map(id=>{const o=q.options.find(op=>op.id===id);return id+(o?': '+o.text:'');}).join(' / ');
+    }
+    tr.innerHTML=`
+      <td style="font-weight:800;color:#64748b">${i+1}</td>
+      <td class="${isOk?'s-ok':'s-nok'}">${isOk?'✓':'✗'}</td>
+      <td>${esc(q.text)}</td>
+      <td style="color:${isOk?'#065f46':'#7f1d1d'}">${esc(givenText)}</td>
+      <td style="color:#065f46">${esc(expText)}</td>
+      <td style="color:#1e3a5f;font-style:italic">${esc(q.explanation||'')}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function restartQuiz(){
+  customConfirm('Recommencer le quiz ?','🔄','Toutes vos réponses seront effacées.',initQuiz,null,'Recommencer','Annuler');
+}
+
+/* ── AIDE ── */
+function showHelp(){
+  const m=document.getElementById('help-modal');
+  m.style.display='flex';
+}
+function closeHelp(){
+  document.getElementById('help-modal').style.display='none';
+}
+
+
+function setSearchMode(mode){ optSearchMode=mode; }
+function setOrder(order){ optOrder=order; }
+function toggleSound(){
+  optSound=!optSound;
+  _updateSoundIcon();
+}
+function _updateSoundIcon(){
+  ['btn-sound','btn-sound-load'].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(btn){ btn.textContent=optSound?'🔊':'🔇'; btn.title=optSound?'Son activé':'Son désactivé'; }
+  });
+}
+</script>
+
+<!-- ════════════════════════════════════════
+     MODAL : AIDE
+════════════════════════════════════════ -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,40,80,.7);z-index:9998;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:var(--bl);border-radius:20px;padding:28px 32px;max-width:540px;width:92%;box-shadow:0 8px 40px rgba(0,80,130,.35);animation:slideUp .25s ease;max-height:88vh;overflow-y:auto;border:2px solid var(--bl-strong);">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:36px;margin-bottom:6px;">📋</div>
+      <h2 style="font-size:18px;font-weight:900;color:#1e293b;letter-spacing:-.4px;">Aide — Règles du jeu</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:#334155;line-height:1.6;">
+
+      <!-- Types de questions -->
+      <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:-4px;">Types de questions</div>
+
+      <div style="background:#f1f5f9;border-radius:10px;padding:11px 14px;">
+        <div style="font-weight:800;color:#4f46e5;margin-bottom:3px;">🔘 Choix unique</div>
+        Cliquez sur la bonne réponse. La validation est <strong>automatique</strong> au clic.
+      </div>
+      <div style="background:#f1f5f9;border-radius:10px;padding:11px 14px;">
+        <div style="font-weight:800;color:#4f46e5;margin-bottom:3px;">📋 Choix multiple</div>
+        Sélectionnez <strong>toutes</strong> les bonnes réponses (plusieurs possibles), puis cliquez sur <strong>✔ Valider ma réponse</strong>.
+      </div>
+      <div style="background:#f1f5f9;border-radius:10px;padding:11px 14px;">
+        <div style="font-weight:800;color:#4f46e5;margin-bottom:6px;">✏️ Réponse libre</div>
+        Tapez votre réponse et appuyez sur <strong>Entrée</strong> ou <strong>✔ Valider</strong>.
+        <div style="margin-top:8px;background:#fff;border-radius:8px;padding:8px 12px;font-size:12px;color:#475569;border:1px solid #e2e8f0;">
+          <div style="font-weight:700;color:#334155;margin-bottom:4px;">📐 Règles de comparaison</div>
+          <div>• <strong>Majuscules/minuscules</strong> ignorées</div>
+          <div>• <strong>Tirets</strong> traités comme des espaces — <em>comédie-française = comédie française</em></div>
+          <div>• Caractères ignorés : <strong>. , ; : ! ? « » " ' ( ) [ ] { } / \</strong></div>
+          <div>• <strong>Accents obligatoires</strong> — <em>française ≠ francaise</em></div>
+          <div>• <strong>Mots supplémentaires acceptés</strong> — <em>«la comédie française»</em> valide <em>«comédie française»</em></div>
+          <div>• <strong>Tous les mots attendus obligatoires</strong> — <em>«comédie» seul ✗ pour «comédie-française»</em></div>
+          <div>• <strong>1 faute de frappe tolérée</strong> par mot de ≥ 5 lettres</div>
+          <div>• <strong>Plusieurs réponses acceptées</strong> possibles — la première correcte suffit</div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-top:4px;margin-bottom:-4px;">Navigation</div>
+
+      <div style="background:#ecfdf5;border-radius:10px;padding:11px 14px;border:1px solid #a7f3d0;">
+        <div style="font-weight:800;color:#065f46;margin-bottom:3px;">💡 Se déplacer</div>
+        Utilisez <strong>◀ Précédent</strong> / <strong>Suivant ▶</strong> ou cliquez sur un numéro dans la barre latérale gauche. Vous pouvez revenir sur vos réponses à tout moment.
+      </div>
+      <div style="background:#ecfdf5;border-radius:10px;padding:11px 14px;border:1px solid #a7f3d0;">
+        <div style="font-weight:800;color:#065f46;margin-bottom:3px;">🔍 Bouton Rechercher</div>
+        Ouvre Google dans un onglet (réutilisé si déjà ouvert). Selon l'option choisie : onglet vide ou pré-rempli avec la question en cours.
+      </div>
+
+      <!-- Options -->
+      <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-top:4px;margin-bottom:-4px;">Options (choisies avant le démarrage)</div>
+
+      <div style="background:#fef9c3;border-radius:10px;padding:11px 14px;border:1px solid #fde047;">
+        <div style="font-weight:800;color:#78350f;margin-bottom:6px;">⚙️ Paramètres disponibles</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+          <div><strong>📋 Ordre des questions</strong><br>
+            <span style="color:#64748b;">• <em>Aléatoire</em> — questions mélangées à chaque démarrage</span><br>
+            <span style="color:#64748b;">• <em>Séquentiel</em> — questions dans l'ordre du fichier XML</span>
+          </div>
+          <div><strong>🔍 Bouton Rechercher</strong><br>
+            <span style="color:#64748b;">• <em>Ouvre Google vide</em> — fenêtre de recherche sans texte pré-rempli</span><br>
+            <span style="color:#64748b;">• <em>Pré-rempli</em> — la question est automatiquement envoyée à Google</span>
+          </div>
+          <div><strong>🔊 Son</strong><br>
+            <span style="color:#64748b;">Bip sonore à chaque réponse : aigu = bonne réponse, grave = mauvaise réponse. Cliquer sur l'icône 🔊/🔇 pour activer ou désactiver.</span>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:#92400e;background:#fff;border-radius:6px;padding:5px 10px;border:1px solid #fde68a;">
+          ⚠️ Ces options ne peuvent plus être modifiées une fois le quiz démarré.
+        </div>
+      </div>
+
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+      <button class="btn btn-primary" onclick="closeHelp()">✓ Compris</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modules communs du site -->
+<script src="../assets/js/ressources.js"></script>
+<script src="../assets/js/bibliotheque.js" data-jeu="quizz" data-base="../"></script>
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="quizz" data-base="../"></script>
+</body>
+</html>

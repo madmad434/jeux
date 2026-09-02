@@ -197,6 +197,21 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,Blink
 ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
 #fileInput{display:none}
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
 </style>
 </head>
 <body>
@@ -212,7 +227,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,Blink
     <button class="btn btn-white btn-sm" onclick="resetConfig()">🔄 Réinitialiser</button>
     <div style="flex:1"></div>
     <button class="btn btn-white btn-sm" onclick="showHelp()">❓ Aide</button>
-    <button class="btn btn-white btn-sm" onclick="quitterApp()">🚪 Quitter</button>
+    <button class="btn btn-white btn-sm" onclick="quitterApp()" id="btn-quitter">🚪 Quitter</button>
   </div>
 
   <div class="main-area">
@@ -555,19 +570,19 @@ function openEditModal(idx) {
         </div>
         <div class="form-section">
           <label>Auteur <span class="req">*</span></label>
-          <input type="text" id="em_auteur" value="${escH(mot.auteur)}" placeholder="Nom de l'auteur" maxlength="100">
+          <input type="text" id="em_auteur" value="${escH(mot.auteur)}" placeholder="Tapez ici le nom de l'auteur…" maxlength="100">
         </div>
         <div class="form-section">
           <label>Livre <span class="req">*</span></label>
           <select id="em_livre_select" onchange="handleLivreSelect('em_livre_select','em_livre_custom')">${livreOptions}</select>
-          <input type="text" id="em_livre_custom" placeholder="Tapez le nom du livre…"
+          <input type="text" id="em_livre_custom" placeholder="Tapez ici le titre du livre…"
             value="${isCustomLivre ? escH(mot.livre) : ''}"
             style="margin-top:8px;display:${isCustomLivre?'block':'none'}">
           <div class="hint">Choisissez un livre ou sélectionnez <strong>"➕ Autre"</strong> pour en saisir un nouveau.</div>
         </div>
         <div class="form-section">
           <label>Texte <span class="req">*</span> <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} caractères)</span></label>
-          <textarea id="em_valeur" rows="6" placeholder="Saisissez le texte de la citation…"
+          <textarea id="em_valeur" rows="6" placeholder="Tapez ici le texte de la citation…"
             oninput="updateCounter('em_valeur','em_counter')" maxlength="${MAX_TEXT_CHARS}"
             style="width:100%;padding:10px 13px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;outline:none;transition:border .15s;color:var(--gray-900);resize:vertical"
           >${escH(mot.valeur)}</textarea>
@@ -713,12 +728,12 @@ function newMotWizard() {
             <div class="wiz-sub">Renseignez l'auteur et choisissez (ou saisissez) le titre du livre source.</div>
             <div class="form-section">
               <label>Auteur <span class="req">*</span></label>
-              <input type="text" id="wiz_auteur" placeholder="Ex : Ch" maxlength="100" style="font-size:16px;padding:12px">
+              <input type="text" id="wiz_auteur" placeholder="Tapez ici le nom de l’auteur…" maxlength="100" style="font-size:16px;padding:12px">
             </div>
             <div class="form-section">
               <label>Livre <span class="req">*</span></label>
               <select id="wiz_livre_select" onchange="handleLivreSelect('wiz_livre_select','wiz_livre_custom')" style="font-size:16px;padding:12px">${livreOptions}</select>
-              <input type="text" id="wiz_livre_custom" placeholder="Tapez le nom du livre…" style="margin-top:10px;display:none;font-size:16px;padding:12px">
+              <input type="text" id="wiz_livre_custom" placeholder="Tapez ici le titre du livre…" style="margin-top:10px;display:none;font-size:16px;padding:12px">
               <div class="hint" style="font-size:13px;margin-top:8px">💡 Si le livre n'est pas dans la liste, sélectionnez <strong>"➕ Autre"</strong> et tapez son nom.</div>
             </div>
           </div>
@@ -728,7 +743,7 @@ function newMotWizard() {
             <div class="wiz-sub">Entrez le texte de la citation. La mise en forme (majuscules, ponctuation) est conservée telle quelle.</div>
             <div class="form-section">
               <label>Texte <span class="req">*</span> <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(entre ${MIN_TEXT_CHARS} et ${MAX_TEXT_CHARS} caractères)</span></label>
-              <textarea id="wiz_valeur" rows="7" placeholder="Saisissez le texte de la citation ici…"
+              <textarea id="wiz_valeur" rows="7" placeholder="Tapez ici le texte de la citation…"
                 oninput="updateCounter('wiz_valeur','wiz_counter')"
                 maxlength="${MAX_TEXT_CHARS}" style="width:100%;padding:12px;font-size:14px;font-family:inherit;border:2px solid var(--gray-200);border-radius:var(--radius-sm);outline:none;resize:vertical;transition:border .15s"></textarea>
               <div class="char-counter ok" id="wiz_counter" style="font-size:15px;margin-top:8px">0 / ${MAX_TEXT_CHARS} caractères</div>
@@ -1125,5 +1140,6 @@ renderTable();
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
 <script src="../../assets/js/ressources.js"></script>
 <script src="../../assets/js/bibliotheque.js" data-jeu="editeurcit" data-base="../../"></script>
+<script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
 </body>
 </html>

@@ -49,7 +49,7 @@
 
   html, body { width:100%; height:100%; overflow:hidden; background:var(--game-bg); color:var(--text); font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; user-select:none; }
 
-  #app { display:grid; grid-template-rows:auto auto auto 1fr; height:100vh; overflow:hidden; }
+  #app { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
   /* ── CONFIG (gris clair) ── */
   #configpanel {
@@ -134,7 +134,7 @@
   /* (aide-bar supprimée - remplacée par modale) */
 
   /* ── MAIN ── */
-  #main { display:flex; flex:1; overflow:hidden; min-height:0; }
+  #main { display:flex; flex:1 1 auto; overflow:hidden; min-height:0; }
 
   /* ── SIDE PANEL (blanc) ── */
   #sidepanel { width:185px; min-width:160px; background:var(--side-bg); border-right:1px solid var(--side-border); display:flex; flex-direction:column; padding:14px 12px; overflow-y:auto; flex-shrink:0; gap:16px; box-shadow:2px 0 8px #00000008; }
@@ -185,7 +185,7 @@
   .card.found .card-face      { border-color:var(--green)!important; }
   .card.found .card-front-face{ background:#f0fdf4; box-shadow:0 2px 10px #10b98130; }
 
-  .card-label { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1; }
+  .card-label { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1.05; padding:6% 4%; max-width:100%; max-height:100%; overflow:hidden; }
   .card-label .card-num { font-size:1em; font-weight:900; color:#1e293b; }
   .card-label .card-sym { font-size:.75em; }
 
@@ -212,8 +212,8 @@
   #solved-grid-title { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
   #solved-grid { display:grid; gap:3px; background:var(--game-bg); border:1px solid var(--side-border); border-radius:var(--radius); padding:8px; }
   .s-card { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#f0fdf4; border:1.5px solid var(--green); border-radius:6px; font-size:.9rem; line-height:1; }
-  .s-card .card-label .card-num { font-size:.72em; }
-  .s-card .card-label .card-sym { font-size:.52em; }
+  .s-card .card-label .card-num { font-size:.58em; }
+  .s-card .card-label .card-sym { font-size:.42em; }
 
   /* ── SCROLLBAR ── */
   ::-webkit-scrollbar { width:5px; }
@@ -224,6 +224,21 @@
     #sidepanel { width:120px; min-width:100px; }
     .stat-block { padding:5px 8px; }
   }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
 </style>
 </head>
 <body>
@@ -464,7 +479,7 @@ $('btn-aide-toggle').addEventListener('click',()=>{ openAide(); });
 $('inp-load').addEventListener('change',e=>{
   const file=e.target.files[0]; if(!file) return;
   const fr=new FileReader();
-  fr.onload=()=>{ loadGame(fr.result); };
+  fr.onload=()=>{ loadGame(fr.result, file.name); };
   fr.onerror=()=>showError('⚠ Impossible de lire ce fichier.');
   fr.readAsText(file);
   e.target.value=''; // reset pour permettre de recharger le même fichier
@@ -503,7 +518,7 @@ function startGame(){
   valMsg.textContent=''; valMsg.classList.remove('visible');
   if(isNaN(rows)||isNaN(cols)||rows<2||cols<2){ valMsg.textContent='⚠ Dimensions invalides (min 2×2).'; valMsg.classList.add('visible'); return; }
   if(total%2!==0){ valMsg.textContent=`⚠ Lignes × Colonnes impair (${total} cases). Choisissez une combinaison paire.`; valMsg.classList.add('visible'); return; }
-  if(total>50){ valMsg.textContent=`⚠ Maximum 50 cases (actuellement ${total}).`; valMsg.classList.add('visible'); return; }
+  if(total>50){ valMsg.textContent=`⚠ Maximum 25 paires, soit 50 cases (actuellement ${total}).`; valMsg.classList.add('visible'); return; }
   clearTimers();
   state={...state,cards:[],firstCard:null,waiting:false,tvTimeout:null,timerInterval:null,elapsed:0,moves:0,pairsFound:0,peekCount:0,isPeeking:false,started:true,totalPairs:total/2,tvSec:+slTv.value,clickMode:$('sel-click').value};
   stMoves.textContent='0'; stTime.textContent='00:00'; stPeekBar.textContent='0'; peekCountEl.textContent='0';
@@ -520,11 +535,15 @@ function renderGrid(rows,cols){
   grid.style.gridTemplateRows=`repeat(${rows},1fr)`;
   grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
   const area=$('grid-area');
-  const aw=area.clientWidth-32-(cols-1)*8, ah=area.clientHeight-32-(rows-1)*8;
-  const size=Math.max(40,Math.min(Math.floor(aw/cols),Math.floor(ah/rows),110));
+  // Les cartes occupent toute la place disponible : sur une grille 2×2 elles
+  // deviennent grandes, sur une 5×10 elles restent lisibles. Le plafond de
+  // 240 px evite seulement des cartes demesurees sur tres grand ecran.
+  const gap=8;
+  const aw=area.clientWidth-32-(cols-1)*gap, ah=area.clientHeight-32-(rows-1)*gap;
+  const size=Math.max(40,Math.min(Math.floor(aw/cols),Math.floor(ah/rows),240));
   grid.style.width=(size*cols+(cols-1)*8)+'px';
   grid.style.height=(size*rows+(rows-1)*8)+'px';
-  const fs=Math.max(12,Math.min(size*0.38,36));
+  const fs=Math.max(12,Math.min(size*0.42,84));
   state.cards.forEach((card,i)=>{
     const el=document.createElement('div');
     el.className='card';
@@ -679,25 +698,11 @@ function saveGame(){
     pairsFound:state.pairsFound, totalPairs:state.totalPairs,
     cards:state.cards.map(c=>({id:c.id,html:c.html,found:c.found,flipped:c.flipped&&!c.found}))
   };
-  const json=JSON.stringify(data);
-  const suggested=`${stamp()}_Memoire.json`;
-  if(window.showSaveFilePicker){
-    (async()=>{
-      try{
-        const h=await window.showSaveFilePicker({
-          suggestedName:suggested,
-          types:[{description:'Sauvegarde Mémoire',accept:{'application/json':['.json']}}]
-        });
-        const w=await h.createWritable(); await w.write(json); await w.close();
-        showInfo(`💾 Partie sauvegardée : « ${h.name} » dans le dossier choisi.`);
-      }catch(err){
-        if(err.name==='AbortError') return;
-        fallbackDownload(json,suggested);
-      }
-    })();
-  } else {
-    fallbackDownload(json,suggested);
-  }
+  Partie.enregistrer({
+    json: JSON.stringify(data),
+    nomPropose: `${stamp()}_Memoire.json`,
+    jeu: 'Mémoire'
+  });
 }
 
 function fallbackDownload(json,name){
@@ -718,13 +723,16 @@ function showInfo(msg){
   showInfo._t=setTimeout(()=>{ valMsg.classList.remove('visible'); valMsg.style.cssText=''; },4000);
 }
 
-function loadGame(text){
+function loadGame(text, nomFichier){
+  const nom = nomFichier || 'sauvegarde';
   let d;
-  try{ d=JSON.parse(text); }catch(e){ showError('⚠ Fichier illisible : ce n\u2019est pas une sauvegarde valide.'); return; }
+  try{ d=JSON.parse(text); }
+  catch(e){ Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas lisible : son contenu n'est pas au format JSON."}); return; }
   if(!d||d.app!=='memoire'||!Array.isArray(d.cards)||!d.rows||!d.cols){
-    showError('⚠ Ce fichier n\u2019est pas une sauvegarde du Jeu de Mémoire.'); return;
+    Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas une sauvegarde du jeu de Mémoire."}); return;
   }
-  if(d.cards.length!==d.rows*d.cols){ showError('⚠ Sauvegarde incomplète ou corrompue.'); return; }
+  if(d.cards.length!==d.rows*d.cols){
+    Partie.refuserReprise({nomFichier:nom, raison:'La sauvegarde est incomplète ou abîmée : le nombre de cartes ne correspond pas.'}); return; }
 
   clearTimers();
   // Restaurer les selects de configuration
@@ -777,6 +785,10 @@ function loadGame(text){
   },1000);
 
   showInfo(`✅ Partie restaurée — ${state.pairsFound}/${state.totalPairs} paires trouvées, ${state.moves} coups.`);
+  Partie.confirmerReprise({
+    nomFichier: nom,
+    resume: `grille ${d.rows}×${d.cols} — ${d.pairsFound||0}/${d.totalPairs||(d.rows*d.cols/2)} paire(s) trouvée(s)`
+  });
 }
 
 function showError(msg){
@@ -802,5 +814,10 @@ window.addEventListener('resize',()=>{
   });
 });
 </script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="memoire" data-base="../"></script>
+<script src="../assets/js/partie.js" data-base="../"></script>
 </body>
 </html>
