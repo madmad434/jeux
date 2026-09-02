@@ -112,14 +112,6 @@ main{max-width:1180px; margin:0 auto; padding:0 clamp(16px,4vw,44px)}
 .card:hover .mm-back,.card:focus-visible .mm-back{opacity:0}
 .card:hover .mm-face,.card:focus-visible .mm-face{opacity:1; transition-delay:.19s}
 
-/* Motus : les cases se colorent une a une */
-.card:hover .mo-1,.card:focus-visible .mo-1{fill:var(--green)}
-.card:hover .mo-2,.card:focus-visible .mo-2{fill:var(--grey); transition-delay:.09s}
-.card:hover .mo-3,.card:focus-visible .mo-3{fill:var(--green); transition-delay:.18s}
-.card:hover .mo-4,.card:focus-visible .mo-4{fill:var(--red);  transition-delay:.27s}
-.card:hover .mo-5,.card:focus-visible .mo-5{fill:var(--green); transition-delay:.36s}
-.card:hover .mo-t,.card:focus-visible .mo-t{fill:#fff}
-
 /* Anagramme : les lettres se remettent droites */
 .card:hover .an g,.card:focus-visible .an g{transform:translate(0,0) rotate(0deg)}
 
@@ -174,7 +166,7 @@ kbd{background:var(--white); border:1px solid var(--border); border-bottom-width
     </svg>
     <div>
       <h1>Jeux</h1>
-      <span>7 jeux et 5 éditeurs, sur une seule page</span>
+      <span>6 jeux et 3 éditeurs, sur une seule page</span>
     </div>
   </div>
   <div class="bar-side">
@@ -315,43 +307,10 @@ kbd{background:var(--white); border:1px solid var(--border); border-bottom-width
       </a>
     </li>
 
-    <!-- 5 — MOTUS -->
+    <!-- 5 — ANAGRAMME -->
     <li>
-      <a class="card" style="--accent:#1565c0" href="JeuMotus/jeumotus.html" data-key="5">
+      <a class="card" style="--accent:#d97706" href="JeuAnagramme/JeuAnagramme.html" data-key="5">
         <span class="key">5</span>
-        <span class="art">
-          <svg viewBox="0 0 132 96" class="mo" aria-hidden="true">
-            <g font-size="16" font-weight="800" text-anchor="middle" font-family="inherit">
-              <rect class="mo-1 mv" x="3"   y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
-              <rect class="mo-2 mv" x="29"  y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
-              <rect class="mo-3 mv" x="55"  y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
-              <rect class="mo-4 mv" x="81"  y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
-              <rect class="mo-5 mv" x="107" y="16" width="22" height="28" rx="5" fill="#E1F4FF" stroke="#7dd0f5" stroke-width="1.5"/>
-              <text class="mo-t mv" x="14"  y="36" fill="#0a2540">M</text>
-              <text class="mo-t mv" x="40"  y="36" fill="#0a2540">O</text>
-              <text class="mo-t mv" x="66"  y="36" fill="#0a2540">T</text>
-              <text class="mo-t mv" x="92"  y="36" fill="#0a2540">U</text>
-              <text class="mo-t mv" x="118" y="36" fill="#0a2540">S</text>
-              <rect x="3"   y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
-              <rect x="29"  y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
-              <rect x="55"  y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
-              <rect x="81"  y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
-              <rect x="107" y="52" width="22" height="28" rx="5" fill="#fff" stroke="#c9e6f5" stroke-width="1.5"/>
-            </g>
-          </svg>
-        </span>
-        <span class="body">
-          <span class="name">Motus</span>
-          <span class="desc">Devine le mot caché en six essais : chaque lettre te dit si elle est bien placée.</span>
-          <span class="file">JeuMotus/jeumotus.html</span>
-        </span>
-      </a>
-    </li>
-
-    <!-- 6 — ANAGRAMME -->
-    <li>
-      <a class="card" style="--accent:#d97706" href="JeuAnagramme/JeuAnagramme.html" data-key="6">
-        <span class="key">6</span>
         <span class="art">
           <svg viewBox="0 0 132 96" class="an" aria-hidden="true">
             <g font-size="18" font-weight="800" text-anchor="middle" font-family="inherit" fill="#7a4a05">
@@ -382,10 +341,10 @@ kbd{background:var(--white); border:1px solid var(--border); border-bottom-width
       </a>
     </li>
 
-    <!-- 7 — MOTS MASQUES -->
+    <!-- 6 — MOTS MASQUES -->
     <li>
-      <a class="card" style="--accent:#0a6ea0" href="JeuMotsMasques/JeuMotsMasques.html" data-key="7">
-        <span class="key">7</span>
+      <a class="card" style="--accent:#0a6ea0" href="JeuMotsMasques/JeuMotsMasques.html" data-key="6">
+        <span class="key">6</span>
         <span class="art">
           <svg viewBox="0 0 132 96" aria-hidden="true">
             <rect x="6" y="4" width="120" height="88" rx="10" fill="#fff" stroke="#8FDCFF" stroke-width="2"/>
@@ -417,15 +376,9 @@ kbd{background:var(--white); border:1px solid var(--border); border-bottom-width
 
   <section class="tools">
     <h2>Préparer le contenu des jeux</h2>
-    <p>Ces éditeurs créent et modifient les fichiers XML utilisés par Motus, Anagrammes et Mots masqués.
+    <p>Ces éditeurs créent et modifient les fichiers XML utilisés par Anagrammes et Mots masqués.
        Enregistre le fichier obtenu, puis charge‑le depuis le jeu.</p>
     <ul class="tool-grid">
-      <li><a class="tool" href="JeuMotus/FichiersMots/EditeurXMLJeuMotus.html">
-        <span class="tool-ico" aria-hidden="true">🎯</span>
-        <span class="tool-txt"><strong>Mots de Motus</strong><small>JeuMotus/FichiersMots/EditeurXMLJeuMotus.html</small></span></a></li>
-      <li><a class="tool" href="JeuMotus/FichiersMots/EditeurXMLJeuMotusExpert.html">
-        <span class="tool-ico" aria-hidden="true">🛠️</span>
-        <span class="tool-txt"><strong>Mots de Motus — mode expert</strong><small>JeuMotus/FichiersMots/EditeurXMLJeuMotusExpert.html</small></span></a></li>
       <li><a class="tool" href="JeuAnagramme/Mots/editeurAnagrammexmldebutant.html">
         <span class="tool-ico" aria-hidden="true">🔤</span>
         <span class="tool-txt"><strong>Listes d'anagrammes</strong><small>JeuAnagramme/Mots/editeurAnagrammexmldebutant.html</small></span></a></li>
@@ -440,9 +393,9 @@ kbd{background:var(--white); border:1px solid var(--border); border-bottom-width
 </main>
 
 <footer>
-  Raccourcis : tape <kbd>1</kbd> à <kbd>7</kbd> pour lancer un jeu directement.
+  Raccourcis : tape <kbd>1</kbd> à <kbd>6</kbd> pour lancer un jeu directement.
   Les images du puzzle sont dans <b>JeuPuzzle/Images</b>, les listes de mots dans les dossiers
-  <b>Mots</b>, <b>FichiersMots</b> et <b>Textes</b> de chaque jeu.
+  <b>Mots</b> et <b>Textes</b> de chaque jeu.
 </footer>
 
 <script>
