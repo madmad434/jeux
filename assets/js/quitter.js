@@ -16,6 +16,21 @@
    expose un indicateur global `modified`, previent de la perte du travail
    en cours uniquement lorsqu'il y a effectivement des modifications.
 
+   SORTIE DES EDITEURS — le controle se fait AVANT toute tentative de
+   fermeture. On regarde deux choses :
+     - l'indicateur global `modified` (donnees en memoire non enregistrees) ;
+     - une saisie en cours (assistant "Nouveau..." ouvert, formulaire de
+       creation actif, champ rempli et non valide).
+   S'il y a quelque chose a perdre, la boite propose trois issues :
+     - revenir a l'edition ;
+     - enregistrer puis quitter (appel de exportXML(), sortie seulement si
+       l'enregistrement a reellement abouti) ;
+     - quitter sans enregistrer.
+   Quand la sortie est confirmee, l'indicateur est remis a zero et un drapeau
+   global desarme le gestionnaire `beforeunload` de la page : le navigateur
+   n'affiche donc plus sa propre demande de confirmation, qui laissait
+   l'utilisateur sans possibilite de revenir enregistrer.
+
    Mise en place, juste avant </body> :
      <script src="../assets/js/quitter.js" data-base="../"></script>
 
@@ -55,6 +70,9 @@
     'cursor:pointer;border:2px solid transparent;transition:background .18s ease}',
     '.qz-no{background:#E1F4FF;color:#0B4E75;border-color:#8FDCFF}',
     '.qz-no:hover{background:#C2F6FF}',
+    '.qz-save{background:#16a34a;color:#fff}',
+    '.qz-save:hover{background:#0f7c37}',
+    '.qz-save[hidden]{display:none}',
     '.qz-yes{background:#c62828;color:#fff}',
     '.qz-yes:hover{background:#8d1a1a}',
     '.qz-btn:focus-visible{outline:3px solid #0B4E75;outline-offset:2px}',
@@ -83,15 +101,20 @@
       '<p class="qz-msg"></p>' +
       '<div class="qz-row">' +
         '<button type="button" class="qz-btn qz-no">' + (editeur ? 'Continuer à éditer' : 'Continuer à jouer') + '</button>' +
+        '<button type="button" class="qz-btn qz-save" hidden>💾 Enregistrer puis quitter</button>' +
         '<button type="button" class="qz-btn qz-yes">Oui, quitter</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(ov);
 
   var declencheur = null;
+  var btnNon  = ov.querySelector('.qz-no');
+  var btnOui  = ov.querySelector('.qz-yes');
+  var btnSave = ov.querySelector('.qz-save');
 
-  ov.querySelector('.qz-no').addEventListener('click', annuler);
-  ov.querySelector('.qz-yes').addEventListener('click', sortir);
+  btnNon.addEventListener('click', annuler);
+  btnOui.addEventListener('click', sortir);
+  btnSave.addEventListener('click', enregistrerPuisSortir);
   ov.addEventListener('click', function (e) { if (e.target === ov) annuler(); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !ov.hidden) { e.stopPropagation(); annuler(); }
@@ -99,9 +122,16 @@
 
   function demander(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); declencheur = e.currentTarget; }
-    ov.querySelector('.qz-msg').textContent = message();
+
+    // CONTROLE AVANT FERMETURE : on regarde ce qu'il y a a perdre avant
+    // meme d'envisager de fermer la fenetre.
+    var perte = aQuelqueChoseAPerdre();
+
+    ov.querySelector('.qz-msg').textContent = message(perte);
+    btnSave.hidden = !(editeur && perte && typeof window.exportXML === 'function');
+    btnOui.textContent = (editeur && perte) ? 'Quitter sans enregistrer' : 'Oui, quitter';
     ov.hidden = false;
-    ov.querySelector('.qz-no').focus();
+    btnNon.focus();
   }
 
   // Les editeurs declarent tous un `let modified` au niveau global. Un `let`
@@ -112,12 +142,43 @@
     try { return !!modified; } catch (e) { return null; }
   }
 
-  function message() {
+  /* Une creation est-elle en cours ? Les editeurs "expert" exposent un
+     indicateur `isCreatingNew`; les editeurs guides ouvrent un assistant dans
+     une fenetre `.modal-overlay` / `.wiz-overlay` contenant des champs. */
+  function creationEnCours() {
+    try { if (isCreatingNew) return true; } catch (e) { /* variable absente */ }
+
+    var boites = document.querySelectorAll(
+      '.modal-overlay, .wiz-overlay, .wizard-overlay, .modal-backdrop'
+    );
+    for (var i = 0; i < boites.length; i++) {
+      var b = boites[i];
+      if (b.hidden) continue;
+      if (b.closest && b.closest('.qz-ov')) continue;
+      var st = window.getComputedStyle(b);
+      if (st.display === 'none' || st.visibility === 'hidden') continue;
+      // Une fenetre d'information n'a pas de champ de saisie : on ne
+      // considere que celles qui contiennent un formulaire.
+      if (b.querySelector('input:not([type=hidden]):not([type=file]), textarea, select')) return true;
+    }
+    return false;
+  }
+
+  /* Y a-t-il un travail non enregistre ? (modifications OU saisie en cours) */
+  function aQuelqueChoseAPerdre() {
+    if (!editeur) return true;            // une partie en cours est toujours perdue
+    if (estModifie() === true) return true;
+    if (creationEnCours()) return true;
+    return false;
+  }
+
+  function message(perte) {
     if (!editeur) return 'La partie en cours ne sera pas enregistrée.';
-    var m = estModifie();
-    if (m === true)  return 'Des modifications ne sont pas enregistrées. Elles seront perdues.';
-    if (m === false) return 'Le fichier ouvert est à jour, rien ne sera perdu.';
-    return 'Le travail non enregistré sera perdu.';
+    if (!perte)   return 'Le fichier ouvert est à jour, rien ne sera perdu.';
+    if (creationEnCours() && estModifie() !== true) {
+      return 'Une saisie est en cours et n’a pas encore été ajoutée à la liste. Elle sera perdue.';
+    }
+    return 'Des modifications ne sont pas enregistrées. Elles seront perdues.';
   }
 
   function annuler() {
@@ -125,8 +186,66 @@
     if (declencheur && declencheur.focus) declencheur.focus();
   }
 
+  /* Enregistrer d'abord. On ne quitte que si l'enregistrement a reellement
+     abouti : si l'utilisateur annule la boite "Enregistrer sous" du
+     navigateur, l'indicateur reste a `true` et on revient a l'edition. */
+  function enregistrerPuisSortir() {
+    if (typeof window.exportXML !== 'function') { sortir(); return; }
+    ov.hidden = true;
+    var resultat;
+    try { resultat = window.exportXML(); } catch (err) { resultat = null; }
+
+    Promise.resolve(resultat).then(verifier, verifier);
+
+    function verifier() {
+      // Laisser a l'editeur le temps de remettre son indicateur a zero.
+      setTimeout(function () {
+        if (estModifie() === true) {
+          // Rien n'a ete enregistre (boite "Enregistrer sous" annulee,
+          // liste vide...) : on revient a la demande, l'edition est intacte.
+          demander(null);
+          return;
+        }
+        // Enregistrement reussi : laisser lire la fenetre verte qui indique
+        // ou le fichier a ete depose, puis sortir quand elle est fermee.
+        attendreFermetureDesBoites(sortir);
+      }, 150);
+    }
+  }
+
+  /* Attendre que les fenetres de l'editeur (confirmation d'enregistrement,
+     par exemple) soient refermees avant d'afficher l'ecran de sortie. */
+  function attendreFermetureDesBoites(suite) {
+    var essais = 0;
+    (function boucle() {
+      if (essais++ > 300 || !boiteVisible()) { suite(); return; }
+      setTimeout(boucle, 200);
+    })();
+
+    function boiteVisible() {
+      var l = document.querySelectorAll('.modal-overlay, .wiz-overlay, .wizard-overlay');
+      for (var i = 0; i < l.length; i++) {
+        if (l[i].hidden) continue;
+        var st = window.getComputedStyle(l[i]);
+        if (st.display !== 'none' && st.visibility !== 'hidden' && st.opacity !== '0') return true;
+      }
+      return false;
+    }
+  }
+
+  /* Desarmer le garde-fou `beforeunload` de la page. Les editeurs testent
+     tous `if (modified)` : en remettant l'indicateur a `false` avant de
+     fermer, le navigateur n'affiche plus sa propre demande de confirmation
+     (celle qui ne laissait aucun moyen de revenir enregistrer). */
+  function desarmerGardeFou() {
+    window.__qzSortieConfirmee = true;
+    try { modified = false; } catch (e) { /* variable absente */ }
+    try { window.onbeforeunload = null; } catch (e) { /* rien */ }
+  }
+
   function sortir() {
     ov.hidden = true;
+    desarmerGardeFou();
     window.close();                       // marche si le jeu est dans son propre onglet
     setTimeout(ecranDeFin, 300);          // sinon, on affiche l'ecran de fin
   }

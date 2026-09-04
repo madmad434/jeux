@@ -1132,6 +1132,13 @@ window.addEventListener('resize',()=>{
 <!-- Sortie de jeu harmonisee -->
 <script src="../assets/js/quitter.js" data-base="../"></script>
 <script src="../assets/js/aide-mode.js" data-jeu="taquin" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#aide-overlay .overlay-card"
+        data-voile="#aide-overlay"
+        data-titre="Comment jouer au Taquin"
+        data-fermer="document.getElementById('aide-overlay').classList.remove('show')"></script>
 <script src="../assets/js/partie.js" data-base="../"></script>
 </body>
 </html>

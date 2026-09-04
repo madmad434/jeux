@@ -1901,6 +1901,13 @@ function fermerModal(id) {
 <!-- Sortie de jeu harmonisee -->
 <script src="../assets/js/quitter.js" data-base="../"></script>
 <script src="../assets/js/aide-mode.js" data-jeu="jeudemot" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#rules-panel"
+        data-voile="#rules-overlay"
+        data-titre="Comment jouer ?"
+        data-fermer="closeRules()"></script>
 <script src="../assets/js/partie.js" data-base="../"></script>
 </body>
 </html>

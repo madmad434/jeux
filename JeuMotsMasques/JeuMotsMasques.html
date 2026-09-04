@@ -6,7 +6,12 @@
 <title>Mots masqués</title>
 <link rel="icon" type="image/webp" href="../assets/favicons/jeux.webp">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+  /* Polices : aucune requete Internet. On utilise ce qui est installe sur le
+     poste, avec des solutions de repli systeme. */
+  @font-face{
+    font-family:'Nunito';font-style:normal;font-weight:400 900;
+    src:local('Nunito'),local('Nunito-Regular'),local('Varela Round');
+  }
 
   /* ===== CHARTE GRAPHIQUE JF =====
      Bleu clair #C2F6FF  → zone de jeu, fonds, surfaces
@@ -34,7 +39,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
     background: var(--bd);
     min-height: 100vh;
     color: var(--text);
@@ -156,7 +161,7 @@
     border-radius: 12px;
     border: none;
     cursor: pointer;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
     font-size: 1rem;
     font-weight: 800;
     transition: all 0.18s ease;
@@ -230,7 +235,7 @@
     border: 1px solid rgba(194,246,255,0.25);
     padding: 7px 14px;
     border-radius: 9px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
     font-size: 0.88rem;
     font-weight: 800;
     cursor: pointer;
@@ -284,7 +289,7 @@
     border: 1px solid rgba(194,246,255,0.2);
     background: rgba(194,246,255,0.06);
     color: var(--bl);
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
     font-size: 0.88rem;
     font-weight: 700;
     cursor: pointer;
@@ -310,7 +315,7 @@
     border: 1px solid rgba(194,246,255,0.2);
     background: rgba(194,246,255,0.06);
     color: var(--bl);
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
     font-size: 1rem;
     font-weight: 800;
     cursor: pointer;
@@ -446,7 +451,7 @@
     padding: 2px 8px;
     min-width: 70px;
     text-align: center;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
     font-size: 1.1rem;
     font-weight: 800;
     color: var(--text);
@@ -498,7 +503,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
     font-size: 0.9rem;
     font-weight: 700;
     color: var(--text);
@@ -534,6 +539,105 @@
     max-height: 90vh;
     overflow-y: auto;
   }
+  /* ===== RECAPITULATIF DE FIN DE PARTIE =====
+     La boite est une colonne flex : l'en-tete, les statistiques, le champ
+     nom et la barre de boutons ne bougent pas ; seul le tableau defile.
+     Rien n'est donc jamais hors de vue, meme sur un ecran peu haut. */
+  /* Marge d'overlay reduite : sinon la boite, deja dimensionnee en vh,
+     depassait la fenetre et son haut se retrouvait coupe. */
+  #recap-modal { padding: 10px; }
+  #recap-modal .modal-box {
+    max-width: 660px;
+    padding: clamp(12px, 2.2vh, 24px) clamp(14px, 2.4vw, 26px);
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #recap-modal .modal-title {
+    margin-bottom: clamp(4px, 1vh, 10px);
+    font-size: clamp(1.1rem, 2.6vh, 1.5rem);
+    flex: none;
+  }
+  .recap-score {
+    font-size: clamp(1.4rem, 3.4vh, 2rem); font-weight: 900; color: var(--bd-hover);
+    text-align: center; line-height: 1.1; flex: none;
+  }
+  .recap-sub {
+    text-align: center; color: var(--text-soft);
+    font-size: clamp(.78rem, 1.7vh, .93rem); margin-top: 3px; flex: none;
+  }
+  .recap-stats {
+    display: flex; gap: 8px; margin: clamp(8px, 1.6vh, 14px) 0 clamp(6px, 1.2vh, 10px);
+    flex: none;
+  }
+  .recap-stat {
+    flex: 1 1 0; min-width: 0; background: var(--bl); border: 1px solid var(--border);
+    border-radius: 11px; padding: clamp(5px, 1vh, 9px) 4px; text-align: center;
+  }
+  .recap-stat .lbl {
+    font-size: clamp(.58rem, 1.15vh, .68rem); font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--text-soft); line-height: 1.25;
+  }
+  .recap-stat .val {
+    font-size: clamp(.95rem, 2.1vh, 1.25rem); font-weight: 900; color: var(--bd-hover);
+  }
+  .recap-nom { margin: 0 0 clamp(6px, 1.2vh, 10px); text-align: left; flex: none; }
+  .recap-nom label {
+    display: block; font-size: clamp(.68rem, 1.4vh, .79rem); font-weight: 800;
+    color: var(--text-soft); margin-bottom: 3px;
+  }
+  .recap-nom input {
+    width: 100%; padding: clamp(6px, 1.1vh, 9px) 11px; border: 2px solid var(--border);
+    border-radius: 9px; font-size: clamp(.84rem, 1.7vh, .95rem); font-family: inherit;
+    color: var(--text); outline: none;
+  }
+  .recap-nom input:focus { border-color: var(--bd); }
+
+  /* Seule zone qui defile : la liste des phrases. */
+  .recap-wrap {
+    flex: 1 1 auto; min-height: 60px; overflow-y: auto;
+    border-radius: 10px; border: 1px solid var(--border);
+  }
+  .recap-table { width: 100%; border-collapse: collapse; font-size: clamp(.72rem, 1.5vh, .84rem); }
+  .recap-table th {
+    position: sticky; top: 0; background: var(--bd); color: #fff;
+    padding: 6px 7px; text-align: left; font-weight: 800;
+    font-size: clamp(.62rem, 1.3vh, .75rem);
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .recap-table td { padding: 5px 7px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .recap-table tr:nth-child(even) td { background: rgba(194,246,255,0.35); }
+  .recap-table tr.win  td:first-child { color: var(--green); font-weight: 900; }
+  .recap-table tr.lose td:first-child { color: var(--red);   font-weight: 900; }
+  .recap-mots { font-weight: 800; color: var(--accent-dk); }
+
+  /* Barre de boutons : toujours visible, jamais repoussee hors de l'ecran. */
+  .recap-btns {
+    display: flex; gap: 8px; justify-content: center;
+    margin-top: clamp(8px, 1.6vh, 14px); flex: none;
+  }
+  .recap-btns .btn {
+    flex: 1 1 0; min-width: 0; padding: clamp(7px, 1.4vh, 11px) 6px;
+    font-size: clamp(.76rem, 1.6vh, .9rem); border-radius: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Ecrans peu hauts : on masque les colonnes accessoires du tableau
+     plutot que de laisser la fenetre deborder. */
+  @media (max-height: 620px) {
+    .recap-table th:nth-child(4), .recap-table td:nth-child(4),
+    .recap-table th:nth-child(6), .recap-table td:nth-child(6) { display: none; }
+    .recap-stat .lbl { letter-spacing: 0; }
+  }
+  @media (max-width: 620px) {
+    .recap-table th:nth-child(4), .recap-table td:nth-child(4),
+    .recap-table th:nth-child(6), .recap-table td:nth-child(6) { display: none; }
+    .recap-btns { flex-wrap: wrap; }
+    .recap-btns .btn { flex: 1 1 45%; }
+  }
+
   .modal-title {
     font-size: 1.55rem;
     font-weight: 900;
@@ -610,11 +714,12 @@ html body button[onclick*="quitter()"]:hover{
   <div class="home-card">
     <div class="home-logo">Jeux Éducatifs</div>
     <div class="home-title"><img class="titre-icone" src="../assets/img/mots-masques.png" alt="" aria-hidden="true"> Mots masqués</div>
-    <div class="home-sub">Retrouve les mots manquants dans des textes et des proverbes</div>
+    <div class="home-sub">Retrouvez les mots manquants dans des textes et des proverbes</div>
     <div class="score-badge" id="home-score">⭐ Score : 0 points</div>
     <div class="load-status">
       Vous pouvez commencer le jeu avec les textes par défaut<br>
-      ou charger un fichier manuellement.
+      ou charger un fichier manuellement.<br>
+      <strong id="home-nmax">La partie comportera 0 phrase.</strong>
     </div>
     <div class="home-actions">
       <button class="btn btn-primary" onclick="startGame()">▶ Commencer le jeu</button>
@@ -632,6 +737,7 @@ html body button[onclick*="quitter()"]:hover{
     <div class="header-left">
       <div class="game-title"><img class="titre-icone" src="../assets/img/mots-masques.png" alt="" aria-hidden="true"> Mots masqués</div>
       <span class="badge badge-score" id="game-score">⭐ 0 pts</span>
+      <span class="badge badge-texts" id="progress-count" title="Phrase en cours sur le nombre total de phrases du fichier">📝 Phrase 0 / 0</span>
       <span class="badge badge-texts" id="texts-count">📚 0 textes</span>
     </div>
     <div class="header-right">
@@ -679,7 +785,7 @@ html body button[onclick*="quitter()"]:hover{
 
     <!-- Right panel -->
     <div class="right-panel" id="right-panel">
-      <div class="panel-header-label" id="panel-label">👇 Glisse les mots dorés dans les cases vides :</div>
+      <div class="panel-header-label" id="panel-label">👇 Glissez les mots dorés dans les cases vides :</div>
       <div class="success-info" id="success-info"></div>
       <div class="text-area" id="text-area"></div>
       <div class="feedback-area" id="feedback-area"></div>
@@ -694,14 +800,14 @@ html body button[onclick*="quitter()"]:hover{
 
     <div class="modal-section">
       <h4>🎯 Objectif</h4>
-      Retrouve les mots cachés dans un texte ou un proverbe.
-      Choisis combien de mots masquer (1 à 5) et le mode qui te convient le mieux.
+      Retrouvez les mots cachés dans un texte ou un proverbe.
+      Choisissez combien de mots masquer (1 à 5) et le mode qui vous convient le mieux.
     </div>
 
     <div class="modal-section">
       <h4>🖱️ Mode Glisser / Cliquer</h4>
-      <strong>Glisse</strong> un mot doré et <strong>dépose-le</strong> dans une case vide.<br>
-      Ou <strong>clique</strong> sur un mot doré pour le sélectionner, puis <strong>clique</strong> sur la case vide.<br>
+      <strong>Glissez</strong> un mot doré et <strong>déposez-le</strong> dans une case vide.<br>
+      Ou <strong>cliquez</strong> sur un mot doré pour le sélectionner, puis <strong>cliquez</strong> sur la case vide.<br>
       Cliquer sur une case déjà remplie rend le mot à la liste.
       La vérification est automatique quand toutes les cases sont remplies.
     </div>
@@ -709,12 +815,12 @@ html body button[onclick*="quitter()"]:hover{
     <div class="modal-section">
       <h4>⌨️ Mode Double-clic / Taper</h4>
       Les mots à retrouver sont affichés à gauche en orange.<br>
-      <strong>Double-clique sur un mot orange</strong> → il s'insère automatiquement
+      <strong>Double-cliquez sur un mot orange</strong> → il s'insère automatiquement
       dans la première case vide.<br>
-      Ou <strong>clique</strong> sur un mot orange pour le sélectionner (il se surligne),
-      puis <strong>double-clique sur la case</strong> où tu veux le placer.<br>
-      Tu peux aussi taper directement dans les cases.<br>
-      Appuie sur <strong>Entrée</strong> pour passer à la case suivante,
+      Ou <strong>cliquez</strong> sur un mot orange pour le sélectionner (il se surligne),
+      puis <strong>double-cliquez sur la case</strong> où vous voulez le placer.<br>
+      Vous pouvez aussi taper directement dans les cases.<br>
+      Appuyez sur <strong>Entrée</strong> pour passer à la case suivante,
       La vérification est automatique dès que toutes les cases sont remplies.
     </div>
 
@@ -726,17 +832,29 @@ html body button[onclick*="quitter()"]:hover{
     </div>
 
     <div class="modal-section">
+      <h4>🔢 Déroulement de la partie</h4>
+      Les phrases sont proposées <strong>dans l'ordre du fichier</strong>, une seule fois chacune.
+      Le badge <strong>📝 Phrase X / N</strong> en haut de l'écran indique la phrase en cours
+      et le nombre total de phrases disponibles.<br>
+      Lorsque la dernière phrase a été jouée, la partie s'arrête et un
+      <strong>récapitulatif</strong> s'affiche : score, nombre de phrases réussies ou passées,
+      durée, et le détail phrase par phrase.<br>
+      Ce récapitulatif peut être <strong>exporté en PDF</strong> : le bouton ouvre la fenêtre
+      d'impression, où il suffit de choisir « Enregistrer au format PDF » comme destination.
+    </div>
+
+    <div class="modal-section">
       <h4>✅ Résultats</h4>
       <strong style="color:#16a34a">Bravo vert</strong> = bonne réponse ! +1 point.<br>
-      <strong style="color:#dc2626">Message rouge</strong> = réessaie, les mots sont remis à disposition.
+      <strong style="color:#dc2626">Message rouge</strong> = à retenter, les mots sont remis à disposition.
     </div>
 
     <div class="modal-section">
       <h4>📁 Utiliser ses propres textes</h4>
       Par défaut le jeu utilise des textes intégrés.
-      Pour jouer avec tes propres textes, clique sur
+      Pour jouer avec vos propres textes, cliquez sur
       <strong>📁 Choisir un fichier XML manuellement</strong> depuis l'accueil
-      et sélectionne un fichier sur ton ordinateur.<br>
+      et sélectionnez un fichier sur votre ordinateur.<br>
       Format attendu :
       <div class="xml-code">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;citations&gt;
@@ -750,6 +868,38 @@ html body button[onclick*="quitter()"]:hover{
 
     <div style="text-align:center;margin-top:20px">
       <button class="btn btn-primary" onclick="closeRules()">J'ai compris ! 👍</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL RECAPITULATIF DE FIN DE PARTIE ===== -->
+<div class="modal-overlay" id="recap-modal">
+  <div class="modal-box">
+    <div class="modal-title">🏁 Partie terminée</div>
+
+    <div class="recap-score" id="recap-score">0 pt</div>
+    <div class="recap-sub" id="recap-sub"></div>
+
+    <div class="recap-stats">
+      <div class="recap-stat"><div class="lbl">Phrases jouées</div><div class="val" id="recap-jouees">0</div></div>
+      <div class="recap-stat"><div class="lbl">Réussies</div><div class="val" id="recap-reussies">0</div></div>
+      <div class="recap-stat"><div class="lbl">Passées</div><div class="val" id="recap-passees">0</div></div>
+      <div class="recap-stat"><div class="lbl">Durée</div><div class="val" id="recap-duree">00:00</div></div>
+    </div>
+
+    <div class="recap-nom">
+      <label for="recap-joueur">Nom du joueur — repris dans le document exporté</label>
+      <input type="text" id="recap-joueur" maxlength="40" placeholder="Votre prénom…" autocomplete="off">
+    </div>
+
+    <div class="recap-wrap">
+      <table class="recap-table" id="recap-table"></table>
+    </div>
+
+    <div class="recap-btns">
+      <button class="btn btn-primary btn-sm" onclick="rejouer()">🔄 Nouvelle partie</button>
+      <button class="btn btn-outline btn-sm" onclick="exporterRecapPDF()" title="Ouvre la fenêtre d'impression : choisissez « Enregistrer au format PDF » comme destination">📄 Exporter en PDF</button>
+      <button class="btn btn-outline btn-sm" onclick="retourAccueilDepuisRecap()">🏠 Accueil</button>
     </div>
   </div>
 </div>
@@ -787,6 +937,24 @@ const STOP_WORDS = new Set(['le','la','les','un','une','des','du','de','et','est
 
 let allTexts = [...DEFAULT_PROVERBES];
 let currentIdx = 0;
+
+/* ===== CONTROLE DE PARTIE =====
+   Les phrases sont lues DANS L'ORDRE du fichier, une seule fois chacune.
+   Nmax est le nombre de phrases disponibles ; la partie s'arrete des que
+   le compteur de phrases utilisees l'atteint, et le recapitulatif s'affiche. */
+let Nmax = allTexts.length;
+let session = creerSession();
+
+function creerSession() {
+  return {
+    historique: [],   // une entree par phrase jouee
+    debut: Date.now(),        // horodatage du debut de partie
+    debutPhrase: Date.now(),  // horodatage du debut de la phrase en cours
+    essais: 0,        // tentatives infructueuses sur la phrase en cours
+    close: false,     // phrase en cours deja enregistree ?
+    terminee: false   // partie terminee ?
+  };
+}
 let score = 0;
 let gameMode = 'drag';
 let wordCount = 1;
@@ -858,22 +1026,48 @@ function goHome(){
   hideCtxMenu();
   showScreen('home-screen');
   document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
+  majAccueil();
 }
+
+/* Nombre de phrases annonce sur l'ecran d'accueil. */
+function majAccueil(){
+  Nmax = allTexts.length;
+  const el = document.getElementById('home-nmax');
+  if (el) el.textContent = Nmax > 1
+    ? `La partie comportera ${Nmax} phrases, lues dans l'ordre du fichier.`
+    : `La partie comportera ${Nmax} phrase.`;
+}
+
 function startGame(){
+  Nmax = allTexts.length;
+  if (Nmax === 0) { alert('❌ Aucune phrase disponible. Chargez un fichier XML.'); return; }
   showScreen('game-screen');
-  currentIdx=0;
-  allTexts=shuffle([...allTexts]);
+  score = 0;
+  currentIdx = 0;
+  session = creerSession();
+  session.debut = Date.now();
+  /* Lecture SEQUENTIELLE : plus de melange, l'ordre du fichier est respecte
+     pour que le compteur de phrases utilisees ait un sens. */
+  fermerRecap();
   loadText();
+}
+
+/* Compteur de phrases utilisees, affiche en permanence dans l'en-tete. */
+function majProgression(){
+  const el = document.getElementById('progress-count');
+  if (el) el.textContent = `📝 Phrase ${Math.min(currentIdx+1, Nmax)} / ${Nmax}`;
 }
 
 // ===== MODE & COUNT =====
 function setMode(mode, btn){
+  if (session.terminee) return;
   gameMode=mode;
   document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   loadText();
 }
 function setCount(n, btn){
+  if (session.terminee) return;
   wordCount=n;
   document.querySelectorAll('.count-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
@@ -882,6 +1076,14 @@ function setCount(n, btn){
 
 // ===== LOAD TEXT =====
 function loadText(){
+  // Garde-fou : on ne depasse jamais Nmax.
+  if (currentIdx >= Nmax) { finDePartie(); return; }
+
+  // Nouvelle phrase : compteurs remis a zero.
+  session.essais = 0;
+  session.close  = false;
+  session.debutPhrase = Date.now();
+
   blocked=false;
   placedWords={};
   selectedChip=null;
@@ -891,13 +1093,14 @@ function loadText(){
   selectedRefChip=null;
   hideCtxMenu();
 
-  const entry=allTexts[currentIdx%allTexts.length];
+  const entry=allTexts[currentIdx];
   const {tokens,chosen}=pickWords(entry.texte,wordCount);
   missingWords=chosen;
 
   document.getElementById('success-info').className='success-info';
-  document.getElementById('texts-count').textContent=`📚 ${allTexts.length} textes`;
+  document.getElementById('texts-count').textContent=`📚 ${Nmax} textes`;
   document.getElementById('game-score').textContent=`⭐ ${score} pts`;
+  majProgression();
   document.getElementById('btn-next').classList.add('hidden');
   document.getElementById('btn-next').classList.remove('btn-next-pulse');
   document.getElementById('btn-skip').classList.remove('hidden');
@@ -907,13 +1110,13 @@ function loadText(){
   const zoneLbl=document.getElementById('words-zone-label');
 
   if(gameMode==='type'){
-    lbl.textContent='⌨️ Double-clic sur un mot orange → place dans la case. Ou tape directement :';
+    lbl.textContent='⌨️ Double-clic sur un mot orange → placement dans la case. Ou saisie directe :';
     zoneLbl.textContent='Mots à retrouver :';
   } else if(gameMode==='copy'){
     lbl.textContent='📋 Clic droit sur un mot → Copier, clic droit sur case → Coller :';
     zoneLbl.textContent='Mots manquants :';
   } else {
-    lbl.textContent='👇 Glisse les mots dorés dans les cases vides :';
+    lbl.textContent='👇 Glissez les mots dorés dans les cases vides :';
     zoneLbl.textContent='Mots manquants :';
   }
 
@@ -933,7 +1136,7 @@ function buildWordsZone(){
       chip.className='word-chip ref-only';
       chip.id=`ref-chip-${i}`;
       chip.textContent=mw.word;
-      chip.title='Double-clic pour placer ce mot';
+      chip.title='Double-cliquez pour placer ce mot';
       chip.style.cursor='pointer';
       chip.addEventListener('click',  ()=>onRefChipClick(i));
       chip.addEventListener('dblclick',()=>onRefChipDblClick(i));
@@ -1277,7 +1480,8 @@ function showFeedback(correct){
     document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
     msg.className+=' success'; msg.textContent='🎉 Bravo ! Bonne réponse !';
     feedbackArea.appendChild(msg);
-    const entry=allTexts[currentIdx%allTexts.length];
+    enregistrerPhrase('trouve');
+    const entry=allTexts[currentIdx];
     const info=document.getElementById('success-info');
     info.innerHTML=`📖 <strong>${entry.livre||'Proverbe'}</strong> &nbsp;·&nbsp; ✍️ ${entry.auteur}`;
     info.className='success-info show';
@@ -1287,12 +1491,14 @@ function showFeedback(correct){
       document.querySelectorAll('.blank-slot').forEach(s=>{s.className='blank-slot correct';});
     }
     const btnNext=document.getElementById('btn-next');
+    btnNext.textContent = (currentIdx+1 >= Nmax) ? '🏁 Voir le récapitulatif' : 'Suivant ▶';
     btnNext.classList.remove('hidden');
     btnNext.classList.add('btn-next-pulse');
     document.getElementById('btn-skip').classList.add('hidden');
     blocked=false;
   } else {
-    msg.className+=' error'; msg.textContent='❌ Pas tout à fait… Réessaie !';
+    session.essais++;
+    msg.className+=' error'; msg.textContent='❌ Pas tout à fait… Essayez encore !';
     feedbackArea.appendChild(msg);
     const textArea=document.getElementById('text-area');
     textArea.classList.add('animate-shake');
@@ -1335,16 +1541,216 @@ function resetForRetry(){
   document.getElementById('success-info').className='success-info';
 }
 
-function nextText(){
-  currentIdx=(currentIdx+1)%allTexts.length;
+/* Enregistre la phrase en cours dans l'historique, une seule fois.
+   statut : 'trouve' | 'passe' */
+function enregistrerPhrase(statut){
+  if (session.close) return;
+  session.close = true;
+  const entry = allTexts[currentIdx] || {};
+  session.historique.push({
+    numero : currentIdx + 1,
+    auteur : entry.auteur || 'Auteur inconnu',
+    livre  : entry.livre  || '',
+    texte  : entry.texte  || '',
+    mots   : missingWords.map(m => m.word),
+    mode   : gameMode,
+    statut : statut,
+    essais : session.essais,
+    duree  : Math.max(0, Math.floor((Date.now() - session.debutPhrase) / 1000))
+  });
+}
+
+/* Avance d'une phrase. La partie s'arrete des que le compteur de phrases
+   utilisees atteint Nmax : plus de bouclage sans fin sur le fichier. */
+function avancer(){
   document.getElementById('btn-next').classList.add('hidden');
+  currentIdx++;
+  if (currentIdx >= Nmax) { finDePartie(); return; }
   loadText();
 }
+
+function nextText(){
+  if (session.terminee) return;
+  enregistrerPhrase('trouve');
+  avancer();
+}
+
 function skipWord(){
-  if(blocked) return;
-  currentIdx=(currentIdx+1)%allTexts.length;
-  document.getElementById('btn-next').classList.add('hidden');
-  loadText();
+  if (blocked || session.terminee) return;
+  enregistrerPhrase('passe');
+  avancer();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FIN DE PARTIE — RECAPITULATIF ET EXPORT
+//  Meme principe que le Jeu de mot : tableau detaille, nom du joueur,
+//  puis export imprimable en PDF. Aucun appel Internet.
+// ═══════════════════════════════════════════════════════════════
+function pad2(n){ return String(n).padStart(2,'0'); }
+function fmtDuree(sec){ return `${pad2(Math.floor(sec/60))}:${pad2(sec%60)}`; }
+
+function libelleStatut(st){ return st === 'trouve' ? '✅ Trouvée' : '⏭ Passée'; }
+function libelleMode(m){
+  if (m === 'type') return 'Double-clic / Taper';
+  if (m === 'copy') return 'Copier / Coller';
+  return 'Glisser / Cliquer';
+}
+
+function finDePartie(){
+  if (session.terminee) return;
+  session.terminee = true;
+  blocked = true;
+  hideCtxMenu();
+
+  const h        = session.historique;
+  const jouees   = h.length;
+  const reussies = h.filter(x => x.statut === 'trouve').length;
+  const passees  = jouees - reussies;
+  const duree    = Math.max(0, Math.floor((Date.now() - session.debut) / 1000));
+
+  document.getElementById('recap-score').textContent = `${score} pt${score > 1 ? 's' : ''}`;
+  document.getElementById('recap-sub').textContent =
+    `${reussies} phrase${reussies > 1 ? 's' : ''} réussie${reussies > 1 ? 's' : ''} sur ${Nmax} — toutes les phrases du fichier ont été proposées.`;
+  document.getElementById('recap-jouees').textContent   = jouees;
+  document.getElementById('recap-reussies').textContent = reussies;
+  document.getElementById('recap-passees').textContent  = passees;
+  document.getElementById('recap-duree').textContent    = fmtDuree(duree);
+
+  const table = document.getElementById('recap-table');
+  table.innerHTML =
+    '<tr><th>N°</th><th>Auteur / livre</th><th>Mots masqués</th>' +
+    '<th>Mode</th><th>Essais</th><th>Durée</th><th>Résultat</th></tr>';
+  h.forEach(x => {
+    const tr = document.createElement('tr');
+    tr.className = x.statut === 'trouve' ? 'win' : 'lose';
+    const source = x.livre ? `${escapeHTML(x.auteur)} — <em>${escapeHTML(x.livre)}</em>` : escapeHTML(x.auteur);
+    tr.innerHTML =
+      `<td>${x.numero}</td>` +
+      `<td>${source}</td>` +
+      `<td class="recap-mots">${x.mots.map(escapeHTML).join(', ')}</td>` +
+      `<td>${libelleMode(x.mode)}</td>` +
+      `<td>${x.essais}</td>` +
+      `<td>${fmtDuree(x.duree)}</td>` +
+      `<td>${libelleStatut(x.statut)}</td>`;
+    table.appendChild(tr);
+  });
+
+  document.getElementById('recap-modal').classList.add('show');
+  // On fige la page derriere : sans cela, l'ascenseur de l'ecran de jeu
+  // laisse croire que le recapitulatif lui-meme doit etre fait defiler.
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  const champ = document.getElementById('recap-joueur');
+  if (champ) champ.focus();
+}
+
+function escapeHTML(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fermerRecap(){
+  document.getElementById('recap-modal').classList.remove('show');
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+}
+
+function rejouer(){ fermerRecap(); startGame(); }
+
+function retourAccueilDepuisRecap(){ fermerRecap(); goHome(); }
+
+function nomJoueur(){
+  const v = document.getElementById('recap-joueur').value.trim();
+  return v || 'Anonyme';
+}
+
+/* ── Export imprimable (PDF via la boite d'impression du navigateur) ── */
+function exporterRecapPDF(){
+  const nom      = nomJoueur();
+  const date     = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+  const heure    = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  const jouees   = session.historique.length;
+  const reussies = session.historique.filter(x => x.statut === 'trouve').length;
+  const duree    = document.getElementById('recap-duree').textContent;
+
+  const lignes = session.historique.map(x => {
+    const source = x.livre ? `${escapeHTML(x.auteur)} — ${escapeHTML(x.livre)}` : escapeHTML(x.auteur);
+    return `<tr class="${x.statut === 'trouve' ? 'win' : 'lose'}">
+      <td>${x.numero}</td>
+      <td>${source}</td>
+      <td class="mots">${x.mots.map(escapeHTML).join(', ')}</td>
+      <td>${libelleMode(x.mode)}</td>
+      <td>${x.essais}</td>
+      <td class="mono">${fmtDuree(x.duree)}</td>
+      <td>${libelleStatut(x.statut)}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mots masqués — Récapitulatif — ${escapeHTML(nom)}</title>
+<style>
+  @page { size: A4; margin: 18mm 14mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: #0d2b3d; background: #fff; font-size: 10.5pt; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 3px solid #38B6FF; padding-bottom: 9px; margin-bottom: 16px; }
+  .title { font-size: 22pt; font-weight: 900; letter-spacing: 2px; color: #0B4E75; }
+  .title span { color: #38B6FF; }
+  .meta { text-align: right; font-size: 8.5pt; color: #4a6b80; line-height: 1.7; }
+  .meta strong { color: #0d2b3d; font-size: 10.5pt; }
+  .stats { display: flex; gap: 12px; margin-bottom: 16px; }
+  .stat-box { flex: 1; border: 1.5px solid #8FDCFF; border-radius: 8px;
+              padding: 9px 12px; background: #E1F4FF; text-align: center; }
+  .stat-box .lbl { font-size: 7pt; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: 0.7px; color: #4a6b80; margin-bottom: 3px; }
+  .stat-box .val { font-size: 15pt; font-weight: 900; color: #0B4E75; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th { background: #38B6FF; color: #fff; padding: 6px 8px; text-align: left;
+       font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.4px; }
+  td { padding: 5px 8px; border-bottom: 1px solid #d7eefb; vertical-align: top; }
+  tr:nth-child(even) td { background: #f5fcff; }
+  tr.win  td:first-child { color: #16a34a; font-weight: 700; }
+  tr.lose td:first-child { color: #dc2626; font-weight: 700; }
+  .mots { font-weight: 700; color: #d97706; }
+  .mono { font-family: 'Courier New', monospace; }
+  .footer { margin-top: 20px; padding-top: 9px; border-top: 1px solid #d7eefb;
+            font-size: 7.5pt; color: #7d95a5; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">MOTS <span>MASQUÉS</span></div>
+    <div class="meta"><strong>${escapeHTML(nom)}</strong><br>${date} à ${heure}</div>
+  </div>
+  <div class="stats">
+    <div class="stat-box"><div class="lbl">Score</div><div class="val">${score} pt${score > 1 ? 's' : ''}</div></div>
+    <div class="stat-box"><div class="lbl">Phrases jouées</div><div class="val">${jouees} / ${Nmax}</div></div>
+    <div class="stat-box"><div class="lbl">Réussies</div><div class="val">${reussies}</div></div>
+    <div class="stat-box"><div class="lbl">Durée totale</div><div class="val">${duree}</div></div>
+  </div>
+  <table>
+    <thead><tr><th>N°</th><th>Auteur / livre</th><th>Mots masqués</th><th>Mode</th><th>Essais</th><th>Durée</th><th>Résultat</th></tr></thead>
+    <tbody>${lignes}</tbody>
+  </table>
+  <div class="footer">Document produit par le jeu « Mots masqués » — ${date}</div>
+  <script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`;
+
+  // Impression via une iframe cachee : ni fenetre surgissante, ni appel reseau.
+  let cadre = document.getElementById('_pdf_frame');
+  if (!cadre) {
+    cadre = document.createElement('iframe');
+    cadre.id = '_pdf_frame';
+    cadre.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;';
+    document.body.appendChild(cadre);
+  }
+  cadre.srcdoc = html;
+  cadre.onload = function(){ cadre.contentWindow.focus(); cadre.contentWindow.print(); };
 }
 
 // ===== RULES =====
@@ -1375,7 +1781,9 @@ function loadXMLFile(e){
       const entries=parseXML(ev.target.result);
       if(entries.length>0){
         allTexts=entries;
-        alert(`✅ ${allTexts.length} texte(s) chargé(s) avec succès !`);
+        Nmax=allTexts.length;
+        majAccueil();
+        alert(`✅ ${allTexts.length} texte(s) chargé(s) avec succès !\nLa partie comportera ${Nmax} phrase(s).`);
       } else {
         alert('❌ Format XML non reconnu. Vérifiez le format dans "Comment jouer ?".');
       }
@@ -1398,6 +1806,7 @@ document.getElementById('game-screen').addEventListener('contextmenu', e=>{
 
 // ===== INIT =====
 document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
+majAccueil();
 </script>
 
 <!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
@@ -1407,5 +1816,12 @@ document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
 <!-- Sortie de jeu harmonisee -->
 <script src="../assets/js/quitter.js" data-base="../"></script>
 <script src="../assets/js/aide-mode.js" data-jeu="motsmasques" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#rules-modal .modal-box"
+        data-voile="#rules-modal"
+        data-titre="Comment jouer ?"
+        data-fermer="closeRules()"></script>
 </body>
 </html>

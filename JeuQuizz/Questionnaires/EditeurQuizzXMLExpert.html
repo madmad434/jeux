@@ -833,7 +833,20 @@ document.addEventListener('keydown', e=>{
   if (k==='s'){ e.preventDefault(); exportXML(); }
 });
 
-window.addEventListener('beforeunload', e=>{ if(modified){ e.preventDefault(); e.returnValue=''; } });
+/* Garde-fou de fermeture d'onglet.
+   Il ne se declenche que si un travail est reellement en cours ET si la
+   sortie n'a pas deja ete confirmee dans l'application (bouton Quitter).
+   Sans cette seconde condition, le navigateur affichait sa propre demande
+   de confirmation apres coup, sans possibilite de revenir enregistrer. */
+function travailEnCours() {
+  if (window.__qzSortieConfirmee) return false;
+  if (modified) return true;
+  try { if (isCreatingNew) return true; } catch (e) { /* editeur guide */ }
+  return false;
+}
+window.addEventListener('beforeunload', function (e) {
+  if (travailEnCours()) { e.preventDefault(); e.returnValue = ''; }
+});
 
 // ==================== DÉMARRAGE ====================
 (function init(){
@@ -849,5 +862,12 @@ window.addEventListener('beforeunload', e=>{ if(modified){ e.preventDefault(); e
 <script src="../../assets/js/ressources.js"></script>
 <script src="../../assets/js/bibliotheque.js" data-jeu="editeurquizz" data-base="../../"></script>
 <script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas.
+     L'aide des editeurs etant construite au moment du clic, le script
+     surveille les fenetres ajoutees a la volee (data-observer). -->
+<script src="../../assets/js/aide-uniforme.js"
+        data-titre="Aide"
+        data-observer="1"></script>
 </body>
 </html>

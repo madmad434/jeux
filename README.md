@@ -291,6 +291,9 @@ l'utilisateur a réellement sous les yeux :
   il ne mentionne pas la bibliothèque en ligne, qui n'existe pas dans ce mode ;
 - chaque panneau d'aide reçoit une **croix en haut à droite** et un **bouton
   Fermer en bas du texte**, sans doublon quand le jeu en avait déjà ;
+- les sept jeux donnent accès à leur aide **dès leur écran d'accueil**. Le
+  Puzzle n'en avait aucun ; le Quizz en avait un, mais enfermé dans un bloc qui
+  n'apparaissait qu'une fois un questionnaire chargé ;
 - les phrases devenues fausses sont réécrites à la volée. Par exemple, la
   section « Charger une photo » du Puzzle parle du bouton de la bibliothèque
   quand le site est en ligne, et du bouton d'origine quand il est ouvert en

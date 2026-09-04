@@ -32,16 +32,23 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);backgro
 .overlay.hidden{display:none}
 
 /* ── ÉCRAN D'ACCUEIL ────────────────────────────────────────── */
+/* L'accueil doit tenir en entier a l'ecran : les quatre etapes sont
+   reparties sur deux colonnes et les boutons secondaires sur une seule
+   ligne, pour qu'aucun bouton ne se retrouve sous la ligne de flottaison. */
 #welcome-box{
-  background:var(--white);border-radius:24px;padding:28px 32px;
-  box-shadow:0 8px 40px rgba(0,0,0,0.18);width:min(600px,96vw);
+  background:var(--white);border-radius:24px;
+  padding:clamp(14px,2.4vh,26px) clamp(18px,3vw,30px);
+  box-shadow:0 8px 40px rgba(0,0,0,0.18);width:min(680px,96vw);
   max-height:96vh;overflow-y:auto;overflow-x:hidden;
 }
-#welcome-box h1{font-size:1.6rem;font-weight:800;text-align:center;margin-bottom:18px;color:var(--green)}
-#welcome-box h1 span{font-size:1.8rem}
+#welcome-box h1{
+  font-size:clamp(1.2rem,2.6vh,1.6rem);font-weight:800;text-align:center;
+  margin-bottom:clamp(8px,1.6vh,16px);color:var(--green);
+}
+#welcome-box h1 span{font-size:1.15em}
 
 .step-label{font-size:.8rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.step-block{margin-bottom:14px}
+.step-block{margin-bottom:clamp(8px,1.4vh,14px)}
 
 /* Upload zone */
 #upload-row{display:flex;align-items:center;gap:12px}
@@ -59,9 +66,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);backgro
 }
 #upload-hint{font-size:.82rem;color:var(--text2);margin-top:4px}
 
-/* Row: difficulty + shape */
-#row-options{display:flex;gap:16px;align-items:flex-start}
-#row-options .step-block{flex:1}
+/* Rangee d'options : difficulte a gauche, forme + orientation a droite */
+#row-options{display:flex;gap:18px;align-items:flex-start}
+#row-options>.col{flex:1;min-width:0}
+#row-options .step-block:last-child{margin-bottom:0}
 
 /* Difficulty slider */
 #diff-slider{width:100%;accent-color:var(--green);cursor:pointer;margin:6px 0}
@@ -75,6 +83,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);backgro
    pastille cochée + aplat bleu plein + texte blanc, les autres restent
    blanches et grisées. */
 #shape-btns{display:flex;gap:8px;margin-top:4px}
+/* Colonne etroite : les paires de boutons s'empilent pour rester lisibles. */
+@media (max-width:760px){ #shape-btns,#rot-btns{flex-direction:column} }
 .shape-btn{
   position:relative;flex:1;padding:11px 8px 11px 32px;
   border:2px solid var(--border);border-radius:10px;
@@ -101,28 +111,45 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);backgro
 
 /* Start button */
 #btn-start{
-  width:100%;padding:14px;margin-top:6px;
+  width:100%;padding:clamp(10px,1.8vh,14px);margin-top:clamp(6px,1.2vh,10px);
   background:var(--green);color:#fff;border:none;border-radius:14px;
-  font-family:var(--font);font-size:1.1rem;font-weight:800;cursor:pointer;
+  font-family:var(--font);font-size:clamp(.98rem,2vh,1.1rem);font-weight:800;cursor:pointer;
   transition:background .2s,opacity .2s,transform .1s;
 }
 #btn-start:disabled{background:#aaa;cursor:not-allowed;opacity:.7}
 #btn-start:not(:disabled):hover{background:var(--blue-dark-hover)}
 #btn-start:not(:disabled):active{transform:scale(.98)}
-#btn-quit-welcome{
-  width:100%;padding:9px;margin-top:8px;
-  background:none;color:#999;border:1px solid #ddd;border-radius:10px;
-  font-family:var(--font);font-size:.88rem;font-weight:600;cursor:pointer;
-  transition:all .2s;
+
+/* Les trois actions secondaires tiennent sur une seule ligne : c'est ce qui
+   evitait auparavant d'avoir a faire defiler pour atteindre « Quitter ». */
+#welcome-actions{display:flex;gap:8px;margin-top:8px}
+#welcome-actions>button{
+  flex:1;min-width:0;padding:9px 6px;border-radius:10px;background:none;
+  font-family:var(--font);font-size:.85rem;font-weight:700;cursor:pointer;
+  transition:all .2s;line-height:1.2;
 }
-#btn-quit-welcome:hover{background:#fff0f0;color:#c62828;border-color:#e57373;}
-#btn-load-welcome{
-  width:100%;padding:9px;margin-top:8px;
-  background:none;color:var(--green);border:2px solid var(--green);border-radius:10px;
-  font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;
-  transition:all .2s;
+#btn-load-welcome{color:var(--green);border:2px solid var(--green)}
+#btn-load-welcome:hover{background:var(--green-pale)}
+#btn-help-welcome{color:var(--blue-dark-hover);border:2px solid var(--blue-dark-hover)}
+#btn-help-welcome:hover{background:var(--blue-pale)}
+#btn-quit-welcome{color:#c62828;border:2px solid #e57373;font-weight:700}
+#btn-quit-welcome:hover{background:#fff0f0;border-color:#c62828}
+
+/* Ecrans peu hauts : on comprime encore, sans jamais rien masquer. */
+@media (max-height:640px){
+  #welcome-box{padding:12px 16px}
+  #welcome-box h1{margin-bottom:6px}
+  .step-block{margin-bottom:7px}
+  #upload-hint,#diff-labels{font-size:.72rem}
+  #preview-thumb{width:84px;height:60px}
+  .shape-btn{padding:8px 6px 8px 28px;font-size:.8rem}
+  #welcome-actions>button{font-size:.78rem;padding:7px 4px}
 }
-#btn-load-welcome:hover{background:var(--green-pale);}
+@media (max-width:560px){
+  #row-options{flex-direction:column;gap:8px}
+  #welcome-actions{flex-wrap:wrap}
+  #welcome-actions>button{flex:1 1 45%}
+}
 
 /* ── ÉCRAN DE JEU ───────────────────────────────────────────── */
 #game-screen{position:fixed;inset:0;display:flex;flex-direction:column;display:none}
@@ -146,6 +173,32 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font);backgro
   font-weight:700;color:#fff;transition:background .15s;white-space:nowrap;
 }
 .hdr-btn:hover{background:rgba(255,255,255,0.32)}
+
+/* Bulle d'aide du bouton « Étaler les pièces du puzzle ».
+   Elle suit le bouton lorsqu'il est deplace dans le bandeau du mode
+   plein ecran, puisqu'elle est un enfant du bouton lui-meme. */
+.has-tip{position:relative}
+.tip-bubble{
+  position:absolute;top:calc(100% + 9px);right:0;z-index:60;
+  width:max-content;max-width:min(300px,80vw);
+  background:#fff;color:var(--text);border:1px solid var(--border);
+  border-radius:10px;box-shadow:0 6px 22px rgba(13,60,90,.28);
+  padding:9px 12px;font-size:.82rem;font-weight:600;line-height:1.45;
+  text-align:left;white-space:normal;letter-spacing:0;
+  opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .16s ease,transform .16s ease,visibility .16s;
+  pointer-events:none;
+}
+.tip-bubble::before{
+  content:'';position:absolute;bottom:100%;right:18px;
+  border:7px solid transparent;border-bottom-color:var(--border);
+}
+.tip-bubble b{color:var(--blue-dark-hover)}
+.has-tip:hover .tip-bubble,
+.has-tip:focus-visible .tip-bubble{opacity:1;visibility:visible;transform:translateY(0)}
+#xl-hud .tip-bubble{right:auto;left:0}
+#xl-hud .tip-bubble::before{right:auto;left:18px}
+@media (prefers-reduced-motion:reduce){ .tip-bubble{transition:none} }
 
 /* Game body */
 #game-body{flex:1;display:flex;overflow:hidden}
@@ -345,39 +398,47 @@ html body button[onclick*="quitter()"]:hover{
     </div>
     <input type="file" id="file-input" accept="image/*">
 
-    <!-- ② + ③ sur la même ligne -->
+    <!-- ② à gauche, ③ et ④ à droite : tout l'écran d'accueil tient
+         ainsi sans défilement, boutons du bas compris. -->
     <div id="row-options">
 
-      <!-- ② Difficulté -->
-      <div class="step-block">
-        <div class="step-label">② Difficulté <span id="diff-value">16</span> pièces</div>
-        <input type="range" id="diff-slider" min="4" max="150" value="16" step="1">
-        <div id="diff-labels"><span>Facile (4)</span><span>Expert (150)</span></div>
-        <div id="diff-hint"></div>
+      <div class="col">
+        <!-- ② Difficulté -->
+        <div class="step-block">
+          <div class="step-label">② Difficulté <span id="diff-value">16</span> pièces</div>
+          <input type="range" id="diff-slider" min="4" max="150" value="16" step="1">
+          <div id="diff-labels"><span>Facile (4)</span><span>Expert (150)</span></div>
+          <div id="diff-hint"></div>
+        </div>
       </div>
 
-      <!-- ③ Forme -->
-      <div class="step-block">
-        <div class="step-label">③ Forme des pièces : <span class="choice" id="lbl-shape">–</span></div>
-        <div id="shape-btns">
-          <button class="shape-btn" data-shape="rect" data-label="Rectangles">⬜ Rectangles</button>
-          <button class="shape-btn active" data-shape="puzzle" data-label="Découpées">🧩 Découpées</button>
+      <div class="col">
+        <!-- ③ Forme -->
+        <div class="step-block">
+          <div class="step-label">③ Forme des pièces : <span class="choice" id="lbl-shape">–</span></div>
+          <div id="shape-btns">
+            <button class="shape-btn" data-shape="rect" data-label="Rectangles">⬜ Rectangles</button>
+            <button class="shape-btn active" data-shape="puzzle" data-label="Découpées">🧩 Découpées</button>
+          </div>
+        </div>
+
+        <!-- ④ Rotation de départ -->
+        <div class="step-block">
+          <div class="step-label">④ Orientation au départ : <span class="choice" id="lbl-rot">–</span></div>
+          <div id="rot-btns">
+            <button class="shape-btn rot-btn active" data-rot="1" data-label="Tournées au hasard">🔄 Tournées au hasard</button>
+            <button class="shape-btn rot-btn" data-rot="0" data-label="Toutes droites">⬆ Toutes droites</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ④ Rotation de départ -->
-    <div class="step-block">
-      <div class="step-label">④ Orientation au départ : <span class="choice" id="lbl-rot">–</span></div>
-      <div id="rot-btns">
-        <button class="shape-btn rot-btn active" data-rot="1" data-label="Tournées au hasard">🔄 Tournées au hasard</button>
-        <button class="shape-btn rot-btn" data-rot="0" data-label="Toutes droites">⬆ Toutes droites</button>
-      </div>
-    </div>
-
     <button id="btn-start" disabled>▶ Commencer le puzzle !</button>
-    <button id="btn-load-welcome">📂 Reprendre une partie sauvegardée</button>
-    <button id="btn-quit-welcome">✖ Quitter l'application</button>
+    <div id="welcome-actions">
+      <button id="btn-load-welcome">📂 Reprendre une partie</button>
+      <button id="btn-help-welcome">❓ Aide</button>
+      <button id="btn-quit-welcome">✖ Quitter</button>
+    </div>
   </div>
 </div>
 
@@ -387,7 +448,17 @@ html body button[onclick*="quitter()"]:hover{
     <div id="logo">🧩 Mon Puzzle</div>
     <div id="timer">00:00</div>
     <div class="spacer"></div>
-    <button class="hdr-btn" id="btn-spread">🔀 Étaler les pièces</button>
+    <button class="hdr-btn has-tip" id="btn-spread"
+            title="Redistribue proprement toutes les pièces non encore placées, sans les empiler.">
+      <span id="btn-spread-txt">🔀 Étaler les pièces du puzzle</span>
+      <span class="tip-bubble" role="tooltip">
+        <b>À quoi sert ce bouton ?</b><br>
+        Il redistribue proprement <b>toutes les pièces non encore placées</b> sur le plateau,
+        sans les empiler les unes sur les autres.<br>
+        C'est le réflexe à avoir lorsqu'une pièce semble introuvable ou reste cachée
+        sous une autre. Les pièces déjà accrochées ne bougent pas.
+      </span>
+    </button>
     <button class="hdr-btn" id="btn-sound">🔊</button>
     <button class="hdr-btn" id="btn-pause">⏸ Pause</button>
     <button class="hdr-btn" id="btn-home">🏠 Nouveau jeu</button>
@@ -492,8 +563,9 @@ html body button[onclick*="quitter()"]:hover{
       🔍 <b>Aide visuelle</b> — superpose l'image en transparence dans la zone cible.<br>
       👁️ <b>Cacher / Montrer l'image</b> — masque la miniature de référence pour corser le défi.<br>
       🖊️ <b>Contours</b> — affiche ou masque les bordures des pièces.<br>
-      🔀 <b>Étaler les pièces</b> (bandeau du haut) — redistribue proprement les pièces
-      non placées : le réflexe à avoir si une pièce semble introuvable.<br>
+      🔀 <b>Étaler les pièces du puzzle</b> (bandeau du haut) — redistribue proprement les
+      pièces non placées : le réflexe à avoir si une pièce semble introuvable. Une bulle
+      d'aide rappelle ce rôle au survol du bouton.<br>
       ⏸ <b>Pause</b> — suspend le chronomètre, reprend au clic.
     </div>
 
@@ -764,14 +836,17 @@ function setBigMode(on,silent){
     moveAll(XL_TOP_IDS, document.getElementById('xl-group-top'));
     moveAll(XL_SIDE_IDS, document.getElementById('xl-group-side'));
     moveAll(XL_HUD_IDS, document.getElementById('xl-hud'));
-    document.getElementById('btn-spread').textContent='🔀 Étaler';
+    // Libelle complet conserve aussi en plein ecran : le jeu bascule
+    // systematiquement dans ce mode, le libelle court n'etait donc jamais
+    // remplace par le libelle long.
+    document.getElementById('btn-spread-txt').textContent='🔀 Étaler les pièces du puzzle';
     if(!silent) showToast('🖥 Plein écran — bouton ☰ en haut à gauche pour les commandes');
   }else{
     closeDrawer();
     restoreHomes(XL_TOP_IDS);
     restoreHomes(XL_SIDE_IDS);
     restoreHomes(XL_HUD_IDS);
-    document.getElementById('btn-spread').textContent='🔀 Étaler les pièces';
+    document.getElementById('btn-spread-txt').textContent='🔀 Étaler les pièces du puzzle';
     document.body.classList.remove('xl-mode');
     if(!silent) showToast('🖥 Retour à l\'affichage classique');
   }
@@ -1514,6 +1589,9 @@ function goHome(){
   document.getElementById('welcome-overlay').classList.remove('hidden');
 }
 
+document.getElementById('btn-help-welcome').addEventListener('click',()=>{
+  document.getElementById('help-overlay').classList.remove('hidden');
+});
 document.getElementById('btn-help').addEventListener('click',()=>{
   document.getElementById('help-overlay').classList.remove('hidden');
 });
@@ -1779,6 +1857,13 @@ ro.observe(document.getElementById('canvas-wrap'));
 <!-- Sortie de jeu harmonisee -->
 <script src="../assets/js/quitter.js" data-base="../"></script>
 <script src="../assets/js/aide-mode.js" data-jeu="puzzle" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#help-overlay .modal-box"
+        data-voile="#help-overlay"
+        data-titre="Comment jouer au Puzzle"
+        data-fermer="document.getElementById('help-overlay').classList.add('hidden')"></script>
 <script src="../assets/js/partie.js" data-base="../"></script>
 </body>
 </html>

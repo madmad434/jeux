@@ -934,167 +934,95 @@ function showConfirm(title, message, onOk) {
 
 // ── AIDE ──────────────────────────────────────────────────────────────────────
 function showHelp() {
-  const hs = (title, body) =>
-    `<div class="help-section-block"><h4>${title}</h4>${body}</div>`;
+  /* Aide de l'editeur guide.
+     Redigee pour une personne qui decouvre l'outil : on decrit ce qu'elle
+     voit et ce qu'elle doit faire, jamais la structure interne du fichier.
+     La presentation (panneau a gauche, une croix, un bouton Fermer) est
+     appliquee par assets/js/aide-uniforme.js. */
+  const o = document.createElement('div');
+  o.className = 'modal-overlay';
+  o.id = 'helpModal';
+  o.innerHTML = `
+  <div class="modal-box">
+    <div class="modal-body">
+      <h2>❓ Aide — Préparer des textes à trous</h2>
+      
+      <style>
+        #helpModal .aideU-corps h3{font-size:.95rem;font-weight:800;color:#0B4E75;
+          margin:16px 0 7px;padding-bottom:5px;border-bottom:2px solid #d7eefb}
+        #helpModal .aideU-corps h3:first-of-type{margin-top:4px}
+        #helpModal .aideU-corps p{margin:0 0 9px;color:#374151}
+        #helpModal .aideU-corps ol,#helpModal .aideU-corps ul{margin:0 0 10px;padding-left:20px;color:#374151}
+        #helpModal .aideU-corps li{margin-bottom:6px}
+        #helpModal .aideU-corps .encadre{background:#E1F4FF;border:1px solid #8FDCFF;
+          border-radius:10px;padding:10px 12px;margin:0 0 11px;color:#1e3a5c}
+        #helpModal .aideU-corps .attention{background:#FFF6E5;border-color:#FFD79A;color:#7a4f00}
+        #helpModal .aideU-corps kbd{background:#0B4E75;color:#fff;border-radius:5px;
+          padding:1px 6px;font-size:.78rem;font-weight:700}
+      </style>
 
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-box" style="max-width:700px">
-      <div class="modal-header">
-        <h2>❓ Guide complet d'utilisation — Gestionnaire Citations v1.0</h2>
-        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
-      </div>
-      <div class="modal-body" style="padding:20px">
+      <div class="encadre">Cet outil sert à préparer les phrases et citations que le jeu
+      <strong>Mots masqués</strong> proposera. Vous saisissez des textes complets ; c'est le
+      jeu qui se chargera d'en effacer des mots au moment de jouer.</div>
 
-        ${hs('🎯 À quoi sert cette application ?',`
-          <p>Cette application vous permet de <strong>créer et gérer une liste de mots</strong> pour le jeu <strong>Motus</strong>.
-          Les mots sont organisés par <strong>catégories</strong> (animaux, pays, métiers…) et sauvegardés dans un fichier <strong>.xml</strong> sur votre ordinateur.</p>
-          <p style="margin-top:8px">Vous pouvez ouvrir un fichier existant, ajouter de nouveaux mots, modifier ou supprimer des mots existants, puis enregistrer le résultat.</p>
-          <div class="help-good">✅ <strong>Aucune installation requise.</strong> Cette application fonctionne directement dans votre navigateur web (Chrome, Firefox, Edge, Safari). Ouvrez simplement le fichier HTML fourni.</div>
-        `)}
+      <h3>① Par où commencer</h3>
+      <ol>
+        <li><strong>📄 Nouveau</strong> pour composer votre propre recueil.</li>
+        <li><strong>📂 Ouvrir</strong> pour reprendre un recueil déjà préparé et le compléter.</li>
+      </ol>
 
-        ${hs('📂 Ouvrir un fichier de mots existant',`
-          <ul>
-            <li>Cliquez sur <strong>📂 Ouvrir XML</strong> dans la barre bleue du haut.</li>
-            <li>Une fenêtre s'ouvre pour parcourir votre ordinateur — naviguez jusqu'à votre fichier <strong>.xml</strong> et double-cliquez dessus.</li>
-            <li>La liste des mots s'affiche immédiatement dans le tableau.</li>
-            <li>La <strong>barre de statistiques</strong> (sous l'en-tête) indique le nombre total de mots, le nombre de catégories et la capacité restante.</li>
-          </ul>
-          <div class="help-tip">💡 L'application accepte les fichiers XML avec les attributs <code>id</code>/<code>index</code> et <code>categorie</code>/<code>theme</code> — les deux formats sont reconnus automatiquement.</div>
-        `)}
+      <h3>② Ajouter un texte, étape par étape</h3>
+      <p>Le bouton <strong>➕ Nouveau texte</strong> ouvre un guide qui vous pose une question
+      à la fois.</p>
+      <ol>
+        <li><strong>Le texte</strong> — écrivez la phrase entière, avec sa ponctuation.
+        Comptez au moins une dizaine de mots : le jeu doit pouvoir en masquer plusieurs.</li>
+        <li><strong>L'auteur</strong> — le nom de la personne citée. Écrivez
+        « Proverbe français » ou « Auteur inconnu » si vous ne le connaissez pas.</li>
+        <li><strong>L'ouvrage</strong> — facultatif : le livre ou le recueil d'origine.</li>
+      </ol>
+      <p><strong>Précédent</strong> et <strong>Suivant</strong> permettent de revenir en
+      arrière. <strong>Terminer</strong> ajoute le texte au recueil.</p>
 
-        ${hs('🔍 Consulter le détail d\'un mot',`
-          <p>La liste affiche pour chaque mot son <strong>numéro</strong>, sa <strong>catégorie</strong> et la <strong>valeur</strong> du mot.</p>
-          <ul>
-            <li>Cliquez sur <strong>▼ Détails</strong> à droite d'un mot pour ouvrir son panneau de détail.</li>
-            <li>Le panneau affiche les 3 champs du mot sous forme de <strong>zones lisibles</strong> : Numéro (en bleu), Catégorie (badge coloré) et Mot (en grand, gras).</li>
-            <li>Ces champs sont affichés mais <strong>non modifiables</strong> ici — ils servent uniquement à vérifier les données avant d'agir.</li>
-            <li>Les boutons <strong>✏️ Modifier</strong> et <strong>🗑️ Supprimer</strong> sont accessibles directement dans ce panneau.</li>
-            <li>Recliquez sur <strong>▲ Fermer</strong> pour refermer le panneau.</li>
-          </ul>
-        `)}
+      <h3>③ Bien choisir ses textes</h3>
+      <ul>
+        <li>Préférez des phrases complètes, qui gardent un sens même avec des mots effacés.</li>
+        <li>Évitez les textes très courts : il n'y aurait pas assez de mots à masquer.</li>
+        <li>Variez les auteurs et les époques pour rendre les parties plus vivantes.</li>
+      </ul>
 
-        ${hs('➕ Ajouter un nouveau mot (Guide pas à pas)',`
-          <p>Cliquez sur le bouton jaune <strong>➕ Nouveau Mot</strong>. Un guide en 4 étapes s'ouvre :</p>
-          <ul>
-            <li><strong>Étape 1</strong> — Introduction : récapitulatif du nombre de mots actuel et de ce que vous allez faire.</li>
-            <li><strong>Étape 2</strong> — Choisissez une catégorie dans la liste (animaux, alimentation, pays, vocabulaire, métier) ou sélectionnez <em>"➕ Autre"</em> pour en créer une nouvelle en la tapant.</li>
-            <li><strong>Étape 3</strong> — Tapez le mot à ajouter. Il sera automatiquement mis en <strong>MAJUSCULES</strong>. Un compteur coloré s'affiche sous le champ :
-              <ul style="margin-top:6px;margin-bottom:4px">
-                <li>🟢 <strong>Vert</strong> — longueur correcte (entre 5 et 24 lettres)</li>
-                <li>🟠 <strong>Orange</strong> — mot long mais encore accepté (25 à 30 lettres)</li>
-                <li>🔴 <strong>Rouge</strong> — mot trop court (moins de 5 lettres) ou trop long (plus de 30 lettres)</li>
-              </ul>
-              Si vous essayez de passer à l'étape suivante avec un mot trop court ou trop long, un <strong>message d'erreur rouge</strong> apparaît au centre de l'écran pendant 3 secondes.
-            </li>
-            <li><strong>Étape 4</strong> — Vérification : le numéro, la catégorie et le mot s'affichent en récapitulatif. Relisez avant de confirmer.</li>
-          </ul>
-          <div class="help-good">✅ <strong>Règle de longueur :</strong> Le mot doit contenir <strong>entre 5 et 30 lettres</strong>. Un mot de 4 lettres ou moins sera refusé. Un mot de plus de 30 lettres sera également refusé.</div>
-          <p style="margin-top:8px">Cliquez <strong>✅ Ajouter le mot !</strong> pour valider. Le mot apparaît aussitôt dans la liste, avec son panneau de détail ouvert.</p>
-          <div class="help-danger">⛔ <strong>Attention !</strong> L'ajout est enregistré <em>en mémoire</em> seulement. Cliquez toujours sur <strong>💾 Enregistrer</strong> pour sauvegarder sur votre ordinateur.</div>
-        `)}
+      <h3>④ Corriger ou retirer un texte</h3>
+      <ul>
+        <li>Cliquez sur un texte de la liste pour l'ouvrir et le modifier.</li>
+        <li>L'icône corbeille le retire, après confirmation.</li>
+        <li>Le champ de recherche filtre la liste par mot, auteur ou ouvrage.</li>
+      </ul>
 
-        ${hs('✏️ Modifier un mot existant',`
-          <ul>
-            <li>Repérez le mot dans la liste (utilisez la barre de recherche si nécessaire).</li>
-            <li>Cliquez sur <strong>▼ Détails</strong> pour ouvrir le panneau de détail du mot.</li>
-            <li>Cliquez sur <strong>✏️ Modifier</strong> — une fenêtre s'ouvre avec les champs modifiables.</li>
-            <li>Vous pouvez changer la <strong>catégorie</strong> (liste déroulante + option "Autre") et/ou le <strong>mot</strong>. Le numéro ne peut pas être modifié manuellement.</li>
-            <li>Pour le champ <strong>Mot</strong>, les mêmes règles de longueur s'appliquent qu'à la création :
-              <ul style="margin-top:6px;margin-bottom:4px">
-                <li>🔴 Minimum <strong>5 lettres</strong> — un mot plus court sera refusé avec un message d'erreur rouge au centre de l'écran.</li>
-                <li>🔴 Maximum <strong>30 lettres</strong> — un mot plus long sera également refusé.</li>
-                <li>Le compteur sous le champ change de couleur (vert / orange / rouge) pour vous guider en temps réel.</li>
-              </ul>
-            </li>
-            <li>Cliquez <strong>💾 Enregistrer la modification</strong> pour valider — le panneau de détail se rouvre avec les nouvelles valeurs.</li>
-          </ul>
-          <div class="help-tip">💡 Si vous avez fait une erreur, cliquez <strong>❌ Annuler</strong> — aucune modification ne sera appliquée.</div>
-          <div class="help-danger">⛔ La modification est enregistrée <em>en mémoire</em>. N'oubliez pas de cliquer sur <strong>💾 Enregistrer</strong> pour la conserver sur le disque !</div>
-        `)}
+      <h3>⑤ Ce que l'outil vérifie pour vous</h3>
+      <ul>
+        <li>Un texte ne peut pas être vide et doit comporter assez de mots pour être jouable.</li>
+        <li>Un auteur est attendu pour chaque texte.</li>
+        <li>Les espaces en trop sont supprimés automatiquement.</li>
+      </ul>
 
-        ${hs('🗑️ Supprimer un mot',`
-          <ul>
-            <li>Ouvrez le panneau <strong>▼ Détails</strong> du mot à supprimer.</li>
-            <li>Cliquez sur <strong>🗑️ Supprimer</strong>.</li>
-            <li>Une fenêtre de confirmation s'affiche avec le détail complet du mot (numéro, catégorie, valeur) — lisez-la attentivement avant de confirmer.</li>
-            <li>Cliquez <strong>"✅ Oui, confirmer"</strong> pour supprimer ou <strong>"❌ Non, annuler"</strong> pour revenir en arrière.</li>
-            <li>Après suppression, les numéros de tous les mots sont automatiquement réorganisés sans trous.</li>
-          </ul>
-          <div class="help-danger">⛔ <strong>La suppression est irréversible en mémoire.</strong> Si vous supprimez par erreur, vous pouvez fermer la page SANS cliquer sur "💾 Enregistrer" pour récupérer le fichier original.</div>
-        `)}
 
-        ${hs('🔍 Rechercher un mot ou filtrer la liste',`
-          <p>Utilisez la barre de recherche en haut de la liste pour filtrer les mots en temps réel :</p>
-          <ul>
-            <li>Tapez une ou plusieurs lettres — la liste se réduit automatiquement.</li>
-            <li>La recherche s'effectue sur le <strong>mot</strong>, la <strong>catégorie</strong> et même le <strong>numéro</strong>.</li>
-            <li>La barre de statistiques affiche le nombre de résultats correspondants.</li>
-            <li>Effacez le texte pour réafficher toute la liste.</li>
-          </ul>
-        `)}
+      <h3>💾 Enregistrer votre travail</h3>
+      <p>Le bouton <strong>💾 Enregistrer</strong> dépose le fichier sur votre ordinateur,
+      à l'endroit que vous choisissez. Raccourci : <kbd>Ctrl</kbd> + <kbd>S</kbd>.</p>
+      <div class="encadre attention">⚠️ Tant que vous n'avez pas enregistré, votre travail
+      n'existe que dans cette page. Prenez l'habitude d'enregistrer régulièrement.</div>
 
-        ${hs('📊 Barre de statistiques',`
-          <p>Une fois un fichier chargé ou un mot ajouté, une barre bleue apparaît sous l'en-tête de liste :</p>
-          <ul>
-            <li><strong>📦 Nombre de mots</strong> — total des mots présents en mémoire.</li>
-            <li><strong>📂 Nombre de catégories</strong> — nombre de catégories différentes utilisées.</li>
-            <li><strong>🗃️ Capacité</strong> — nombre de mots sur le maximum autorisé (200). Devient orange quand vous approchez la limite.</li>
-            <li><strong>🔍 Résultats</strong> — s'affiche uniquement quand une recherche est active, indiquant le nombre de mots correspondants.</li>
-          </ul>
-        `)}
-
-        ${hs('💾 Enregistrer le fichier sur votre ordinateur',`
-          <p>Cliquez sur <strong>💾 Enregistrer</strong> dans la barre bleue. Selon votre navigateur :</p>
-          <ul>
-            <li><strong>Chrome / Edge :</strong> Une fenêtre s'ouvre pour choisir l'emplacement et le nom du fichier. Vous choisissez exactement où enregistrer.</li>
-            <li><strong>Firefox / Safari :</strong> Le fichier est automatiquement téléchargé dans votre dossier <strong>Téléchargements</strong> sous le nom <em>NouveauxMots.xml</em>.</li>
-          </ul>
-          <p style="margin-top:8px">Une <strong>fenêtre de confirmation verte</strong> s'affiche ensuite avec l'emplacement exact du fichier et le nombre de mots sauvegardés. Cliquez <strong>"✅ OK, j'ai compris"</strong> pour la fermer.</p>
-          <div class="help-good">✅ Après enregistrement, l'indicateur en bas de page passe au vert : <em>"✅ Aucune modification"</em>.</div>
-          <div class="help-danger">⛔ <strong>Tant que vous ne cliquez pas sur "💾 Enregistrer", vos données sont uniquement en mémoire.</strong> Fermer le navigateur ou recharger la page sans enregistrer effacera toutes vos modifications.</div>
-        `)}
-
-        ${hs('🔄 Réinitialiser (vider toute la liste)',`
-          <ul>
-            <li>Cliquez sur <strong>🔄 Réinitialiser</strong> pour effacer tous les mots de la mémoire.</li>
-            <li>Une confirmation vous est demandée avant l'effacement.</li>
-            <li>Après réinitialisation, vous pouvez ouvrir un nouveau fichier XML ou recommencer de zéro.</li>
-          </ul>
-          <div class="help-danger">⛔ <strong>Attention :</strong> Toutes les données non enregistrées seront perdues définitivement.</div>
-        `)}
-
-        ${hs('🚪 Quitter l\'application',`
-          <ul>
-            <li>Cliquez sur <strong>🚪 Quitter</strong> pour fermer proprement l'application.</li>
-            <li>Si des modifications ne sont pas sauvegardées, une fenêtre d'avertissement s'affiche avant de quitter.</li>
-          </ul>
-          <div class="help-tip">💡 Vous pouvez aussi fermer l'onglet directement. Le navigateur vous préviendra si des données non sauvegardées sont en cours.</div>
-        `)}
-
-        ${hs('📄 Structure du fichier XML',`
-          <p>Le fichier sauvegardé ressemble à ceci :</p>
-          <div class="xml-demo">
-            &lt;?xml version="1.0" encoding="UTF-8"?&gt;<br>
-            &lt;citations&gt;<br>
-            &nbsp;&nbsp;&lt;citation&gt;<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&lt;index&gt;<strong>1</strong>&lt;/index&gt;<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&lt;auteur&gt;<strong>Ch</strong>&lt;/auteur&gt;<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&lt;livre&gt;<strong>Informatidien</strong>&lt;/livre&gt;<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&lt;texte&gt;<strong>Le texte de la citation…</strong>&lt;/texte&gt;<br>
-            &nbsp;&nbsp;&lt;/citation&gt;<br>
-            &lt;/citations&gt;
-          </div>
-          <p style="margin-top:8px">Chaque citation contient 4 informations : son <strong>numéro unique</strong> (index), l'<strong>auteur</strong>, le <strong>livre</strong> source et le <strong>texte</strong>. Ce fichier peut être lu par n'importe quel éditeur de texte.</p>
-        `)}
-
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-blue btn-lg" onclick="this.closest('.modal-overlay').remove()">✅ Fermer l'aide</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
+      <h3>✕ Quitter sans rien perdre</h3>
+      <p>Si vous quittez alors que des modifications ne sont pas enregistrées, une fenêtre
+      vous propose trois choix :</p>
+      <ul>
+        <li><strong>Continuer à éditer</strong> — retour à votre travail, rien n'est perdu ;</li>
+        <li><strong>💾 Enregistrer puis quitter</strong> — l'enregistrement est fait avant la fermeture ;</li>
+        <li><strong>Quitter sans enregistrer</strong> — les modifications sont abandonnées.</li>
+      </ul>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
 }
 
 // ── QUITTER ───────────────────────────────────────────────────────────────────
@@ -1131,7 +1059,20 @@ function setModified(val) {
 
 function updateStatus(msg) { document.getElementById('statusMsg').textContent = msg; }
 
-window.addEventListener('beforeunload', e => { if (modified) { e.preventDefault(); e.returnValue = ''; } });
+/* Garde-fou de fermeture d'onglet.
+   Il ne se declenche que si un travail est reellement en cours ET si la
+   sortie n'a pas deja ete confirmee dans l'application (bouton Quitter).
+   Sans cette seconde condition, le navigateur affichait sa propre demande
+   de confirmation apres coup, sans possibilite de revenir enregistrer. */
+function travailEnCours() {
+  if (window.__qzSortieConfirmee) return false;
+  if (modified) return true;
+  try { if (isCreatingNew) return true; } catch (e) { /* editeur guide */ }
+  return false;
+}
+window.addEventListener('beforeunload', function (e) {
+  if (travailEnCours()) { e.preventDefault(); e.returnValue = ''; }
+});
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderTable();
@@ -1141,5 +1082,12 @@ renderTable();
 <script src="../../assets/js/ressources.js"></script>
 <script src="../../assets/js/bibliotheque.js" data-jeu="editeurcit" data-base="../../"></script>
 <script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas.
+     L'aide des editeurs etant construite au moment du clic, le script
+     surveille les fenetres ajoutees a la volee (data-observer). -->
+<script src="../../assets/js/aide-uniforme.js"
+        data-titre="Aide"
+        data-observer="1"></script>
 </body>
 </html>

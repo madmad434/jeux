@@ -75,7 +75,7 @@
   }
   select:hover,input[type=number]:hover { border-color:var(--accent); }
   select:focus,input[type=number]:focus { border-color:var(--accent); box-shadow:0 0 0 3px #3b82f630; }
-  select.dim-select { width:62px; }
+  select.dim-select { width:72px; }
   select#sel-theme  { min-width:155px; }
   select#sel-click  { min-width:135px; }
 
@@ -158,7 +158,10 @@
 
   /* ── GRID AREA (fond clair) ── */
   #grid-area { flex:1; display:flex; align-items:center; justify-content:center; padding:16px; overflow:hidden; min-width:0; background:var(--game-bg); }
-  #grid { display:grid; gap:8px; }
+  /* La grille est une pile de lignes centrees : la derniere rangee, quand elle
+     est incomplete, reste ainsi centree sous les autres. */
+  #grid { display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .grid-row { display:flex; gap:8px; justify-content:center; }
 
   /* ── CARDS ── */
   .card { position:relative; cursor:pointer; perspective:700px; border-radius:var(--radius); }
@@ -188,6 +191,11 @@
   .card-label { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; line-height:1.05; padding:6% 4%; max-width:100%; max-height:100%; overflow:hidden; }
   .card-label .card-num { font-size:1em; font-weight:900; color:#1e293b; }
   .card-label .card-sym { font-size:.75em; }
+  /* Theme « Cartes » : la valeur et l'enseigne sont empilees, donc plus hautes
+     qu'un simple emoji. A la taille heritee elles depassaient le bas de la
+     carte et l'enseigne se trouvait rognee. On reduit legerement le corps du
+     texte pour que l'ensemble tienne entierement dans la carte. */
+  .card-front-face .card-label { font-size:.64em; padding:4% 4%; }
 
   .timer-bar { position:absolute; bottom:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),var(--purple)); border-radius:0 0 var(--radius) var(--radius); transition:width linear; z-index:2; }
 
@@ -210,7 +218,8 @@
   #solved-grid-wrap { display:none; flex-direction:column; align-items:center; gap:8px; width:100%; max-height:40vh; overflow-y:auto; }
   #solved-grid-wrap.visible { display:flex; }
   #solved-grid-title { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
-  #solved-grid { display:grid; gap:3px; background:var(--game-bg); border:1px solid var(--side-border); border-radius:var(--radius); padding:8px; }
+  #solved-grid { display:flex; flex-direction:column; gap:3px; align-items:center; background:var(--game-bg); border:1px solid var(--side-border); border-radius:var(--radius); padding:8px; }
+  .s-row { display:flex; gap:3px; justify-content:center; }
   .s-card { width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:#f0fdf4; border:1.5px solid var(--green); border-radius:6px; font-size:.9rem; line-height:1; }
   .s-card .card-label .card-num { font-size:.58em; }
   .s-card .card-label .card-sym { font-size:.42em; }
@@ -249,19 +258,14 @@ html body button[onclick*="quitter()"]:hover{
     <span class="game-title">🃏 Mémoire</span>
     <div class="separator"></div>
     <div class="cfg-group">
-      <span class="cfg-label">Lignes</span>
-      <select id="inp-rows" class="dim-select">
-        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
-        <option value="5">5</option><option value="6">6</option><option value="7">7</option>
-        <option value="8">8</option><option value="9">9</option><option value="10">10</option>
-      </select>
-    </div>
-    <div class="cfg-group">
-      <span class="cfg-label">Cols</span>
-      <select id="inp-cols" class="dim-select">
-        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option>
-        <option value="5">5</option><option value="6">6</option><option value="7">7</option>
-        <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+      <span class="cfg-label">Paires à trouver</span>
+      <!-- Un seul reglage : le nombre de paires. La disposition des cartes
+           (lignes et colonnes) est calculee automatiquement. -->
+      <select id="inp-pairs" class="dim-select" title="Nombre de paires à trouver (2 à 25)">
+        <option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8" selected>8</option>
+        <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option>
+        <option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option>
+        <option value="25">25</option>
       </select>
     </div>
     <div class="separator"></div>
@@ -368,7 +372,7 @@ html body button[onclick*="quitter()"]:hover{
       <button id="btn-aide-modal-close" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1rem;font-weight:700;color:#64748b;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:.88rem;color:#1e293b;line-height:1.5;">
-      <li>Choisissez le nombre de <strong>lignes</strong> et de <strong>colonnes</strong>, le <strong>thème</strong>, le <strong>délai de retournement</strong> et l'<strong>action de clic</strong>.</li>
+      <li>Choisissez le nombre de <strong>paires à trouver</strong> (2 à 25), le <strong>thème</strong>, le <strong>délai de retournement</strong> et l'<strong>action de clic</strong>. La disposition des cartes est calculée pour vous : moins il y a de paires, plus les cartes sont grandes.</li>
       <li>Cliquez <strong>▶ Lancer</strong> pour démarrer une nouvelle partie.</li>
       <li>Retournez deux cartes : si elles sont <strong>identiques</strong>, elles restent visibles et sont marquées trouvées.</li>
       <li>Si les deux cartes sont <strong>différentes</strong>, elles se retournent automatiquement après le délai configuré.</li>
@@ -458,9 +462,19 @@ function itemToCard(item){
   return {id:item,html:item};
 }
 
-let state={cards:[],firstCard:null,waiting:false,tvTimeout:null,timerInterval:null,elapsed:0,moves:0,pairsFound:0,totalPairs:0,tvSec:3,clickMode:'click',peekCount:0,peekTimeout:null,isPeeking:false,started:false};
+let state={layout:null,cards:[],firstCard:null,waiting:false,tvTimeout:null,timerInterval:null,elapsed:0,moves:0,pairsFound:0,totalPairs:0,tvSec:3,clickMode:'click',peekCount:0,peekTimeout:null,isPeeking:false,started:false};
 
 const $=id=>document.getElementById(id);
+/* Le joueur ne choisit plus que le nombre de paires. La disposition est
+   calculee. Le maximum de 25 paires correspond au nombre de motifs distincts
+   disponibles dans chaque theme.
+   La « grille de reference » est celle des 25 paires : 5 rangees de 10 cartes.
+   Toute partie plus petite est disposee a l'interieur de cette meme surface,
+   avec des cartes jamais plus petites que celles des 25 paires. */
+const MIN_PAIRS = 2, MAX_PAIRS = 25;
+const REF_ROWS = 5, REF_COLS = 10;
+const GAP = 8, MARGE = 10, TAILLE_MAX = 240, TAILLE_MIN = 28;
+
 const grid=$('grid'),foundList=$('found-list'),overlay=$('overlay'),valMsg=$('val-msg');
 const stTime=$('st-time'),stMoves=$('st-moves'),stPairsFull=$('st-pairs-full'),stPeekBar=$('st-peek-bar');
 const spFound=$('sp-found'),spTotal=$('sp-total');
@@ -494,14 +508,59 @@ $('btn-show-solved').addEventListener('click',()=>{
   else { buildSolvedGrid(); wrap.classList.add('visible'); $('btn-show-solved').textContent='🙈 Masquer la grille'; }
 });
 
+/* Repartit `total` cartes sur `rows` rangees aussi egales que possible :
+   par exemple 22 cartes sur 4 rangees donnent 6, 6, 5 et 5. */
+function repartir(total,rows){
+  const base=Math.floor(total/rows), reste=total%rows;
+  return Array.from({length:rows},(_,i)=>base+(i<reste?1:0)).filter(n=>n>0);
+}
+
+/* Choisit la disposition d'un nombre de cartes donne.
+   Regle : la grille de reference est celle des 25 paires (5 rangees de 10).
+   On mesure d'abord la taille de carte qu'elle donne : c'est le plancher, une
+   carte n'est jamais plus petite que cela. Toutes les dispositions tenant dans
+   cette meme surface (au plus 5 rangees et 10 colonnes) sont ensuite passees en
+   revue, et l'on ne garde que celles dont la carte reste proche de la plus
+   grande possible. Parmi elles on prefere le rectangle le plus complet — le
+   moins de cases vides — puis celui dont les proportions collent le mieux a la
+   zone de jeu. Une partie de 4 paires donne ainsi un carre de grandes cartes,
+   une partie de 25 paires la grille de reference elle-meme. */
+function calculerDisposition(total){
+  const area=$('grid-area');
+  const aw=Math.max(80,area.clientWidth-32-MARGE), ah=Math.max(80,area.clientHeight-32-MARGE);
+  const taille=(rows,cols)=>Math.min(
+    Math.floor((aw-(cols-1)*GAP)/cols),
+    Math.floor((ah-(rows-1)*GAP)/rows),
+    TAILLE_MAX);
+  const reference=taille(REF_ROWS,REF_COLS);
+  let cands=[];
+  for(let rows=1;rows<=REF_ROWS;rows++){
+    const cols=Math.ceil(total/rows);
+    if(cols>REF_COLS) continue;
+    const size=taille(rows,cols);
+    if(size<reference) continue;            // jamais plus petit que les 25 paires
+    cands.push({rows,cols,size,vides:rows*cols-total,ecart:Math.abs(cols/rows-aw/ah)});
+  }
+  if(!cands.length) return {rows:REF_ROWS,cols:REF_COLS,size:Math.max(TAILLE_MIN,reference)};
+  const plusGrande=Math.max(...cands.map(c=>c.size));
+  const seuil=Math.max(reference,plusGrande*0.85);
+  cands=cands.filter(c=>c.size>=seuil);
+  cands.sort((a,b)=> a.vides-b.vides || a.ecart-b.ecart || b.size-a.size);
+  const best=cands[0];
+  return {rows:best.rows, cols:best.cols, size:Math.max(TAILLE_MIN,best.size)};
+}
+
 function buildSolvedGrid(){
   const sg=$('solved-grid'); sg.innerHTML='';
-  const rows=parseInt($('inp-rows').value), cols=parseInt($('inp-cols').value);
-  sg.style.gridTemplateRows=`repeat(${rows},34px)`;
-  sg.style.gridTemplateColumns=`repeat(${cols},34px)`;
-  state.cards.forEach(card=>{
-    const div=document.createElement('div');
-    div.className='s-card'; div.innerHTML=card.html; sg.appendChild(div);
+  const rows=(state.layout&&state.layout.rows)||1;
+  let i=0;
+  repartir(state.cards.length,rows).forEach(n=>{
+    const ligne=document.createElement('div'); ligne.className='s-row';
+    for(let k=0;k<n;k++,i++){
+      const div=document.createElement('div');
+      div.className='s-card'; div.innerHTML=state.cards[i].html; ligne.appendChild(div);
+    }
+    sg.appendChild(ligne);
   });
 }
 
@@ -514,44 +573,47 @@ function updateProgress(found,total){
 }
 
 function startGame(){
-  const rows=parseInt($('inp-rows').value), cols=parseInt($('inp-cols').value), total=rows*cols;
+  const paires=parseInt($('inp-pairs').value);
   valMsg.textContent=''; valMsg.classList.remove('visible');
-  if(isNaN(rows)||isNaN(cols)||rows<2||cols<2){ valMsg.textContent='⚠ Dimensions invalides (min 2×2).'; valMsg.classList.add('visible'); return; }
-  if(total%2!==0){ valMsg.textContent=`⚠ Lignes × Colonnes impair (${total} cases). Choisissez une combinaison paire.`; valMsg.classList.add('visible'); return; }
-  if(total>50){ valMsg.textContent=`⚠ Maximum 25 paires, soit 50 cases (actuellement ${total}).`; valMsg.classList.add('visible'); return; }
+  if(isNaN(paires)||paires<MIN_PAIRS||paires>MAX_PAIRS){
+    valMsg.textContent=`⚠ Choisissez un nombre de paires compris entre ${MIN_PAIRS} et ${MAX_PAIRS}.`;
+    valMsg.classList.add('visible'); return;
+  }
   clearTimers();
-  state={...state,cards:[],firstCard:null,waiting:false,tvTimeout:null,timerInterval:null,elapsed:0,moves:0,pairsFound:0,peekCount:0,isPeeking:false,started:true,totalPairs:total/2,tvSec:+slTv.value,clickMode:$('sel-click').value};
+  state={...state,cards:[],firstCard:null,waiting:false,tvTimeout:null,timerInterval:null,elapsed:0,moves:0,pairsFound:0,peekCount:0,isPeeking:false,started:true,totalPairs:paires,tvSec:+slTv.value,clickMode:$('sel-click').value};
   stMoves.textContent='0'; stTime.textContent='00:00'; stPeekBar.textContent='0'; peekCountEl.textContent='0';
   foundList.innerHTML=''; btnPeek.classList.remove('active');
   updateProgress(0,state.totalPairs);
   const pool=getThemeItems($('sel-theme').value).map(itemToCard);
   const selected=shuffle(pool.slice()).slice(0,state.totalPairs);
   state.cards=shuffle([...selected,...selected]).map((item,i)=>({...item,index:i,found:false,flipped:false,el:null}));
-  renderGrid(rows,cols); startTimer();
+  renderGrid(); startTimer();
 }
 
-function renderGrid(rows,cols){
+function renderGrid(){
   grid.innerHTML='';
-  grid.style.gridTemplateRows=`repeat(${rows},1fr)`;
-  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
-  const area=$('grid-area');
-  // Les cartes occupent toute la place disponible : sur une grille 2×2 elles
-  // deviennent grandes, sur une 5×10 elles restent lisibles. Le plafond de
-  // 240 px evite seulement des cartes demesurees sur tres grand ecran.
-  const gap=8;
-  const aw=area.clientWidth-32-(cols-1)*gap, ah=area.clientHeight-32-(rows-1)*gap;
-  const size=Math.max(40,Math.min(Math.floor(aw/cols),Math.floor(ah/rows),240));
-  grid.style.width=(size*cols+(cols-1)*8)+'px';
-  grid.style.height=(size*rows+(rows-1)*8)+'px';
+  const total=state.cards.length;
+  if(!total) return;
+  // Les cartes occupent toute la place disponible dans la grille de reference :
+  // sur 2 paires elles deviennent grandes, sur 25 elles gardent la taille de
+  // reference. Le plafond de 240 px evite des cartes demesurees sur tres grand
+  // ecran ; la marge evite que la derniere rangee n'affleure le bord bas.
+  const {rows,cols,size}=calculerDisposition(total);
+  state.layout={rows,cols,size};
   const fs=Math.max(12,Math.min(size*0.42,84));
-  state.cards.forEach((card,i)=>{
-    const el=document.createElement('div');
-    el.className='card';
-    el.style.cssText=`width:${size}px;height:${size}px;font-size:${fs}px`;
-    el.innerHTML=`<div class="card-inner"><div class="card-face card-back-face"><span class="q">❓</span></div><div class="card-face card-front-face">${card.html}</div></div><div class="timer-bar" style="width:0"></div>`;
-    grid.appendChild(el);
-    state.cards[i].el=el;
-    attachCardListener(el,i);
+  let i=0;
+  repartir(total,rows).forEach(n=>{
+    const ligne=document.createElement('div'); ligne.className='grid-row';
+    for(let k=0;k<n;k++,i++){
+      const el=document.createElement('div');
+      el.className='card';
+      el.style.cssText=`width:${size}px;height:${size}px;font-size:${fs}px`;
+      el.innerHTML=`<div class="card-inner"><div class="card-face card-back-face"><span class="q">❓</span></div><div class="card-face card-front-face">${state.cards[i].html}</div></div><div class="timer-bar" style="width:0"></div>`;
+      ligne.appendChild(el);
+      state.cards[i].el=el;
+      attachCardListener(el,i);
+    }
+    grid.appendChild(ligne);
   });
 }
 
@@ -691,8 +753,8 @@ function saveGame(){
   if(!state.started||!state.cards.length){ showInfo('⚠ Aucune partie en cours à sauvegarder.'); return; }
   if(state.isPeeking){ showInfo('⏳ Aperçu en cours — réessayez dans quelques secondes.'); return; }
   const data={
-    app:'memoire', version:1, savedAt:new Date().toISOString(),
-    rows:parseInt($('inp-rows').value), cols:parseInt($('inp-cols').value),
+    app:'memoire', version:2, savedAt:new Date().toISOString(),
+    pairs:state.totalPairs,
     theme:$('sel-theme').value, tvSec:state.tvSec, clickMode:state.clickMode,
     moves:state.moves, elapsed:state.elapsed, peekCount:state.peekCount,
     pairsFound:state.pairsFound, totalPairs:state.totalPairs,
@@ -728,15 +790,21 @@ function loadGame(text, nomFichier){
   let d;
   try{ d=JSON.parse(text); }
   catch(e){ Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas lisible : son contenu n'est pas au format JSON."}); return; }
-  if(!d||d.app!=='memoire'||!Array.isArray(d.cards)||!d.rows||!d.cols){
+  // Sauvegardes recentes : nombre de paires. Anciennes : lignes x colonnes.
+  const paires = (d && d.pairs) ? d.pairs
+               : (d && d.rows && d.cols) ? d.rows*d.cols/2 : null;
+  if(!d||d.app!=='memoire'||!Array.isArray(d.cards)||!paires||!Number.isInteger(paires)){
     Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas une sauvegarde du jeu de Mémoire."}); return;
   }
-  if(d.cards.length!==d.rows*d.cols){
+  if(paires<MIN_PAIRS||paires>MAX_PAIRS){
+    Partie.refuserReprise({nomFichier:nom, raison:`Cette sauvegarde comporte ${paires} paires, alors que le jeu en accepte de ${MIN_PAIRS} à ${MAX_PAIRS}.`}); return;
+  }
+  if(d.cards.length!==paires*2){
     Partie.refuserReprise({nomFichier:nom, raison:'La sauvegarde est incomplète ou abîmée : le nombre de cartes ne correspond pas.'}); return; }
 
   clearTimers();
   // Restaurer les selects de configuration
-  $('inp-rows').value=d.rows; $('inp-cols').value=d.cols;
+  $('inp-pairs').value=paires;
   $('sel-theme').value=d.theme;
   slTv.value=d.tvSec; tvVal.textContent=d.tvSec+'s';
   $('sel-click').value=d.clickMode;
@@ -746,7 +814,7 @@ function loadGame(text, nomFichier){
     cards:[], firstCard:null, waiting:false,
     tvTimeout:null, timerInterval:null, peekTimeout:null,
     elapsed:d.elapsed||0, moves:d.moves||0,
-    pairsFound:d.pairsFound||0, totalPairs:d.totalPairs||(d.rows*d.cols/2),
+    pairsFound:d.pairsFound||0, totalPairs:paires,
     tvSec:d.tvSec, clickMode:d.clickMode,
     peekCount:d.peekCount||0, isPeeking:false, started:true
   };
@@ -763,7 +831,7 @@ function loadGame(text, nomFichier){
   // Reconstruire les cartes depuis la sauvegarde (ordre preservé)
   state.cards=d.cards.map((c,i)=>({id:c.id,html:c.html,index:i,found:c.found,flipped:c.flipped,el:null}));
 
-  renderGrid(d.rows,d.cols);
+  renderGrid();
 
   // Restaurer l'état visuel de chaque carte
   state.cards.forEach(c=>{
@@ -787,7 +855,7 @@ function loadGame(text, nomFichier){
   showInfo(`✅ Partie restaurée — ${state.pairsFound}/${state.totalPairs} paires trouvées, ${state.moves} coups.`);
   Partie.confirmerReprise({
     nomFichier: nom,
-    resume: `grille ${d.rows}×${d.cols} — ${d.pairsFound||0}/${d.totalPairs||(d.rows*d.cols/2)} paire(s) trouvée(s)`
+    resume: `${paires} paire(s) — ${d.pairsFound||0}/${paires} paire(s) trouvée(s)`
   });
 }
 
@@ -805,9 +873,8 @@ function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.r
 
 window.addEventListener('resize',()=>{
   if(!state.started||!state.cards.length) return;
-  const rows=parseInt($('inp-rows').value), cols=parseInt($('inp-cols').value);
   const old=state.cards.map(c=>({found:c.found,flipped:c.flipped}));
-  renderGrid(rows,cols);
+  renderGrid();
   state.cards.forEach((c,i)=>{
     if(old[i].found){ c.found=true; c.el.classList.add('found','flipped'); removeCardListener(c.el); }
     else if(old[i].flipped){ c.flipped=true; c.el.classList.add('flipped'); }
@@ -818,6 +885,13 @@ window.addEventListener('resize',()=>{
 <!-- Sortie de jeu harmonisee -->
 <script src="../assets/js/quitter.js" data-base="../"></script>
 <script src="../assets/js/aide-mode.js" data-jeu="memoire" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#aide-modal > div"
+        data-voile="#aide-modal"
+        data-titre="Comment jouer au Mémoire"
+        data-fermer="closeAide()"></script>
 <script src="../assets/js/partie.js" data-base="../"></script>
 </body>
 </html>

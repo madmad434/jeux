@@ -6,10 +6,19 @@
 <title>Quiz Informatique</title>
 <link rel="icon" type="image/webp" href="../assets/favicons/quizz.webp">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+/* Polices : aucune requete Internet. On utilise ce qui est installe sur le
+   poste, avec des solutions de repli systeme. */
+@font-face{
+  font-family:'Nunito';font-style:normal;font-weight:400 900;
+  src:local('Nunito'),local('Nunito-Regular'),local('Varela Round');
+}
+@font-face{
+  font-family:'JetBrains Mono';font-style:normal;font-weight:400 700;
+  src:local('JetBrains Mono'),local('Consolas'),local('DejaVu Sans Mono'),local('Courier New');
+}
 
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',Arial,sans-serif;font-size:13px;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;font-size:13px;}
 
 :root{
   /* ── Charte graphique JF ── */
@@ -53,7 +62,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',Arial,sans
   background:#1e293b;color:#fff;font-size:11px;font-weight:600;
   white-space:nowrap;padding:5px 10px;border-radius:6px;
   pointer-events:none;opacity:0;transition:opacity .18s;z-index:1000;
-  font-family:'Nunito',sans-serif;letter-spacing:.2px;
+  font-family:'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;letter-spacing:.2px;
 }
 [data-tip]::before{
   content:'';position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);
@@ -68,7 +77,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',Arial,sans
   background:#1e293b;color:#fff;font-size:11px;font-weight:600;
   white-space:nowrap;padding:5px 10px;border-radius:6px;
   pointer-events:none;opacity:0;transition:opacity .18s;z-index:1000;
-  font-family:'Nunito',sans-serif;letter-spacing:.2px;
+  font-family:'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;letter-spacing:.2px;
 }
 [data-tip-down]::before{
   content:'';position:absolute;top:calc(100% + 3px);bottom:auto;left:50%;transform:translateX(-50%);
@@ -593,6 +602,7 @@ html body button[onclick*="quitter()"]:hover{
     </div><!-- fin id-section -->
     <div class="load-actions">
       <button class="btn btn-success" onclick="startQuiz()">▶ Démarrer le Quiz</button>
+      <button class="btn" id="btn-help-load" onclick="showHelp()">❓ Aide</button>
       <button class="btn btn-danger" onclick="doQuit()">✖ Quitter</button>
     </div>
   </div>
@@ -1290,5 +1300,12 @@ function _updateSoundIcon(){
 <script src="../assets/js/bibliotheque.js" data-jeu="quizz" data-base="../"></script>
 <script src="../assets/js/quitter.js" data-base="../"></script>
 <script src="../assets/js/aide-mode.js" data-jeu="quizz" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#help-modal > div"
+        data-voile="#help-modal"
+        data-titre="Aide — règles du jeu"
+        data-fermer="document.getElementById('help-modal').style.display='none'"></script>
 </body>
 </html>

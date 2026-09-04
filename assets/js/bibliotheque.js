@@ -154,8 +154,8 @@
       '<div class="bib-head"><h3>' + cfg.titre + '</h3>' +
       '<button class="bib-close" type="button" aria-label="Fermer">✕</button></div>' +
       '<div class="bib-body">' +
-        '<p class="bib-note">Ces fichiers sont fournis avec le site. Choisis‑en un : ' +
-        'il sera chargé dans le jeu comme si tu l\'avais sélectionné sur ton ordinateur.</p>' +
+        '<p class="bib-note">Ces fichiers sont fournis avec le site. Choisissez‑en un : ' +
+        'il sera chargé dans le jeu comme si vous l\'aviez sélectionné sur votre ordinateur.</p>' +
         '<ul class="bib-grid"></ul><div class="bib-state"></div>' +
       '</div></div>';
   document.body.appendChild(ov);
@@ -203,7 +203,7 @@
       grille.innerHTML = '';
       if (!dispo.length) {
         etat.textContent = "Aucun fichier n'est disponible sur le site pour le moment. " +
-          "Utilise le bouton d'origine pour en choisir un sur ton ordinateur.";
+          "Utilisez le bouton d'origine pour en choisir un sur votre ordinateur.";
         return;
       }
       etat.textContent = '';

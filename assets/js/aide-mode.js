@@ -76,12 +76,12 @@
       aide:'#rules-modal .modal-box', overlay:'#rules-modal', fermeture:'classe:show',
       charge:true, quoi:'un texte', optionnel:true,
       recrire:[{ marqueur:'Choisir un fichier XML manuellement', html:
-        'Par défaut le jeu utilise des textes intégrés. Pour en changer, clique sur ' +
+        'Par défaut le jeu utilise des textes intégrés. Pour en changer, cliquez sur ' +
         '<strong>«&nbsp;Choisir dans la bibliothèque du site&nbsp;»</strong> depuis l\'accueil, ' +
-        'ou sur le bouton à <strong>icône de disque</strong> pour un fichier de ton ordinateur.' }],
+        'ou sur le bouton à <strong>icône de disque</strong> pour un fichier de votre ordinateur.' }],
       recrireLocal:[{ marqueur:'Choisir un fichier XML manuellement', html:
-        'Par défaut le jeu utilise des textes intégrés. Pour en changer, clique sur le bouton ' +
-        'de chargement : il ouvre le sélecteur de fichiers de ton ordinateur. Les textes ' +
+        'Par défaut le jeu utilise des textes intégrés. Pour en changer, cliquez sur le bouton ' +
+        'de chargement : il ouvre le sélecteur de fichiers de votre ordinateur. Les textes ' +
         'fournis sont dans le dossier <strong>JeuMotsMasques/Textes</strong>.' }]
     }
   };
