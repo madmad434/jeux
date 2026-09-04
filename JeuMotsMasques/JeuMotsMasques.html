@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mots masqués</title>
+<link rel="icon" type="image/webp" href="../assets/favicons/jeux.webp">
+<style>
+  /* Polices : aucune requete Internet. On utilise ce qui est installe sur le
+     poste, avec des solutions de repli systeme. */
+  @font-face{
+    font-family:'Nunito';font-style:normal;font-weight:400 900;
+    src:local('Nunito'),local('Nunito-Regular'),local('Varela Round');
+  }
+
+  /* ===== CHARTE GRAPHIQUE JF =====
+     Bleu clair #C2F6FF  → zone de jeu, fonds, surfaces
+     Bleu foncé #38B6FF  → chrome, header, tout sauf zone de jeu
+  */
+  :root {
+    --bl:        #C2F6FF;   /* bleu clair — zone de jeu (extrait capture puzzle) */
+    --bl-strong: #A5EEFD;   /* bleu clair renforcé */
+    --bd:        #38B6FF;   /* bleu foncé — header/chrome (extrait capture puzzle) */
+    --bd-hover:  #25A0E8;   /* bleu foncé hover */
+    --bd-pale:   #D8F5FF;   /* bleu pâle — sélection */
+    --green:     #16a34a;
+    --green-lt:  #dcfce7;
+    --red:       #dc2626;
+    --red-lt:    #fee2e2;
+    --text:      #003a5c;
+    --text-soft: #005580;
+    --border:    #7DD8F7;
+    --shadow:    0 2px 12px rgba(0,80,130,0.15);
+    --radius:    14px;
+    --accent:    #f59e0b;   /* or — chips de mots */
+    --accent-dk: #d97706;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+    background: var(--bd);
+    min-height: 100vh;
+    color: var(--text);
+    font-size: 17px;
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    15%,55%{transform:translateX(-10px)}
+    35%,75%{transform:translateX(10px)}
+  }
+  @keyframes bounceIn {
+    0%{transform:scale(0.6);opacity:0}
+    70%{transform:scale(1.05)}
+    100%{transform:scale(1);opacity:1}
+  }
+  @keyframes fadeDown {
+    from{opacity:0;transform:translateY(-8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  @keyframes pulse {
+    0%,100%{box-shadow:0 0 0 0 rgba(56,182,255,0.6)}
+    60%{box-shadow:0 0 0 10px rgba(56,182,255,0)}
+  }
+  .animate-shake { animation: shake 0.65s ease-in-out; }
+  .animate-bounce { animation: bounceIn 0.4s ease-out; }
+
+  /* ===== SCREEN SYSTEM ===== */
+  .screen { display:none; }
+  .screen.active { display:block; }
+
+  /* ===== HOME ===== */
+  #home-screen {
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    gap: 14px;
+    padding: 12px;
+    background: var(--bd);
+  }
+  #home-screen.active { display:flex; }
+
+  .home-card {
+    background: var(--bl);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 18px 34px 16px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    border: 2px solid var(--bl-strong);
+  }
+
+  .home-logo {
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--bd-hover);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .home-title {
+    line-height:1.15;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--bd-hover);
+    margin-bottom: 8px;
+    line-height: 1.1;
+  }
+
+  .home-sub {
+    font-size: .95rem;
+    color: var(--text-soft);
+    margin-bottom: 14px;
+  }
+
+  .score-badge {
+    display: inline-block;
+    background: var(--bd);
+    border: 2px solid var(--bd-hover);
+    border-radius: 50px;
+    padding: 6px 20px;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+
+  .load-status {
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background: var(--bd-pale);
+    border: 1px solid var(--border);
+    color: var(--bd-hover);
+    line-height: 1.5;
+  }
+
+  .home-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 24px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+  }
+  .btn:hover  { transform: translateY(-2px); filter: brightness(1.08); }
+  .btn:active { transform: translateY(0); filter: brightness(0.96); }
+  .btn:focus-visible { outline: 3px solid var(--bd); outline-offset: 2px; }
+
+  .btn-primary { background: var(--bd); color: #fff; box-shadow: 0 4px 14px rgba(56,182,255,0.4); font-size: 1.15rem; padding: 16px 36px; }
+  .btn-outline  { background: var(--bl); color: var(--bd-hover); border: 2px solid var(--border); }
+  .btn-outline:hover { border-color: var(--bd); background: var(--bd-pale); }
+  .btn-green    { background: var(--green); color: #fff; box-shadow: 0 4px 14px rgba(22,163,74,0.3); }
+  .btn-sm       { padding: 8px 16px; font-size: 0.88rem; border-radius: 9px; }
+  .btn-next-pulse { animation: pulse 1.2s infinite; }
+
+  /* ===== GAME SCREEN ===== */
+  #game-screen {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--bd);
+  }
+  #game-screen.active { display:flex; }
+
+  .game-header {
+    background: var(--bd-hover);
+    border-bottom: 2px solid rgba(194,246,255,0.2);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 10px rgba(13,60,90,0.2);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .game-title {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--bl);
+    letter-spacing: 0.02em;
+  }
+
+  .badge {
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+  .badge-score { background: rgba(194,246,255,0.15); color: var(--bl); border: 1px solid rgba(194,246,255,0.3); }
+  .badge-texts { background: rgba(194,246,255,0.1);  color: var(--bl-strong); border: 1px solid rgba(194,246,255,0.25); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-hdr {
+    background: rgba(194,246,255,0.12);
+    color: var(--bl);
+    border: 1px solid rgba(194,246,255,0.25);
+    padding: 7px 14px;
+    border-radius: 9px;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+    font-size: 0.88rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-hdr:hover { background: rgba(194,246,255,0.25); }
+  .btn-hdr.btn-next-pulse { animation: pulse 1.2s infinite; background: var(--green); color:#fff; }
+
+  /* ===== GAME BODY ===== */
+  .game-body {
+    display: flex;
+    flex: 1;
+    gap: 14px;
+    padding: 14px;
+    min-height: 0;
+  }
+
+  /* ===== LEFT PANEL ===== */
+  .left-panel {
+    width: 220px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel-box {
+    background: var(--bd-hover);
+    border-radius: var(--radius);
+    border: 1px solid rgba(194,246,255,0.2);
+    padding: 13px;
+  }
+
+  .panel-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(194,246,255,0.6);
+    margin-bottom: 9px;
+  }
+
+  /* Mode buttons */
+  .mode-btns { display: flex; flex-direction: column; gap: 5px; }
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border-radius: 9px;
+    border: 1px solid rgba(194,246,255,0.2);
+    background: rgba(194,246,255,0.06);
+    color: var(--bl);
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .mode-btn:hover { background: rgba(194,246,255,0.14); }
+  .mode-btn.active {
+    background: var(--bl);
+    border-color: var(--bl-strong);
+    color: var(--bd-hover);
+    font-weight: 900;
+    box-shadow: 0 2px 8px rgba(13,60,90,0.2);
+  }
+
+  /* Count buttons */
+  .count-btns { display: flex; gap: 5px; flex-wrap: wrap; }
+  .count-btn {
+    flex: 1;
+    min-width: 32px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 1px solid rgba(194,246,255,0.2);
+    background: rgba(194,246,255,0.06);
+    color: var(--bl);
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .count-btn:hover { background: rgba(194,246,255,0.16); }
+  .count-btn.active {
+    background: var(--accent);
+    border-color: var(--accent-dk);
+    color: #fff;
+  }
+
+  /* Words zone */
+  .words-zone {
+    flex: 1;
+    background: var(--bd-hover);
+    border-radius: var(--radius);
+    border: 1px solid rgba(194,246,255,0.2);
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .words-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: flex-start;
+  }
+
+  .word-chip {
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: grab;
+    user-select: none;
+    border: 3px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(245,158,11,0.35);
+  }
+  .word-chip:hover { transform: scale(1.06); box-shadow: 0 4px 12px rgba(245,158,11,0.5); }
+  .word-chip.selected {
+    border-color: var(--bl);
+    box-shadow: 0 0 0 4px rgba(194,246,255,0.5);
+    transform: scale(1.08);
+  }
+  .word-chip.used { opacity: 0.3; cursor: default; transform: none; box-shadow: none; }
+  .word-chip:active { cursor: grabbing; }
+  .word-chip.ref-only { cursor: pointer; }  /* garde le style orange normal */
+  .word-chip.ref-only:hover { transform: scale(1.06); box-shadow: 0 4px 12px rgba(245,158,11,0.5); }
+  .word-chip.ref-only.used { opacity: 0.3; cursor: default; transform: none; box-shadow: none; text-decoration: line-through; }
+
+  /* ===== RIGHT PANEL ===== */
+  .right-panel {
+    flex: 1;
+    background: var(--bl);
+    border-radius: var(--radius);
+    border: 2px solid var(--bl-strong);
+    padding: 22px 26px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+    box-shadow: var(--shadow);
+  }
+
+  .panel-header-label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    margin-bottom: 12px;
+  }
+
+  .success-info {
+    display: none;
+    background: var(--green-lt);
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    padding: 12px 18px;
+    margin-bottom: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #14532d;
+    animation: bounceIn 0.4s ease-out;
+  }
+  .success-info.show { display: block; }
+
+  .text-area {
+    flex: 1;
+    overflow-y: auto;
+    line-height: 2.5;
+    font-size: 1.2rem;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  /* Blank slots */
+  .blank-slot {
+    display: inline-block;
+    border-bottom: 3px solid var(--border);
+    background: #fff;
+    border-radius: 6px;
+    padding: 2px 8px;
+    min-width: 70px;
+    cursor: pointer;
+    transition: all 0.18s;
+    vertical-align: middle;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text-soft);
+  }
+  .blank-slot:hover    { background: var(--bd-pale); border-color: var(--bd); }
+  .blank-slot.filled   { background: var(--bd-pale); border-color: var(--bd);  color: var(--bd-hover); }
+  .blank-slot.correct  { background: var(--green-lt); border-color: var(--green); color: #14532d; }
+  .blank-slot.wrong    { background: var(--red-lt);   border-color: var(--red);   color: #7f1d1d; }
+  .blank-slot.drag-over{ background: var(--bl-strong); border-color: var(--bd); transform: scale(1.07); }
+  .blank-slot.copy-highlight { background: rgba(56,182,255,0.15); border-color: var(--bd); }
+
+  /* Typed input */
+  .blank-input {
+    display: inline-block;
+    border: none;
+    border-bottom: 3px solid var(--border);
+    background: #fff;
+    border-radius: 6px 6px 0 0;
+    padding: 2px 8px;
+    min-width: 70px;
+    text-align: center;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text);
+    vertical-align: middle;
+    outline: none;
+    transition: all 0.18s;
+  }
+  .blank-input:focus { border-color: var(--bd); background: var(--bd-pale); }
+  .blank-input.filled { border-color: var(--bd); }
+  .blank-input.correct { background: var(--green-lt); border-color: var(--green); color: #14532d; }
+
+  /* Feedback */
+  .feedback-area {
+    margin-top: 12px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .feedback-msg {
+    font-size: 1.05rem;
+    font-weight: 800;
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: none;
+    animation: bounceIn 0.3s ease;
+  }
+  .feedback-msg.show    { display: block; }
+  .feedback-msg.success { background: var(--green-lt); color: #14532d; border: 2px solid var(--green); }
+  .feedback-msg.error   { background: var(--red-lt);   color: #7f1d1d; border: 2px solid var(--red); }
+
+  /* ===== CONTEXT MENU ===== */
+  .ctx-menu {
+    display: none;
+    position: fixed;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    box-shadow: 0 8px 28px rgba(13,60,90,0.18);
+    z-index: 9999;
+    min-width: 170px;
+    overflow: hidden;
+    animation: fadeDown 0.15s ease;
+  }
+  .ctx-menu.show { display: block; }
+  .ctx-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-family: 'Nunito','Varela Round','Segoe UI','Trebuchet MS',Arial,sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .ctx-item:hover { background: var(--bd-pale); color: var(--bd-hover); }
+  .ctx-item.ctx-copy  { color: var(--bd-hover); }
+  .ctx-item.ctx-paste { color: var(--green); }
+  .ctx-item.ctx-disabled { color: #94a3b8; cursor: default; }
+  .ctx-item.ctx-disabled:hover { background: none; color: #94a3b8; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,43,61,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: 20px;
+    max-width: 540px;
+    width: 100%;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(13,60,90,0.25);
+    animation: bounceIn 0.35s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  /* ===== RECAPITULATIF DE FIN DE PARTIE =====
+     La boite est une colonne flex : l'en-tete, les statistiques, le champ
+     nom et la barre de boutons ne bougent pas ; seul le tableau defile.
+     Rien n'est donc jamais hors de vue, meme sur un ecran peu haut. */
+  /* Marge d'overlay reduite : sinon la boite, deja dimensionnee en vh,
+     depassait la fenetre et son haut se retrouvait coupe. */
+  #recap-modal { padding: 10px; }
+  #recap-modal .modal-box {
+    max-width: 660px;
+    padding: clamp(12px, 2.2vh, 24px) clamp(14px, 2.4vw, 26px);
+    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #recap-modal .modal-title {
+    margin-bottom: clamp(4px, 1vh, 10px);
+    font-size: clamp(1.1rem, 2.6vh, 1.5rem);
+    flex: none;
+  }
+  .recap-score {
+    font-size: clamp(1.4rem, 3.4vh, 2rem); font-weight: 900; color: var(--bd-hover);
+    text-align: center; line-height: 1.1; flex: none;
+  }
+  .recap-sub {
+    text-align: center; color: var(--text-soft);
+    font-size: clamp(.78rem, 1.7vh, .93rem); margin-top: 3px; flex: none;
+  }
+  .recap-stats {
+    display: flex; gap: 8px; margin: clamp(8px, 1.6vh, 14px) 0 clamp(6px, 1.2vh, 10px);
+    flex: none;
+  }
+  .recap-stat {
+    flex: 1 1 0; min-width: 0; background: var(--bl); border: 1px solid var(--border);
+    border-radius: 11px; padding: clamp(5px, 1vh, 9px) 4px; text-align: center;
+  }
+  .recap-stat .lbl {
+    font-size: clamp(.58rem, 1.15vh, .68rem); font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--text-soft); line-height: 1.25;
+  }
+  .recap-stat .val {
+    font-size: clamp(.95rem, 2.1vh, 1.25rem); font-weight: 900; color: var(--bd-hover);
+  }
+  .recap-nom { margin: 0 0 clamp(6px, 1.2vh, 10px); text-align: left; flex: none; }
+  .recap-nom label {
+    display: block; font-size: clamp(.68rem, 1.4vh, .79rem); font-weight: 800;
+    color: var(--text-soft); margin-bottom: 3px;
+  }
+  .recap-nom input {
+    width: 100%; padding: clamp(6px, 1.1vh, 9px) 11px; border: 2px solid var(--border);
+    border-radius: 9px; font-size: clamp(.84rem, 1.7vh, .95rem); font-family: inherit;
+    color: var(--text); outline: none;
+  }
+  .recap-nom input:focus { border-color: var(--bd); }
+
+  /* Seule zone qui defile : la liste des phrases. */
+  .recap-wrap {
+    flex: 1 1 auto; min-height: 60px; overflow-y: auto;
+    border-radius: 10px; border: 1px solid var(--border);
+  }
+  .recap-table { width: 100%; border-collapse: collapse; font-size: clamp(.72rem, 1.5vh, .84rem); }
+  .recap-table th {
+    position: sticky; top: 0; background: var(--bd); color: #fff;
+    padding: 6px 7px; text-align: left; font-weight: 800;
+    font-size: clamp(.62rem, 1.3vh, .75rem);
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .recap-table td { padding: 5px 7px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .recap-table tr:nth-child(even) td { background: rgba(194,246,255,0.35); }
+  .recap-table tr.win  td:first-child { color: var(--green); font-weight: 900; }
+  .recap-table tr.lose td:first-child { color: var(--red);   font-weight: 900; }
+  .recap-mots { font-weight: 800; color: var(--accent-dk); }
+
+  /* Barre de boutons : toujours visible, jamais repoussee hors de l'ecran. */
+  .recap-btns {
+    display: flex; gap: 8px; justify-content: center;
+    margin-top: clamp(8px, 1.6vh, 14px); flex: none;
+  }
+  .recap-btns .btn {
+    flex: 1 1 0; min-width: 0; padding: clamp(7px, 1.4vh, 11px) 6px;
+    font-size: clamp(.76rem, 1.6vh, .9rem); border-radius: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Ecrans peu hauts : on masque les colonnes accessoires du tableau
+     plutot que de laisser la fenetre deborder. */
+  @media (max-height: 620px) {
+    .recap-table th:nth-child(4), .recap-table td:nth-child(4),
+    .recap-table th:nth-child(6), .recap-table td:nth-child(6) { display: none; }
+    .recap-stat .lbl { letter-spacing: 0; }
+  }
+  @media (max-width: 620px) {
+    .recap-table th:nth-child(4), .recap-table td:nth-child(4),
+    .recap-table th:nth-child(6), .recap-table td:nth-child(6) { display: none; }
+    .recap-btns { flex-wrap: wrap; }
+    .recap-btns .btn { flex: 1 1 45%; }
+  }
+
+  .modal-title {
+    font-size: 1.55rem;
+    font-weight: 900;
+    color: var(--bd-hover);
+    margin-bottom: 18px;
+    text-align: center;
+  }
+  .modal-section {
+    background: var(--bl);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 15px;
+    margin-bottom: 10px;
+    font-size: 0.96rem;
+    line-height: 1.75;
+    color: var(--text);
+  }
+  .modal-section h4 {
+    color: var(--bd-hover);
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .xml-code {
+    background: #0d2b3d;
+    color: var(--bl);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    margin-top: 8px;
+    white-space: pre;
+  }
+
+  /* Misc */
+  #file-input { display: none; }
+  .hidden { display: none !important; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-thumb { background: var(--bl-strong); border-radius: 4px; }
+  .dragging { opacity: 0.4; }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+
+/* Icône du jeu, dans le titre de l'accueil et dans la barre de jeu.
+   Elle contient du texte : en dessous d'une soixantaine de pixels, la bulle
+   n'est plus lisible, d'où une taille volontairement généreuse. */
+.home-title{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.titre-icone{
+  height:64px; width:64px; flex-shrink:0;
+  border-radius:10px; box-shadow:0 2px 8px rgba(0,60,110,.22);
+}
+.game-title{display:flex;align-items:center;gap:9px}
+.game-title .titre-icone{height:30px; width:30px; border-radius:6px; box-shadow:none}
+</style>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div id="home-screen" class="screen active">
+  <div class="home-card">
+    <div class="home-logo">Jeux Éducatifs</div>
+    <div class="home-title"><img class="titre-icone" src="../assets/img/mots-masques.png" alt="" aria-hidden="true"> Mots masqués</div>
+    <div class="home-sub">Retrouvez les mots manquants dans des textes et des proverbes</div>
+    <div class="score-badge" id="home-score">⭐ Score : 0 points</div>
+    <div class="load-status">
+      Vous pouvez commencer le jeu avec les textes par défaut<br>
+      ou charger un fichier manuellement.<br>
+      <strong id="home-nmax">La partie comportera 0 phrase.</strong>
+    </div>
+    <div class="home-actions">
+      <button class="btn btn-primary" onclick="startGame()">▶ Commencer le jeu</button>
+      <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">📁 Choisir un fichier XML manuellement</button>
+      <button class="btn btn-outline" onclick="showRules()">📜 Comment jouer ?</button>
+      <button class="btn btn-outline" id="btn-quitter-accueil" style="color:#c62828;border-color:#e57373">✕ Quitter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div id="game-screen" class="screen">
+  <!-- Header -->
+  <div class="game-header">
+    <div class="header-left">
+      <div class="game-title"><img class="titre-icone" src="../assets/img/mots-masques.png" alt="" aria-hidden="true"> Mots masqués</div>
+      <span class="badge badge-score" id="game-score">⭐ 0 pts</span>
+      <span class="badge badge-texts" id="progress-count" title="Phrase en cours sur le nombre total de phrases du fichier">📝 Phrase 0 / 0</span>
+      <span class="badge badge-texts" id="texts-count">📚 0 textes</span>
+    </div>
+    <div class="header-right">
+      <button class="btn-hdr" onclick="goHome()">🏠 Accueil</button>
+      <button class="btn-hdr" onclick="showRules()">📜 Règles</button>
+      <button class="btn-hdr" id="btn-skip" onclick="skipWord()">⏭ Passer</button>
+      <button class="btn-hdr hidden" id="btn-next" onclick="nextText()">Suivant ▶</button>
+      <button class="btn-hdr" id="btn-quitter">✕ Quitter</button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="game-body">
+    <!-- Left panel -->
+    <div class="left-panel">
+
+      <!-- Mode de jeu -->
+      <div class="panel-box">
+        <div class="panel-title">Mode de jeu</div>
+        <div class="mode-btns">
+          <button class="mode-btn active" onclick="setMode('drag',this)">🖱️ Glisser / Cliquer</button>
+          <button class="mode-btn" onclick="setMode('type',this)">⌨️ Double-clic / Taper</button>
+          <button class="mode-btn" onclick="setMode('copy',this)">📋 Copier / Coller</button>
+        </div>
+      </div>
+
+      <!-- Mots à masquer -->
+      <div class="panel-box">
+        <div class="panel-title">Mots à masquer</div>
+        <div class="count-btns">
+          <button class="count-btn active" onclick="setCount(1,this)">1</button>
+          <button class="count-btn" onclick="setCount(2,this)">2</button>
+          <button class="count-btn" onclick="setCount(3,this)">3</button>
+          <button class="count-btn" onclick="setCount(4,this)">4</button>
+          <button class="count-btn" onclick="setCount(5,this)">5</button>
+        </div>
+      </div>
+
+      <!-- Mots à placer -->
+      <div class="words-zone" id="words-zone">
+        <div class="panel-title" id="words-zone-label">Mots manquants :</div>
+        <div class="words-inner" id="words-inner"></div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel" id="right-panel">
+      <div class="panel-header-label" id="panel-label">👇 Glissez les mots dorés dans les cases vides :</div>
+      <div class="success-info" id="success-info"></div>
+      <div class="text-area" id="text-area"></div>
+      <div class="feedback-area" id="feedback-area"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL RÈGLES ===== -->
+<div class="modal-overlay" id="rules-modal" onclick="closeRulesOnBg(event)">
+  <div class="modal-box">
+    <div class="modal-title">📜 Comment jouer ?</div>
+
+    <div class="modal-section">
+      <h4>🎯 Objectif</h4>
+      Retrouvez les mots cachés dans un texte ou un proverbe.
+      Choisissez combien de mots masquer (1 à 5) et le mode qui vous convient le mieux.
+    </div>
+
+    <div class="modal-section">
+      <h4>🖱️ Mode Glisser / Cliquer</h4>
+      <strong>Glissez</strong> un mot doré et <strong>déposez-le</strong> dans une case vide.<br>
+      Ou <strong>cliquez</strong> sur un mot doré pour le sélectionner, puis <strong>cliquez</strong> sur la case vide.<br>
+      Cliquer sur une case déjà remplie rend le mot à la liste.
+      La vérification est automatique quand toutes les cases sont remplies.
+    </div>
+
+    <div class="modal-section">
+      <h4>⌨️ Mode Double-clic / Taper</h4>
+      Les mots à retrouver sont affichés à gauche en orange.<br>
+      <strong>Double-cliquez sur un mot orange</strong> → il s'insère automatiquement
+      dans la première case vide.<br>
+      Ou <strong>cliquez</strong> sur un mot orange pour le sélectionner (il se surligne),
+      puis <strong>double-cliquez sur la case</strong> où vous voulez le placer.<br>
+      Vous pouvez aussi taper directement dans les cases.<br>
+      Appuyez sur <strong>Entrée</strong> pour passer à la case suivante,
+      La vérification est automatique dès que toutes les cases sont remplies.
+    </div>
+
+    <div class="modal-section">
+      <h4>📋 Mode Copier / Coller</h4>
+      <strong>Clic droit</strong> sur un mot doré → <em>Copier</em>.<br>
+      <strong>Clic droit</strong> sur une case vide → <em>Coller</em>.<br>
+      La vérification est automatique quand toutes les cases sont remplies.
+    </div>
+
+    <div class="modal-section">
+      <h4>🔢 Déroulement de la partie</h4>
+      Les phrases sont proposées <strong>dans l'ordre du fichier</strong>, une seule fois chacune.
+      Le badge <strong>📝 Phrase X / N</strong> en haut de l'écran indique la phrase en cours
+      et le nombre total de phrases disponibles.<br>
+      Lorsque la dernière phrase a été jouée, la partie s'arrête et un
+      <strong>récapitulatif</strong> s'affiche : score, nombre de phrases réussies ou passées,
+      durée, et le détail phrase par phrase.<br>
+      Ce récapitulatif peut être <strong>exporté en PDF</strong> : le bouton ouvre la fenêtre
+      d'impression, où il suffit de choisir « Enregistrer au format PDF » comme destination.
+    </div>
+
+    <div class="modal-section">
+      <h4>✅ Résultats</h4>
+      <strong style="color:#16a34a">Bravo vert</strong> = bonne réponse ! +1 point.<br>
+      <strong style="color:#dc2626">Message rouge</strong> = à retenter, les mots sont remis à disposition.
+    </div>
+
+    <div class="modal-section">
+      <h4>📁 Utiliser ses propres textes</h4>
+      Par défaut le jeu utilise des textes intégrés.
+      Pour jouer avec vos propres textes, cliquez sur
+      <strong>📁 Choisir un fichier XML manuellement</strong> depuis l'accueil
+      et sélectionnez un fichier sur votre ordinateur.<br>
+      Format attendu :
+      <div class="xml-code">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;citations&gt;
+  &lt;citation&gt;
+    &lt;auteur&gt;Victor Hugo&lt;/auteur&gt;
+    &lt;livre&gt;Les Misérables&lt;/livre&gt;
+    &lt;texte&gt;La suprême félicité de la vie…&lt;/texte&gt;
+  &lt;/citation&gt;
+&lt;/citations&gt;</div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px">
+      <button class="btn btn-primary" onclick="closeRules()">J'ai compris ! 👍</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL RECAPITULATIF DE FIN DE PARTIE ===== -->
+<div class="modal-overlay" id="recap-modal">
+  <div class="modal-box">
+    <div class="modal-title">🏁 Partie terminée</div>
+
+    <div class="recap-score" id="recap-score">0 pt</div>
+    <div class="recap-sub" id="recap-sub"></div>
+
+    <div class="recap-stats">
+      <div class="recap-stat"><div class="lbl">Phrases jouées</div><div class="val" id="recap-jouees">0</div></div>
+      <div class="recap-stat"><div class="lbl">Réussies</div><div class="val" id="recap-reussies">0</div></div>
+      <div class="recap-stat"><div class="lbl">Passées</div><div class="val" id="recap-passees">0</div></div>
+      <div class="recap-stat"><div class="lbl">Durée</div><div class="val" id="recap-duree">00:00</div></div>
+    </div>
+
+    <div class="recap-nom">
+      <label for="recap-joueur">Nom du joueur — repris dans le document exporté</label>
+      <input type="text" id="recap-joueur" maxlength="40" placeholder="Votre prénom…" autocomplete="off">
+    </div>
+
+    <div class="recap-wrap">
+      <table class="recap-table" id="recap-table"></table>
+    </div>
+
+    <div class="recap-btns">
+      <button class="btn btn-primary btn-sm" onclick="rejouer()">🔄 Nouvelle partie</button>
+      <button class="btn btn-outline btn-sm" onclick="exporterRecapPDF()" title="Ouvre la fenêtre d'impression : choisissez « Enregistrer au format PDF » comme destination">📄 Exporter en PDF</button>
+      <button class="btn btn-outline btn-sm" onclick="retourAccueilDepuisRecap()">🏠 Accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTEXT MENU (mode copier/coller) ===== -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item ctx-copy"  onclick="ctxAction('copy')">📋 Copier</div>
+  <div class="ctx-item ctx-paste" onclick="ctxAction('paste')">📌 Coller</div>
+</div>
+
+<!-- File input (manuel) -->
+<input type="file" id="file-input" accept=".xml" onchange="loadXMLFile(event)">
+
+<script>
+// ===== DATA =====
+const DEFAULT_PROVERBES = [
+  { auteur:"Proverbe français", livre:"", texte:"Qui ne risque rien n'a rien. La fortune sourit aux audacieux qui osent tenter leur chance." },
+  { auteur:"Proverbe français", livre:"", texte:"L'habit ne fait pas le moine. Il faut juger les gens sur leurs actes et non sur leur apparence." },
+  { auteur:"Victor Hugo", livre:"Les Misérables", texte:"La suprême félicité de la vie c'est la conviction qu'on est aimé. Être aimé pour soi-même ou mieux encore être aimé malgré soi-même." },
+  { auteur:"Molière", livre:"Le Malade imaginaire", texte:"Presque tous les hommes meurent de leurs remèdes et non de leurs maladies. La médecine est souvent pire que le mal." },
+  { auteur:"Voltaire", livre:"Candide", texte:"Il faut cultiver notre jardin. Le travail éloigne de nous trois grands maux l'ennui le vice et le besoin." },
+  { auteur:"Albert Camus", livre:"L'Étranger", texte:"Il y a dans les hommes plus de choses à admirer que de choses à mépriser. La bonté est une force et non une faiblesse." },
+  { auteur:"Gustave Flaubert", livre:"Madame Bovary", texte:"Les mots manquent toujours aux émotions les plus vraies. On n'exprime jamais ce qu'on ressent vraiment dans le fond de son âme." },
+  { auteur:"Antoine de Saint-Exupéry", livre:"Le Petit Prince", texte:"On ne voit bien qu'avec le cœur. L'essentiel est invisible pour les yeux. Seule l'amitié sincère compte vraiment." },
+  { auteur:"Marcel Proust", livre:"À la recherche du temps perdu", texte:"Le véritable voyage de découverte ne consiste pas à chercher de nouveaux paysages mais à avoir de nouveaux yeux pour regarder le monde." },
+  { auteur:"Simone de Beauvoir", livre:"Le Deuxième Sexe", texte:"On ne naît pas femme on le devient. La société façonne les individus selon ses normes et ses attentes culturelles profondes." },
+  { auteur:"Jean-Paul Sartre", livre:"L'Être et le Néant", texte:"L'existence précède l'essence. Nous sommes condamnés à être libres et chaque choix définit qui nous sommes vraiment." },
+  { auteur:"Proverbe français", livre:"", texte:"Mieux vaut tard que jamais. La persévérance finit toujours par triompher même quand les obstacles semblent insurmontables et difficiles." },
+  { auteur:"Honoré de Balzac", livre:"Père Goriot", texte:"Le secret des grandes fortunes sans cause apparente est un crime oublié parce qu'il a été proprement fait. L'argent n'a pas d'odeur." },
+  { auteur:"Stendhal", livre:"Le Rouge et le Noir", texte:"La beauté n'est que la promesse du bonheur. L'amour est une fleur délicieuse mais il faut avoir le courage de la cueillir." },
+  { auteur:"Émile Zola", livre:"Germinal", texte:"La vérité est en marche et rien ne l'arrêtera. La justice finit toujours par triompher malgré tous les obstacles qu'on lui oppose." },
+];
+
+const STOP_WORDS = new Set(['le','la','les','un','une','des','du','de','et','est','en','au','aux','par','pour','sur','sous','dans','avec','sans','que','qui','ce','se','sa','son','ses','mon','ma','mes','ton','ta','tes','lui','ils','elles','nous','vous','tout','tous','très','plus','mais','car','donc','or','ni','ne','pas','bien','même','si','comme','il','elle','on','je','tu','y','a','â','à','ou','où']);
+
+let allTexts = [...DEFAULT_PROVERBES];
+let currentIdx = 0;
+
+/* ===== CONTROLE DE PARTIE =====
+   Les phrases sont lues DANS L'ORDRE du fichier, une seule fois chacune.
+   Nmax est le nombre de phrases disponibles ; la partie s'arrete des que
+   le compteur de phrases utilisees l'atteint, et le recapitulatif s'affiche. */
+let Nmax = allTexts.length;
+let session = creerSession();
+
+function creerSession() {
+  return {
+    historique: [],   // une entree par phrase jouee
+    debut: Date.now(),        // horodatage du debut de partie
+    debutPhrase: Date.now(),  // horodatage du debut de la phrase en cours
+    essais: 0,        // tentatives infructueuses sur la phrase en cours
+    close: false,     // phrase en cours deja enregistree ?
+    terminee: false   // partie terminee ?
+  };
+}
+let score = 0;
+let gameMode = 'drag';
+let wordCount = 1;
+let missingWords = [];
+let placedWords = {};
+let selectedChip = null;
+let blocked = false;
+let draggedChipIdx = null;
+let selectedRefChip = null;
+
+// Copy/paste state
+let copiedWord = null;      // chipIdx currently "copied"
+let ctxTarget = null;       // element right-clicked
+let ctxTargetType = null;   // 'chip' | 'slot'
+
+// ===== UTILS =====
+function shuffle(arr) {
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function normalizeApostrophes(str) {
+  return str.replace(/[\u2018\u2019\u201A\u201B\u02BC\u02BB\u0060\u00B4\u02B9]/g, "'");
+}
+function normalizeForCompare(w) {
+  // Casse respectée : pas de toLowerCase()
+  return normalizeApostrophes(w)
+    .replace(/[^a-zA-Z0-9àâäéèêëîïôöùûüÿçÀÂÄÉÈÊËÎÏÔÖÙÛÜŸÇ']/g,'').replace(/^'+|'+$/g,'');
+}
+function wordsMatch(a,b){ return normalizeForCompare(a)===normalizeForCompare(b); }
+
+function pickWords(texteRaw, n) {
+  const texte = normalizeApostrophes(texteRaw);
+  const tokens = texte.split(/(\s+|[,.;:!?«»"()\[\]—–\-]+)/);
+  function getClean(tok){
+    return tok.replace(/^[^a-zA-ZàâäéèêëîïôöùûüÿçÀÂÄÉÈÊËÎÏÔÖÙÛÜŸÇ']+/,'')
+              .replace(/[^a-zA-ZàâäéèêëîïôöùûüÿçÀÂÄÉÈÊËÎÏÔÖÙÛÜŸÇ']+$/,'');
+  }
+  function keyPart(clean){ const p=clean.split("'"); return p[p.length-1].toLowerCase(); }
+  function isEligible(clean, minLen){
+    if(clean.length<minLen) return false;
+    if(STOP_WORDS.has(clean.toLowerCase())) return false;
+    const key=keyPart(clean);
+    if(key.length<(minLen-1)&&clean.length<minLen+1) return false;
+    return true;
+  }
+  const candidates=[];
+  tokens.forEach((tok,i)=>{
+    const clean=getClean(tok);
+    if(clean&&isEligible(clean,4)) candidates.push({idx:i,word:clean,original:tok});
+  });
+  if(candidates.length<n){
+    tokens.forEach((tok,i)=>{
+      const clean=getClean(tok);
+      if(clean&&isEligible(clean,3)&&!candidates.find(c=>c.idx===i))
+        candidates.push({idx:i,word:clean,original:tok});
+    });
+  }
+  const chosen=shuffle(candidates).slice(0,Math.min(n,candidates.length));
+  return {tokens,chosen};
+}
+
+// ===== NAVIGATION =====
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome(){
+  hideCtxMenu();
+  showScreen('home-screen');
+  document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
+  majAccueil();
+}
+
+/* Nombre de phrases annonce sur l'ecran d'accueil. */
+function majAccueil(){
+  Nmax = allTexts.length;
+  const el = document.getElementById('home-nmax');
+  if (el) el.textContent = Nmax > 1
+    ? `La partie comportera ${Nmax} phrases, lues dans l'ordre du fichier.`
+    : `La partie comportera ${Nmax} phrase.`;
+}
+
+function startGame(){
+  Nmax = allTexts.length;
+  if (Nmax === 0) { alert('❌ Aucune phrase disponible. Chargez un fichier XML.'); return; }
+  showScreen('game-screen');
+  score = 0;
+  currentIdx = 0;
+  session = creerSession();
+  session.debut = Date.now();
+  /* Lecture SEQUENTIELLE : plus de melange, l'ordre du fichier est respecte
+     pour que le compteur de phrases utilisees ait un sens. */
+  fermerRecap();
+  loadText();
+}
+
+/* Compteur de phrases utilisees, affiche en permanence dans l'en-tete. */
+function majProgression(){
+  const el = document.getElementById('progress-count');
+  if (el) el.textContent = `📝 Phrase ${Math.min(currentIdx+1, Nmax)} / ${Nmax}`;
+}
+
+// ===== MODE & COUNT =====
+function setMode(mode, btn){
+  if (session.terminee) return;
+  gameMode=mode;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadText();
+}
+function setCount(n, btn){
+  if (session.terminee) return;
+  wordCount=n;
+  document.querySelectorAll('.count-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadText();
+}
+
+// ===== LOAD TEXT =====
+function loadText(){
+  // Garde-fou : on ne depasse jamais Nmax.
+  if (currentIdx >= Nmax) { finDePartie(); return; }
+
+  // Nouvelle phrase : compteurs remis a zero.
+  session.essais = 0;
+  session.close  = false;
+  session.debutPhrase = Date.now();
+
+  blocked=false;
+  placedWords={};
+  selectedChip=null;
+  draggedChipIdx=null;
+  copiedWord=null;
+  ctxTarget=null;
+  selectedRefChip=null;
+  hideCtxMenu();
+
+  const entry=allTexts[currentIdx];
+  const {tokens,chosen}=pickWords(entry.texte,wordCount);
+  missingWords=chosen;
+
+  document.getElementById('success-info').className='success-info';
+  document.getElementById('texts-count').textContent=`📚 ${Nmax} textes`;
+  document.getElementById('game-score').textContent=`⭐ ${score} pts`;
+  majProgression();
+  document.getElementById('btn-next').classList.add('hidden');
+  document.getElementById('btn-next').classList.remove('btn-next-pulse');
+  document.getElementById('btn-skip').classList.remove('hidden');
+
+  // Mode-specific UI
+  const lbl=document.getElementById('panel-label');
+  const zoneLbl=document.getElementById('words-zone-label');
+
+  if(gameMode==='type'){
+    lbl.textContent='⌨️ Double-clic sur un mot orange → placement dans la case. Ou saisie directe :';
+    zoneLbl.textContent='Mots à retrouver :';
+  } else if(gameMode==='copy'){
+    lbl.textContent='📋 Clic droit sur un mot → Copier, clic droit sur case → Coller :';
+    zoneLbl.textContent='Mots manquants :';
+  } else {
+    lbl.textContent='👇 Glissez les mots dorés dans les cases vides :';
+    zoneLbl.textContent='Mots manquants :';
+  }
+
+  buildWordsZone();
+  buildTextArea(tokens, chosen);
+  document.getElementById('feedback-area').innerHTML='';
+}
+
+// ===== BUILD LEFT ZONE =====
+function buildWordsZone(){
+  const inner=document.getElementById('words-inner');
+  inner.innerHTML='';
+  if(gameMode==='type'){
+    // Reference chips : clic pour sélectionner, double-clic pour placer dans le prochain champ vide
+    missingWords.forEach((mw,i)=>{
+      const chip=document.createElement('div');
+      chip.className='word-chip ref-only';
+      chip.id=`ref-chip-${i}`;
+      chip.textContent=mw.word;
+      chip.title='Double-cliquez pour placer ce mot';
+      chip.style.cursor='pointer';
+      chip.addEventListener('click',  ()=>onRefChipClick(i));
+      chip.addEventListener('dblclick',()=>onRefChipDblClick(i));
+      inner.appendChild(chip);
+    });
+  } else {
+    const shuffled=shuffle(missingWords.map((mw,i)=>({...mw,chipIdx:i})));
+    shuffled.forEach(mw=>{
+      const chip=document.createElement('div');
+      chip.className='word-chip';
+      chip.id=`chip-${mw.chipIdx}`;
+      chip.textContent=mw.word;
+      chip.dataset.word=mw.word;
+      chip.dataset.chipIdx=mw.chipIdx;
+      if(gameMode==='drag'){
+        chip.draggable=true;
+        chip.addEventListener('dragstart',onChipDragStart);
+        chip.addEventListener('dragend',onChipDragEnd);
+        chip.addEventListener('click',onChipClick);
+      } else if(gameMode==='copy'){
+        chip.addEventListener('contextmenu',onChipRightClick);
+      }
+      inner.appendChild(chip);
+    });
+  }
+}
+
+// ===== BUILD TEXT AREA =====
+function buildTextArea(tokens, chosen){
+  const area=document.getElementById('text-area');
+  area.innerHTML='';
+  const maxLen=Math.max(...missingWords.map(mw=>mw.word.replace(/'/g,'').length));
+  const blankWidth=`${Math.max(maxLen*0.75+1.5,4.5)}em`;
+  const chosenIndices=new Set(chosen.map(c=>c.idx));
+
+  tokens.forEach((tok,i)=>{
+    if(chosenIndices.has(i)){
+      const mwIdx=chosen.findIndex(c=>c.idx===i);
+      const mw=chosen[mwIdx];
+
+      if(gameMode==='type'){
+        // Editable input, also double-click focusable
+        const inp=document.createElement('input');
+        inp.type='text';
+        inp.className='blank-input';
+        inp.style.width=blankWidth;
+        inp.dataset.slotIdx=mwIdx;
+        inp.dataset.answer=mw.word;
+        inp.setAttribute('autocomplete','off');
+        inp.setAttribute('autocorrect','off');
+        inp.setAttribute('spellcheck','false');
+        inp.addEventListener('input',onInputChange);
+        inp.addEventListener('keydown',onInputKeyDown);
+        inp.addEventListener('blur',onInputBlur);
+        inp.addEventListener('dblclick',()=>onInputDblClick(inp));
+        area.appendChild(inp);
+      } else {
+        const slot=document.createElement('span');
+        slot.className='blank-slot';
+        slot.style.minWidth=blankWidth;
+        slot.dataset.slotIdx=mwIdx;
+        slot.dataset.answer=mw.word;
+        slot.textContent='_ _ _';
+        slot.style.color='#94a3b8';
+        if(gameMode==='drag'){
+          slot.addEventListener('click',onSlotClick);
+          slot.addEventListener('dragover',onSlotDragOver);
+          slot.addEventListener('dragleave',onSlotDragLeave);
+          slot.addEventListener('drop',onSlotDrop);
+        } else if(gameMode==='copy'){
+          slot.addEventListener('contextmenu',onSlotRightClick);
+        }
+        area.appendChild(slot);
+      }
+    } else {
+      area.appendChild(document.createTextNode(tok));
+    }
+  });
+}
+
+// ===== MODE DRAG : drag events =====
+function onChipDragStart(e){
+  if(blocked||e.currentTarget.classList.contains('used')){ e.preventDefault(); return; }
+  draggedChipIdx=parseInt(e.currentTarget.dataset.chipIdx);
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function onChipDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function onSlotDragOver(e){ if(blocked)return; e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onSlotDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function onSlotDrop(e){
+  if(blocked) return;
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(draggedChipIdx===null) return;
+  const slot=e.currentTarget;
+  const slotIdx=parseInt(slot.dataset.slotIdx);
+  if(placedWords[slotIdx]!==undefined) returnChip(placedWords[slotIdx]);
+  placeWordInSlot(draggedChipIdx, slotIdx);
+  draggedChipIdx=null;
+  document.querySelectorAll('.word-chip').forEach(c=>c.classList.remove('dragging'));
+}
+
+// ===== MODE DRAG : click events =====
+function onChipClick(e){
+  if(blocked) return;
+  const chip=e.currentTarget;
+  const chipIdx=parseInt(chip.dataset.chipIdx);
+  if(chip.classList.contains('used')){ e.preventDefault(); return; }
+  if(selectedChip===chipIdx){
+    chip.classList.remove('selected');
+    selectedChip=null;
+    return;
+  }
+  document.querySelectorAll('.word-chip').forEach(c=>c.classList.remove('selected'));
+  chip.classList.add('selected');
+  selectedChip=chipIdx;
+}
+function onSlotClick(e){
+  if(blocked) return;
+  const slot=e.currentTarget;
+  const slotIdx=parseInt(slot.dataset.slotIdx);
+  if(placedWords[slotIdx]!==undefined){
+    returnChip(placedWords[slotIdx]);
+    delete placedWords[slotIdx];
+    slot.textContent='_ _ _';
+    slot.style.color='#94a3b8';
+    slot.className='blank-slot';
+    slot.addEventListener('click',onSlotClick);
+    slot.addEventListener('dragover',onSlotDragOver);
+    slot.addEventListener('dragleave',onSlotDragLeave);
+    slot.addEventListener('drop',onSlotDrop);
+    return;
+  }
+  if(selectedChip!==null){ placeWordInSlot(selectedChip,slotIdx); selectedChip=null; }
+}
+
+// ===== MODE DRAG : place word =====
+function placeWordInSlot(chipIdx, slotIdx){
+  const chip=document.getElementById(`chip-${chipIdx}`);
+  const mw=missingWords[chipIdx];
+  const slot=document.querySelector(`[data-slot-idx="${slotIdx}"]`);
+  if(!chip||!slot) return;
+  chip.classList.add('used'); chip.classList.remove('selected');
+  placedWords[slotIdx]=chipIdx;
+  slot.textContent=mw.word; slot.style.color='';
+  slot.className='blank-slot filled';
+  slot.addEventListener('click',onSlotClick);
+  slot.addEventListener('dragover',onSlotDragOver);
+  slot.addEventListener('dragleave',onSlotDragLeave);
+  slot.addEventListener('drop',onSlotDrop);
+  if(Object.keys(placedWords).length===missingWords.length) setTimeout(verifyDragCopy,350);
+}
+
+// ===== MODE COPY/PASTE =====
+function onChipRightClick(e){
+  if(blocked) return;
+  e.preventDefault();
+  ctxTarget=e.currentTarget;
+  ctxTargetType='chip';
+  showCtxMenu(e.clientX, e.clientY);
+}
+function onSlotRightClick(e){
+  if(blocked) return;
+  e.preventDefault();
+  ctxTarget=e.currentTarget;
+  ctxTargetType='slot';
+  showCtxMenu(e.clientX, e.clientY);
+}
+function showCtxMenu(x, y){
+  const menu=document.getElementById('ctx-menu');
+  // Position (évite débordement)
+  menu.style.left=`${Math.min(x, window.innerWidth-180)}px`;
+  menu.style.top=`${Math.min(y, window.innerHeight-80)}px`;
+  menu.classList.add('show');
+  const pasteItem=menu.querySelector('.ctx-paste');
+  const copyItem=menu.querySelector('.ctx-copy');
+  copyItem.classList.toggle('ctx-disabled', ctxTargetType!=='chip');
+  pasteItem.classList.toggle('ctx-disabled', !(ctxTargetType==='slot'&&copiedWord!==null));
+}
+function hideCtxMenu(){ document.getElementById('ctx-menu').classList.remove('show'); }
+function ctxAction(action){
+  hideCtxMenu();
+  if(action==='copy'&&ctxTargetType==='chip'){
+    const chipIdx=parseInt(ctxTarget.dataset.chipIdx);
+    if(ctxTarget.classList.contains('used')) return;
+    copiedWord=chipIdx;
+    document.querySelectorAll('.word-chip').forEach(c=>c.classList.remove('selected'));
+    ctxTarget.classList.add('selected');
+    // Highlight open slots as available
+    document.querySelectorAll('.blank-slot:not(.correct)').forEach(s=>s.classList.add('copy-highlight'));
+  } else if(action==='paste'&&ctxTargetType==='slot'&&copiedWord!==null){
+    document.querySelectorAll('.blank-slot').forEach(s=>s.classList.remove('copy-highlight'));
+    const slotIdx=parseInt(ctxTarget.dataset.slotIdx);
+    if(placedWords[slotIdx]!==undefined){ returnChip(placedWords[slotIdx]); delete placedWords[slotIdx]; }
+    placeWordInSlotCopy(copiedWord, slotIdx);
+    copiedWord=null;
+    document.querySelectorAll('.word-chip').forEach(c=>c.classList.remove('selected'));
+  }
+}
+function placeWordInSlotCopy(chipIdx, slotIdx){
+  const chip=document.getElementById(`chip-${chipIdx}`);
+  const mw=missingWords[chipIdx];
+  const slot=document.querySelector(`[data-slot-idx="${slotIdx}"]`);
+  if(!chip||!slot) return;
+  chip.classList.add('used'); chip.classList.remove('selected');
+  placedWords[slotIdx]=chipIdx;
+  slot.textContent=mw.word; slot.style.color='';
+  slot.className='blank-slot filled';
+  slot.addEventListener('contextmenu',onSlotRightClick);
+  if(Object.keys(placedWords).length===missingWords.length) setTimeout(verifyDragCopy,350);
+}
+
+// ===== MODE TYPE — REF CHIP SELECTION =====
+function onRefChipClick(chipIdx){
+  if(blocked) return;
+  const chip=document.getElementById(`ref-chip-${chipIdx}`);
+  if(chip&&chip.classList.contains('used')) return; // déjà placé
+  document.querySelectorAll('.word-chip.ref-only').forEach(c=>{ c.classList.remove('selected'); c.style.outline=''; });
+  if(selectedRefChip===chipIdx){ selectedRefChip=null; return; }
+  selectedRefChip=chipIdx;
+  if(chip){ chip.classList.add('selected'); chip.style.outline='3px solid white'; }
+}
+
+function onRefChipDblClick(chipIdx){
+  if(blocked) return;
+  const chipEl=document.getElementById(`ref-chip-${chipIdx}`);
+  if(chipEl&&chipEl.classList.contains('used')) return; // déjà placé
+  // Désélectionner visuellement tout
+  document.querySelectorAll('.word-chip.ref-only').forEach(c=>{ c.classList.remove('selected'); c.style.outline=''; });
+  selectedRefChip=null;
+  // Trouver le premier input vide
+  const inputs=Array.from(document.querySelectorAll('.blank-input'));
+  const target=inputs.find(inp=>!inp.value.trim());
+  if(!target) return; // tous remplis
+  target.value=missingWords[chipIdx].word;
+  target.classList.add('filled');
+  // Marquer le chip comme utilisé
+  const chip=document.getElementById(`ref-chip-${chipIdx}`);
+  if(chip) chip.classList.add('used');
+  // Focus sur le suivant ou vérifier si dernier
+  const idx=inputs.indexOf(target);
+  if(idx<inputs.length-1){
+    setTimeout(()=>inputs[idx+1].focus(),50);
+  }
+  // Vérif auto si tous remplis
+  if(inputs.every(i=>i.value.trim())) setTimeout(verifyTyped,350);
+}
+
+function onInputDblClick(inp){
+  if(blocked) return;
+  if(selectedRefChip!==null){
+    const chipEl=document.getElementById(`ref-chip-${selectedRefChip}`);
+    if(chipEl&&chipEl.classList.contains('used')){ selectedRefChip=null; return; } // déjà placé
+    // Placer le chip sélectionné dans CET input précis
+    inp.value=missingWords[selectedRefChip].word;
+    inp.classList.add('filled');
+    const chip=document.getElementById(`ref-chip-${selectedRefChip}`);
+    if(chip){ chip.classList.add('used'); chip.classList.remove('selected'); chip.style.outline=''; }
+    selectedRefChip=null;
+    document.querySelectorAll('.word-chip.ref-only').forEach(c=>{ c.classList.remove('selected'); c.style.outline=''; });
+    inp.classList.add('filled');
+    const inputs=Array.from(document.querySelectorAll('.blank-input'));
+    const idx=inputs.indexOf(inp);
+    if(idx<inputs.length-1) setTimeout(()=>inputs[idx+1].focus(),50);
+    if(inputs.every(i=>i.value.trim())) setTimeout(verifyTyped,350);
+  } else {
+    inp.focus(); inp.select();
+  }
+}
+
+// ===== MODE TYPE =====
+function onInputChange(e){
+  if(blocked) return;
+  const inp=e.target;
+  inp.classList.toggle('filled', !!inp.value.trim());
+  // Pas de vérification automatique en cours de frappe
+  // La vérification se déclenche sur blur ou Entrée (voir onInputKeyDown / onInputBlur)
+}
+
+function onInputBlur(e){
+  if(blocked) return;
+  const inputs=Array.from(document.querySelectorAll('.blank-input'));
+  if(inputs.length===0) return;
+  // Ne vérifier que si chaque champ a au moins autant de caractères que le mot attendu
+  const allComplete=inputs.every(inp=>{
+    const val=inp.value.trim();
+    const ans=inp.dataset.answer||'';
+    return val.length>=ans.length;
+  });
+  if(allComplete) setTimeout(verifyTyped, 200);
+}
+function onInputKeyDown(e){
+  if(e.key==='Enter'){
+    const inputs=Array.from(document.querySelectorAll('.blank-input'));
+    const idx=inputs.indexOf(e.target);
+    if(idx<inputs.length-1) inputs[idx+1].focus();
+  }
+}
+
+// ===== RETURN CHIP =====
+function returnChip(chipIdx){
+  const chip=document.getElementById(`chip-${chipIdx}`);
+  if(chip) chip.classList.remove('used','selected');
+}
+
+// ===== VERIFY =====
+function verifyDragCopy(){
+  if(blocked) return;
+  let allCorrect=true;
+  document.querySelectorAll('.blank-slot').forEach(slot=>{
+    const slotIdx=parseInt(slot.dataset.slotIdx);
+    const chipIdx=placedWords[slotIdx];
+    const mw=missingWords[slotIdx];
+    const placed=chipIdx!==undefined?missingWords[chipIdx]:null;
+    if(!placed||!wordsMatch(placed.word,mw.word)) allCorrect=false;
+  });
+  showFeedback(allCorrect);
+}
+function verifyTyped(){
+  if(blocked) return;
+  blocked=true;  // verrouiller immédiatement pour éviter double déclenchement
+  let allCorrect=true;
+  document.querySelectorAll('.blank-input').forEach(inp=>{
+    if(!wordsMatch(inp.value.trim(), inp.dataset.answer)) allCorrect=false;
+  });
+  blocked=false;
+  showFeedback(allCorrect);
+}
+
+// ===== FEEDBACK =====
+function showFeedback(correct){
+  blocked=true;
+  const feedbackArea=document.getElementById('feedback-area');
+  feedbackArea.innerHTML='';
+  const msg=document.createElement('div');
+  msg.className='feedback-msg show';
+  if(correct){
+    score++;
+    document.getElementById('game-score').textContent=`⭐ ${score} pts`;
+    document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
+    msg.className+=' success'; msg.textContent='🎉 Bravo ! Bonne réponse !';
+    feedbackArea.appendChild(msg);
+    enregistrerPhrase('trouve');
+    const entry=allTexts[currentIdx];
+    const info=document.getElementById('success-info');
+    info.innerHTML=`📖 <strong>${entry.livre||'Proverbe'}</strong> &nbsp;·&nbsp; ✍️ ${entry.auteur}`;
+    info.className='success-info show';
+    if(gameMode==='type'){
+      document.querySelectorAll('.blank-input').forEach(i=>{i.className='blank-input correct';i.disabled=true;});
+    } else {
+      document.querySelectorAll('.blank-slot').forEach(s=>{s.className='blank-slot correct';});
+    }
+    const btnNext=document.getElementById('btn-next');
+    btnNext.textContent = (currentIdx+1 >= Nmax) ? '🏁 Voir le récapitulatif' : 'Suivant ▶';
+    btnNext.classList.remove('hidden');
+    btnNext.classList.add('btn-next-pulse');
+    document.getElementById('btn-skip').classList.add('hidden');
+    blocked=false;
+  } else {
+    session.essais++;
+    msg.className+=' error'; msg.textContent='❌ Pas tout à fait… Essayez encore !';
+    feedbackArea.appendChild(msg);
+    const textArea=document.getElementById('text-area');
+    textArea.classList.add('animate-shake');
+    setTimeout(()=>{
+      textArea.classList.remove('animate-shake');
+      resetForRetry();
+      blocked=false;
+    },2200);
+  }
+}
+
+function resetForRetry(){
+  if(gameMode==='type'){
+    document.querySelectorAll('.blank-input').forEach(inp=>{inp.value='';inp.className='blank-input';});
+    missingWords.forEach((_,idx)=>{
+      const ref=document.getElementById(`ref-chip-${idx}`);
+      if(ref){ ref.classList.remove('used','selected'); ref.style.outline=''; }
+    });
+    selectedRefChip=null;
+  } else {
+    Object.values(placedWords).forEach(chipIdx=>returnChip(chipIdx));
+    placedWords={}; selectedChip=null; copiedWord=null;
+    document.querySelectorAll('.blank-slot').forEach(slot=>{
+      slot.textContent='_ _ _'; slot.style.color='#94a3b8';
+      slot.className='blank-slot';
+      slot.classList.remove('copy-highlight');
+      if(gameMode==='drag'){
+        slot.addEventListener('click',onSlotClick);
+        slot.addEventListener('dragover',onSlotDragOver);
+        slot.addEventListener('dragleave',onSlotDragLeave);
+        slot.addEventListener('drop',onSlotDrop);
+      } else {
+        slot.addEventListener('contextmenu',onSlotRightClick);
+      }
+    });
+    const inner=document.getElementById('words-inner');
+    shuffle(Array.from(inner.children)).forEach(c=>inner.appendChild(c));
+  }
+  document.getElementById('feedback-area').innerHTML='';
+  document.getElementById('success-info').className='success-info';
+}
+
+/* Enregistre la phrase en cours dans l'historique, une seule fois.
+   statut : 'trouve' | 'passe' */
+function enregistrerPhrase(statut){
+  if (session.close) return;
+  session.close = true;
+  const entry = allTexts[currentIdx] || {};
+  session.historique.push({
+    numero : currentIdx + 1,
+    auteur : entry.auteur || 'Auteur inconnu',
+    livre  : entry.livre  || '',
+    texte  : entry.texte  || '',
+    mots   : missingWords.map(m => m.word),
+    mode   : gameMode,
+    statut : statut,
+    essais : session.essais,
+    duree  : Math.max(0, Math.floor((Date.now() - session.debutPhrase) / 1000))
+  });
+}
+
+/* Avance d'une phrase. La partie s'arrete des que le compteur de phrases
+   utilisees atteint Nmax : plus de bouclage sans fin sur le fichier. */
+function avancer(){
+  document.getElementById('btn-next').classList.add('hidden');
+  currentIdx++;
+  if (currentIdx >= Nmax) { finDePartie(); return; }
+  loadText();
+}
+
+function nextText(){
+  if (session.terminee) return;
+  enregistrerPhrase('trouve');
+  avancer();
+}
+
+function skipWord(){
+  if (blocked || session.terminee) return;
+  enregistrerPhrase('passe');
+  avancer();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FIN DE PARTIE — RECAPITULATIF ET EXPORT
+//  Meme principe que le Jeu de mot : tableau detaille, nom du joueur,
+//  puis export imprimable en PDF. Aucun appel Internet.
+// ═══════════════════════════════════════════════════════════════
+function pad2(n){ return String(n).padStart(2,'0'); }
+function fmtDuree(sec){ return `${pad2(Math.floor(sec/60))}:${pad2(sec%60)}`; }
+
+function libelleStatut(st){ return st === 'trouve' ? '✅ Trouvée' : '⏭ Passée'; }
+function libelleMode(m){
+  if (m === 'type') return 'Double-clic / Taper';
+  if (m === 'copy') return 'Copier / Coller';
+  return 'Glisser / Cliquer';
+}
+
+function finDePartie(){
+  if (session.terminee) return;
+  session.terminee = true;
+  blocked = true;
+  hideCtxMenu();
+
+  const h        = session.historique;
+  const jouees   = h.length;
+  const reussies = h.filter(x => x.statut === 'trouve').length;
+  const passees  = jouees - reussies;
+  const duree    = Math.max(0, Math.floor((Date.now() - session.debut) / 1000));
+
+  document.getElementById('recap-score').textContent = `${score} pt${score > 1 ? 's' : ''}`;
+  document.getElementById('recap-sub').textContent =
+    `${reussies} phrase${reussies > 1 ? 's' : ''} réussie${reussies > 1 ? 's' : ''} sur ${Nmax} — toutes les phrases du fichier ont été proposées.`;
+  document.getElementById('recap-jouees').textContent   = jouees;
+  document.getElementById('recap-reussies').textContent = reussies;
+  document.getElementById('recap-passees').textContent  = passees;
+  document.getElementById('recap-duree').textContent    = fmtDuree(duree);
+
+  const table = document.getElementById('recap-table');
+  table.innerHTML =
+    '<tr><th>N°</th><th>Auteur / livre</th><th>Mots masqués</th>' +
+    '<th>Mode</th><th>Essais</th><th>Durée</th><th>Résultat</th></tr>';
+  h.forEach(x => {
+    const tr = document.createElement('tr');
+    tr.className = x.statut === 'trouve' ? 'win' : 'lose';
+    const source = x.livre ? `${escapeHTML(x.auteur)} — <em>${escapeHTML(x.livre)}</em>` : escapeHTML(x.auteur);
+    tr.innerHTML =
+      `<td>${x.numero}</td>` +
+      `<td>${source}</td>` +
+      `<td class="recap-mots">${x.mots.map(escapeHTML).join(', ')}</td>` +
+      `<td>${libelleMode(x.mode)}</td>` +
+      `<td>${x.essais}</td>` +
+      `<td>${fmtDuree(x.duree)}</td>` +
+      `<td>${libelleStatut(x.statut)}</td>`;
+    table.appendChild(tr);
+  });
+
+  document.getElementById('recap-modal').classList.add('show');
+  // On fige la page derriere : sans cela, l'ascenseur de l'ecran de jeu
+  // laisse croire que le recapitulatif lui-meme doit etre fait defiler.
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  const champ = document.getElementById('recap-joueur');
+  if (champ) champ.focus();
+}
+
+function escapeHTML(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fermerRecap(){
+  document.getElementById('recap-modal').classList.remove('show');
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+}
+
+function rejouer(){ fermerRecap(); startGame(); }
+
+function retourAccueilDepuisRecap(){ fermerRecap(); goHome(); }
+
+function nomJoueur(){
+  const v = document.getElementById('recap-joueur').value.trim();
+  return v || 'Anonyme';
+}
+
+/* ── Export imprimable (PDF via la boite d'impression du navigateur) ── */
+function exporterRecapPDF(){
+  const nom      = nomJoueur();
+  const date     = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+  const heure    = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  const jouees   = session.historique.length;
+  const reussies = session.historique.filter(x => x.statut === 'trouve').length;
+  const duree    = document.getElementById('recap-duree').textContent;
+
+  const lignes = session.historique.map(x => {
+    const source = x.livre ? `${escapeHTML(x.auteur)} — ${escapeHTML(x.livre)}` : escapeHTML(x.auteur);
+    return `<tr class="${x.statut === 'trouve' ? 'win' : 'lose'}">
+      <td>${x.numero}</td>
+      <td>${source}</td>
+      <td class="mots">${x.mots.map(escapeHTML).join(', ')}</td>
+      <td>${libelleMode(x.mode)}</td>
+      <td>${x.essais}</td>
+      <td class="mono">${fmtDuree(x.duree)}</td>
+      <td>${libelleStatut(x.statut)}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mots masqués — Récapitulatif — ${escapeHTML(nom)}</title>
+<style>
+  @page { size: A4; margin: 18mm 14mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: #0d2b3d; background: #fff; font-size: 10.5pt; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 3px solid #38B6FF; padding-bottom: 9px; margin-bottom: 16px; }
+  .title { font-size: 22pt; font-weight: 900; letter-spacing: 2px; color: #0B4E75; }
+  .title span { color: #38B6FF; }
+  .meta { text-align: right; font-size: 8.5pt; color: #4a6b80; line-height: 1.7; }
+  .meta strong { color: #0d2b3d; font-size: 10.5pt; }
+  .stats { display: flex; gap: 12px; margin-bottom: 16px; }
+  .stat-box { flex: 1; border: 1.5px solid #8FDCFF; border-radius: 8px;
+              padding: 9px 12px; background: #E1F4FF; text-align: center; }
+  .stat-box .lbl { font-size: 7pt; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: 0.7px; color: #4a6b80; margin-bottom: 3px; }
+  .stat-box .val { font-size: 15pt; font-weight: 900; color: #0B4E75; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th { background: #38B6FF; color: #fff; padding: 6px 8px; text-align: left;
+       font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.4px; }
+  td { padding: 5px 8px; border-bottom: 1px solid #d7eefb; vertical-align: top; }
+  tr:nth-child(even) td { background: #f5fcff; }
+  tr.win  td:first-child { color: #16a34a; font-weight: 700; }
+  tr.lose td:first-child { color: #dc2626; font-weight: 700; }
+  .mots { font-weight: 700; color: #d97706; }
+  .mono { font-family: 'Courier New', monospace; }
+  .footer { margin-top: 20px; padding-top: 9px; border-top: 1px solid #d7eefb;
+            font-size: 7.5pt; color: #7d95a5; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">MOTS <span>MASQUÉS</span></div>
+    <div class="meta"><strong>${escapeHTML(nom)}</strong><br>${date} à ${heure}</div>
+  </div>
+  <div class="stats">
+    <div class="stat-box"><div class="lbl">Score</div><div class="val">${score} pt${score > 1 ? 's' : ''}</div></div>
+    <div class="stat-box"><div class="lbl">Phrases jouées</div><div class="val">${jouees} / ${Nmax}</div></div>
+    <div class="stat-box"><div class="lbl">Réussies</div><div class="val">${reussies}</div></div>
+    <div class="stat-box"><div class="lbl">Durée totale</div><div class="val">${duree}</div></div>
+  </div>
+  <table>
+    <thead><tr><th>N°</th><th>Auteur / livre</th><th>Mots masqués</th><th>Mode</th><th>Essais</th><th>Durée</th><th>Résultat</th></tr></thead>
+    <tbody>${lignes}</tbody>
+  </table>
+  <div class="footer">Document produit par le jeu « Mots masqués » — ${date}</div>
+  <script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`;
+
+  // Impression via une iframe cachee : ni fenetre surgissante, ni appel reseau.
+  let cadre = document.getElementById('_pdf_frame');
+  if (!cadre) {
+    cadre = document.createElement('iframe');
+    cadre.id = '_pdf_frame';
+    cadre.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;';
+    document.body.appendChild(cadre);
+  }
+  cadre.srcdoc = html;
+  cadre.onload = function(){ cadre.contentWindow.focus(); cadre.contentWindow.print(); };
+}
+
+// ===== RULES =====
+function showRules(){ document.getElementById('rules-modal').classList.add('show'); }
+function closeRules(){ document.getElementById('rules-modal').classList.remove('show'); }
+function closeRulesOnBg(e){ if(e.target===document.getElementById('rules-modal')) closeRules(); }
+
+// ===== XML LOAD =====
+function parseXML(xmlStr){
+  const parser=new DOMParser();
+  const xml=parser.parseFromString(xmlStr,'text/xml');
+  const citations=xml.querySelectorAll('citation');
+  const result=[];
+  citations.forEach(c=>{
+    const texte=c.querySelector('texte')?.textContent?.trim();
+    const auteur=c.querySelector('auteur')?.textContent?.trim()||'Auteur inconnu';
+    const livre=c.querySelector('livre')?.textContent?.trim()||'';
+    if(texte) result.push({auteur,livre,texte});
+  });
+  return result;
+}
+function loadXMLFile(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const entries=parseXML(ev.target.result);
+      if(entries.length>0){
+        allTexts=entries;
+        Nmax=allTexts.length;
+        majAccueil();
+        alert(`✅ ${allTexts.length} texte(s) chargé(s) avec succès !\nLa partie comportera ${Nmax} phrase(s).`);
+      } else {
+        alert('❌ Format XML non reconnu. Vérifiez le format dans "Comment jouer ?".');
+      }
+    }catch(err){ alert('❌ Erreur lors du chargement du fichier XML.'); }
+    e.target.value='';
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+// ===== GLOBAL EVENTS =====
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#ctx-menu')) hideCtxMenu();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ hideCtxMenu(); closeRules(); }
+});
+document.getElementById('game-screen').addEventListener('contextmenu', e=>{
+  if(gameMode==='copy') e.preventDefault();
+});
+
+// ===== INIT =====
+document.getElementById('home-score').textContent=`⭐ Score : ${score} points`;
+majAccueil();
+</script>
+
+<!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
+<script src="../assets/js/ressources.js"></script>
+<script src="../assets/js/bibliotheque.js" data-jeu="motsmasques" data-base="../"></script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="motsmasques" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#rules-modal .modal-box"
+        data-voile="#rules-modal"
+        data-titre="Comment jouer ?"
+        data-fermer="closeRules()"></script>
+</body>
+</html>
