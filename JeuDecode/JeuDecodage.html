@@ -194,6 +194,68 @@
   .panel-nav-btn.danger { background: rgba(231,76,60,0.25); border-color: #fca5a5; color: #fff; }
   .panel-nav-btn.danger:hover { background: rgba(231,76,60,0.45); }
 
+  /* ══ CALCULATRICE ══
+     Ancree a gauche, sur le meme principe que la table de reference a droite :
+     elle ne recouvre pas le jeu, elle lui prend de la place, et les signes sont
+     redimensionnes en consequence. Une fenetre flottante aurait masque les
+     nombres a decoder, qui occupent desormais toute la zone. */
+  .calc-panel {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 260px; max-width: 92vw;
+    background: var(--card); box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+    z-index: 99; padding: 14px 14px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 10px;
+    transform: translateX(-100%); transition: transform 0.3s ease;
+    font-family: inherit;
+  }
+  .calc-panel.open { transform: translateX(0); }
+  #screen-jeu { transition: padding-right 0.3s ease, padding-left 0.3s ease; }
+  body.calc-ouverte #screen-jeu { padding-left: 260px; }
+  /* Sur un ecran etroit, reserver la place ne laisserait plus rien au jeu :
+     la calculatrice recouvre alors, comme la table. */
+  @media (max-width: 1100px) { body.calc-ouverte #screen-jeu { padding-left: 0; } }
+
+  .calc-head { display: flex; align-items: center; gap: 6px; }
+  .calc-head b { flex: 1; font-size: 0.95rem; font-weight: 800; color: #38B6FF; }
+  .calc-head button {
+    border: 1px solid #8FDCFF; border-radius: 7px; cursor: pointer; font: inherit;
+    font-size: 0.66rem; font-weight: 800; padding: 4px 7px;
+    background: #E1F4FF; color: #0B4E75;
+  }
+  .calc-head button:hover { background: #C2F6FF; }
+  .calc-head button.fermer:hover { background: #fdecea; border-color: #e74c3c; color: #a03028; }
+  .calc-ecran {
+    background: #0a2a40; color: #C2F6FF; text-align: right; padding: 9px 11px; border-radius: 10px;
+    font-family: ui-monospace, Consolas, monospace; font-size: 1.4rem; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .calc-op { min-height: 15px; font-size: 0.68rem; color: #7dd8f0; font-weight: 600; }
+  .calc-grille { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
+  .calc-grille button {
+    padding: 10px 0; border: 1px solid #cfe9f7; border-radius: 9px; cursor: pointer;
+    background: #fff; color: #0B4E75; font: inherit; font-size: 1rem; font-weight: 800;
+  }
+  .calc-grille button:hover { background: #E1F4FF; border-color: #38B6FF; }
+  .calc-grille button.op  { background: #E1F4FF; }
+  .calc-grille button.eg  { background: #0B4E75; color: #fff; border-color: #0B4E75; grid-row: span 2; }
+  .calc-grille button.eg:hover { background: #38B6FF; }
+  .calc-grille button.raz { background: #fdecea; color: #a03028; border-color: #f5c6c0; }
+  .calc-etages { display: grid; grid-template-columns: repeat(2,1fr); gap: 5px; }
+  .calc-etages button {
+    padding: 7px 0; border: 1px dashed #8FDCFF; border-radius: 9px; cursor: pointer;
+    background: #f2fbff; color: #0B4E75; font: inherit; font-size: 0.72rem; font-weight: 800;
+  }
+  .calc-etages button:hover { background: #d8f1ff; border-style: solid; }
+  .calc-pied button {
+    width: 100%; padding: 8px; border: 1px solid #cfe9f7; border-radius: 9px; cursor: pointer;
+    background: #fff; color: #2A6E96; font: inherit; font-size: 0.7rem; font-weight: 700;
+  }
+  .calc-pied button:hover { background: #E1F4FF; }
+  .calc-note {
+    font-size: 0.66rem; line-height: 1.45; color: #2A6E96;
+    background: #E1F4FF; border-left: 4px solid #38B6FF; border-radius: 8px; padding: 8px 10px;
+  }
+  .calc-note:empty { display: none; }
+
   .jeu-main { flex: 1; display: flex; flex-direction: column; padding: 6px 8px; overflow: hidden; gap: 4px; min-height: 0; }
 
   /* Bandeau info : catégorie du texte à décoder */
@@ -354,6 +416,17 @@ html body button[onclick*="quitter()"]:hover{
   <hr class="divider">
   <h4>📋 Table de référence</h4>
   <p>La table est accessible <strong>à tout moment</strong> par le bouton <strong>📋 Table</strong> du panneau gauche, quel que soit le niveau. Elle s'ouvre dans une fenêtre latérale que l'on referme avec la croix ✕ ou le bouton <strong>Fermer</strong>. Elle peut aussi être ouverte dès le lancement, par la case prévue dans les réglages.</p>
+  <h3>🧮 La calculatrice</h3>
+  <p>En numération maya seulement, le bouton <strong>🧮 Calculatrice</strong> du panneau gauche ouvre une calculatrice ancrée à gauche de l'écran. Comme la table de référence, elle ne recouvre pas le jeu : elle lui prend de la place, et les signes sont redimensionnés en conséquence.</p>
+  <ul>
+    <li>Quatre touches <strong>×20</strong>, <strong>×400</strong>, <strong>×8 000</strong> et <strong>×160 000</strong> multiplient directement le nombre affiché : pour lire un nombre étage par étage, tapez <em>3</em> puis <strong>×400</strong>, puis <strong>+</strong>, <em>12</em>, <strong>×20</strong>, puis <strong>+</strong>, <em>7</em>, <strong>=</strong> — soit 1 447.</li>
+    <li><strong>— Masquer</strong> la range sans effacer le calcul en cours ; le bouton du panneau la rappelle telle quelle.</li>
+    <li><strong>✕ Fermer</strong> la range et remet le calcul à zéro.</li>
+    <li>La saisie se fait à la souris : le clavier reste réservé à votre réponse.</li>
+    <li>Le bouton <strong>🪟 Ouvrir la calculatrice Windows</strong> lance celle de Windows, si vous la préférez. Une fois ouverte, elle ne dépend plus du jeu — <em>Masquer</em> et <em>Fermer</em> n'agissent que sur la calculatrice ci-dessus.</li>
+  </ul>
+  <p>La calculatrice ne coûte aucun point, à aucun niveau.</p>
+
   <p>Le compteur <strong>Table vue</strong> compte <strong>un message par message</strong> : chaque message pendant lequel la table a été ouverte compte pour une consultation, qu'elle ait été ouverte au démarrage, laissée ouverte ou ouverte en cours de route. Une partie de cinq messages jouée table toujours ouverte affiche donc 5. Ouvrir et refermer plusieurs fois pendant le même message ne compte qu'une seule consultation. Au niveau Expert, chacune est facturée 100 points.</p>
 
   <hr class="divider">
@@ -486,6 +559,7 @@ html body button[onclick*="quitter()"]:hover{
     </div>
     <div class="panel-spacer"></div>
     <button class="panel-nav-btn accent" onclick="basculerTable()" id="btn-table">📋 Table</button>
+    <button class="panel-nav-btn" onclick="basculerCalc()" id="btn-calc" hidden>🧮 Calculatrice</button>
     <button class="panel-nav-btn" onclick="sauvegarderPartie()">💾 Sauver</button>
     <button class="panel-nav-btn" onclick="document.getElementById('file-partie').click()">📂 Reprendre</button>
     <button class="panel-nav-btn" onclick="openRules()">📖 Aide</button>
@@ -528,6 +602,25 @@ html body button[onclick*="quitter()"]:hover{
     <div class="panel-spacer"></div>
     <button class="panel-nav-btn accent" onclick="messageSuivant(true)" id="btn-passer">⏭ Passer</button>
   </div>
+</div>
+
+<!-- ══ CALCULATRICE ══ -->
+<div class="calc-panel" id="calc-panel">
+  <div class="calc-head">
+    <b>🧮 Calculatrice</b>
+    <button type="button" onclick="masquerCalc()" title="Masquer sans effacer le calcul en cours">— Masquer</button>
+    <button type="button" class="fermer" onclick="fermerCalc()" title="Fermer et remettre à zéro">✕ Fermer</button>
+  </div>
+  <div class="calc-ecran">
+    <div class="calc-op" id="calc-op"></div>
+    <div id="calc-aff">0</div>
+  </div>
+  <div class="calc-grille" id="calc-grille"></div>
+  <div class="calc-etages" id="calc-etages"></div>
+  <div class="calc-pied">
+    <button type="button" onclick="ouvrirCalcWindows()">🪟 Ouvrir la calculatrice Windows</button>
+  </div>
+  <div class="calc-note" id="calc-note"></div>
 </div>
 
 <!-- ══ MODALS ══ -->
@@ -1196,6 +1289,147 @@ function ajusterTaille() {
 }
 
 // ══════════════════════════════════════════════════════
+//  CALCULATRICE
+//  ------------------------------------------------------
+//  Une page web ne peut ni piloter ni fermer une application de
+//  Windows : elle peut tout au plus demander a l'ouvrir, par le lien
+//  « ms-calculator: », et c'est ensuite Windows qui la gere. Masquer
+//  et fermer, tels que demandes, ne sont donc realisables que sur une
+//  calculatrice integree au jeu — c'est celle-ci.
+//  Le bouton du bas ouvre malgre tout la vraie calculatrice de Windows
+//  pour qui la prefere ; elle vivra alors sa vie, hors du jeu.
+//
+//  La saisie se fait a la souris uniquement : le clavier est deja pris
+//  par le jeu, qui attend les chiffres de la reponse.
+// ══════════════════════════════════════════════════════
+/* `neuf`  : le prochain chiffre remplace l'affichage.
+   `saisi` : un operande a bien ete fourni depuis le dernier operateur.
+   Les deux sont distincts : apres « ×400 », l'affichage doit etre remplace par
+   le prochain chiffre, mais il compte bien comme un operande. Les confondre
+   faisait perdre le total en cours des qu'on enchainait « 3 ×400 + 12 ×20 ». */
+const calc = { aff:'0', acc:null, op:null, neuf:true, saisi:false };
+const CALC_ETAGES = [
+  { lbl:'×20',      v:20      },
+  { lbl:'×400',     v:400     },
+  { lbl:'×8 000',   v:8000    },
+  { lbl:'×160 000', v:160000  }
+];
+
+function construireCalc() {
+  const g = $('calc-grille');
+  if (g.children.length) return;                 // deja construite
+  // « = » occupe deux rangees : la derniere ligne n'a donc que trois touches.
+  const touches = [
+    ['C','raz'], ['⌫','raz'], ['÷','op'], ['×','op'],
+    ['7',''],    ['8',''],    ['9',''],   ['−','op'],
+    ['4',''],    ['5',''],    ['6',''],   ['+','op'],
+    ['1',''],    ['2',''],    ['3',''],   ['=','eg'],
+    ['±','op'],  ['0',''],    ['.','']
+  ];
+  touches.forEach(([t, cls]) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = t; if (cls) b.className = cls;
+    b.addEventListener('click', () => calcTouche(t));
+    g.appendChild(b);
+  });
+  const e = $('calc-etages');
+  CALC_ETAGES.forEach(et => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = et.lbl;
+    b.title = `Multiplier le nombre affiché par ${et.v}`;
+    b.addEventListener('click', () => calcEtage(et.v));
+    e.appendChild(b);
+  });
+}
+
+function calcAffiche() {
+  $('calc-aff').textContent = calc.aff;
+  $('calc-op').textContent = calc.op ? `${calcFmt(calc.acc)} ${calc.op}` : '';
+}
+function calcFmt(n) {
+  if (n === null || n === undefined) return '';
+  return String(Math.round(n*1e10)/1e10);
+}
+function calcEntree() { return parseFloat(calc.aff.replace(',', '.')) || 0; }
+
+function calcTouche(t) {
+  if (/^[0-9]$/.test(t)) {
+    if (calc.neuf) { calc.aff = t; calc.neuf = false; }
+    else if (calc.aff.replace(/[^0-9]/g,'').length < 12) calc.aff = (calc.aff === '0' ? '' : calc.aff) + t;
+    calc.saisi = true;
+  }
+  else if (t === '.')  { if (calc.neuf) { calc.aff = '0.'; calc.neuf = false; } else if (!calc.aff.includes('.')) calc.aff += '.'; calc.saisi = true; }
+  else if (t === '±')  { calc.aff = calc.aff.startsWith('-') ? calc.aff.slice(1) : '-' + calc.aff; calc.saisi = true; }
+  else if (t === 'C')  { calc.aff = '0'; calc.acc = null; calc.op = null; calc.neuf = true; calc.saisi = false; }
+  else if (t === '⌫') { calc.aff = calc.aff.length > 1 ? calc.aff.slice(0,-1) : '0'; if (calc.aff === '-') calc.aff = '0'; calc.saisi = true; }
+  else if (t === '=')  {
+    if (calc.op !== null) {
+      calc.aff = calcFmt(calcOpere(calc.acc, calcEntree(), calc.op));
+      calc.acc = null; calc.op = null; calc.neuf = true; calc.saisi = true;
+    }
+  }
+  else {                 // + − × ÷
+    if (calc.op !== null && calc.saisi)  calc.acc = calcOpere(calc.acc, calcEntree(), calc.op);
+    else if (calc.op === null)           calc.acc = calcEntree();
+    // Sinon : deux operateurs de suite, on ne fait que remplacer le second.
+    calc.aff = calcFmt(calc.acc); calc.op = t; calc.neuf = true; calc.saisi = false;
+  }
+  calcAffiche();
+}
+
+function calcOpere(a, b, op) {
+  a = a === null ? 0 : a;
+  if (op === '+') return a + b;
+  if (op === '−') return a - b;
+  if (op === '×') return a * b;
+  if (op === '÷') return b === 0 ? 0 : a / b;
+  return b;
+}
+
+/* Les quatre boutons d'etage multiplient directement le nombre affiche :
+   taper 3 puis « ×400 » donne 1200, ce qui suit exactement la lecture d'un
+   nombre maya, etage par etage. Un « + » en attente reste en attente. */
+function calcEtage(mult) {
+  calc.aff = calcFmt(calcEntree() * mult);
+  calc.neuf = true; calc.saisi = true;
+  calcAffiche();
+}
+
+function ouvrirCalcWindows() {
+  // Windows 10 et 11 enregistrent le protocole « ms-calculator: ». Le
+  // navigateur demande confirmation la premiere fois. Ailleurs, il ne se
+  // passe rien : on le dit plutot que de laisser croire a une panne.
+  const note = $('calc-note');
+  if (!/Windows/i.test(navigator.userAgent || '')) {
+    note.textContent = "La calculatrice de Windows n'est disponible que sous Windows. Celle du jeu, au-dessus, fait le même travail.";
+    return;
+  }
+  note.textContent = "Windows demande votre accord la première fois. Une fois ouverte, elle ne dépend plus du jeu : « Masquer » et « Fermer » ci-dessus n'agissent que sur la calculatrice du jeu.";
+  window.location.href = 'ms-calculator:';
+}
+
+function ouvrirCalc() {
+  construireCalc(); calcAffiche();
+  $('calc-panel').classList.add('open');
+  document.body.classList.add('calc-ouverte');
+  setTimeout(ajusterTaille, 320);          // la zone des signes vient de retrecir
+}
+function masquerCalc() {                    // le calcul en cours est conserve
+  $('calc-panel').classList.remove('open');
+  document.body.classList.remove('calc-ouverte');
+  setTimeout(ajusterTaille, 320);
+}
+function fermerCalc() {                     // ferme et remet a zero
+  calc.aff = '0'; calc.acc = null; calc.op = null; calc.neuf = true; calc.saisi = false;
+  $('calc-note').textContent = '';
+  calcAffiche();
+  masquerCalc();
+}
+function basculerCalc() {
+  if ($('calc-panel').classList.contains('open')) masquerCalc(); else ouvrirCalc();
+}
+
+// ══════════════════════════════════════════════════════
 //  CLAVIER VIRTUEL
 // ══════════════════════════════════════════════════════
 function construireClavier() {
@@ -1480,6 +1714,9 @@ function majPanneaux() {
   $('badge-erreurs').textContent = session.erreurs;
   $('badge-table').textContent = session.tableVues;
   $('btn-table').textContent = config.niveau === 3 ? '📋 Table −100' : '📋 Table';
+  // La calculatrice ne sert qu'aux nombres : inutile en Pigpen et en morse.
+  $('btn-calc').hidden = config.code !== 'maya';
+  if (config.code !== 'maya' && $('calc-panel').classList.contains('open')) masquerCalc();
 }
 
 // ══════════════════════════════════════════════════════
