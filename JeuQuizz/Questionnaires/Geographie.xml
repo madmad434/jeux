@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+    <config>
+        <title>Quiz Géographie - France et Monde</title>
+    </config>
+    <questions>
+
+        <!-- ===================== GÉOGRAPHIE PHYSIQUE DE LA FRANCE ===================== -->
+        <question id="1" type="single" theme="Géographie physique de la France">
+            <text>Quel est le point culminant de la France et de l'Europe occidentale ?</text>
+            <options>
+                <option id="A">Le pic du Midi</option>
+                <option id="B">Le mont Blanc</option>
+                <option id="C">Le puy de Dôme</option>
+                <option id="D">Le pic du Vignemale</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Le mont Blanc, situé dans les Alpes à la frontière franco-italienne, culmine à plus de 4 800 mètres d'altitude. Sa hauteur exacte varie légèrement selon les mesures car son sommet est recouvert d'une calotte de glace dont l'épaisseur évolue.</explanation>
+        </question>
+
+        <question id="2" type="single" theme="Géographie physique de la France">
+            <text>Quel est le plus long fleuve de France ?</text>
+            <options>
+                <option id="A">La Seine</option>
+                <option id="B">Le Rhône</option>
+                <option id="C">La Loire</option>
+                <option id="D">La Garonne</option>
+            </options>
+            <answer>C</answer>
+            <explanation>La Loire est le plus long fleuve de France avec environ 1 000 km. Elle prend sa source au mont Gerbier-de-Jonc en Ardèche et se jette dans l'océan Atlantique près de Saint-Nazaire. Sa vallée, célèbre pour ses châteaux, est classée au patrimoine mondial de l'UNESCO.</explanation>
+        </question>
+
+        <question id="3" type="multiple" theme="Géographie physique de la France">
+            <text>Quels cours d'eau sont des fleuves français (ils se jettent directement dans la mer) ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">La Loire</option>
+                <option id="B">La Seine</option>
+                <option id="C">La Marne</option>
+                <option id="D">La Garonne</option>
+                <option id="E">Le Rhône</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>Un fleuve se jette dans la mer, contrairement à une rivière qui rejoint un autre cours d'eau. La Loire, la Seine, la Garonne et le Rhône sont les quatre grands fleuves français. La Marne est une rivière : c'est un affluent de la Seine, qu'elle rejoint près de Charenton.</explanation>
+        </question>
+
+        <question id="4" type="single" theme="Géographie physique de la France">
+            <text>Quelle chaîne de montagnes forme la frontière naturelle entre la France et l'Espagne ?</text>
+            <options>
+                <option id="A">Les Alpes</option>
+                <option id="B">Le Jura</option>
+                <option id="C">Les Vosges</option>
+                <option id="D">Les Pyrénées</option>
+            </options>
+            <answer>D</answer>
+            <explanation>Les Pyrénées s'étendent sur environ 430 km entre l'océan Atlantique et la mer Méditerranée, séparant la France de l'Espagne. Leur point culminant côté français est le pic du Vignemale ; la principauté d'Andorre est enclavée dans cette chaîne.</explanation>
+        </question>
+
+        <question id="5" type="single" theme="Géographie physique de la France">
+            <text>Quel massif ancien, formé de plateaux et de volcans éteints, occupe le centre de la France ?</text>
+            <options>
+                <option id="A">Le Massif central</option>
+                <option id="B">Le Massif armoricain</option>
+                <option id="C">Le Massif des Maures</option>
+                <option id="D">Le Bassin parisien</option>
+            </options>
+            <answer>A</answer>
+            <explanation>Le Massif central couvre environ 15 % du territoire métropolitain. C'est un massif ancien, usé par l'érosion, marqué par un volcanisme éteint dont témoignent la chaîne des Puys et le puy de Dôme, classés au patrimoine mondial de l'UNESCO.</explanation>
+        </question>
+
+        <question id="6" type="single" theme="Géographie physique de la France">
+            <text>Dans quelle mer le Rhône se jette-t-il ?</text>
+            <options>
+                <option id="A">Dans l'océan Atlantique</option>
+                <option id="B">Dans la mer Méditerranée</option>
+                <option id="C">Dans la Manche</option>
+                <option id="D">Dans la mer du Nord</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Le Rhône prend sa source dans les Alpes suisses, traverse le lac Léman puis descend vers le sud de la France. Il se jette dans la mer Méditerranée en formant un vaste delta, la Camargue, entre Arles et la mer.</explanation>
+        </question>
+
+        <question id="7" type="multiple" theme="Géographie physique de la France">
+            <text>Quels types de climats rencontre-t-on en France métropolitaine ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Le climat océanique</option>
+                <option id="B">Le climat méditerranéen</option>
+                <option id="C">Le climat équatorial</option>
+                <option id="D">Le climat semi-continental</option>
+                <option id="E">Le climat montagnard</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>La France métropolitaine connaît quatre grands types de climats : océanique sur la façade ouest (doux et humide), méditerranéen dans le Sud-Est (étés chauds et secs), semi-continental à l'est (hivers froids, étés chauds) et montagnard en altitude. Le climat équatorial ne se rencontre qu'outre-mer, notamment en Guyane.</explanation>
+        </question>
+
+        <!-- ===================== VILLES ET RÉGIONS DE FRANCE ===================== -->
+        <question id="8" type="single" theme="Villes et régions de France">
+            <text>Quelle est la deuxième commune la plus peuplée de France après Paris ?</text>
+            <options>
+                <option id="A">Lyon</option>
+                <option id="B">Toulouse</option>
+                <option id="C">Marseille</option>
+                <option id="D">Lille</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Marseille est la deuxième commune française par sa population, avec environ 870 000 habitants. C'est aussi le premier port de France et la plus ancienne ville du pays, fondée par les Grecs de Phocée vers 600 av. J.-C. sous le nom de Massalia.</explanation>
+        </question>
+
+        <question id="9" type="single" theme="Villes et régions de France">
+            <text>Quelle est la région française la plus peuplée ?</text>
+            <options>
+                <option id="A">Auvergne-Rhône-Alpes</option>
+                <option id="B">Île-de-France</option>
+                <option id="C">Nouvelle-Aquitaine</option>
+                <option id="D">Occitanie</option>
+            </options>
+            <answer>B</answer>
+            <explanation>L'Île-de-France compte environ 12 millions d'habitants, soit près d'un Français sur cinq, sur seulement 2 % du territoire métropolitain. C'est la région la plus dense et la plus riche du pays, organisée autour de l'agglomération parisienne.</explanation>
+        </question>
+
+        <question id="10" type="single" theme="Villes et régions de France">
+            <text>Combien la France compte-t-elle de régions métropolitaines depuis la réforme territoriale de 2016 ?</text>
+            <options>
+                <option id="A">22 régions</option>
+                <option id="B">18 régions</option>
+                <option id="C">13 régions</option>
+                <option id="D">27 régions</option>
+            </options>
+            <answer>C</answer>
+            <explanation>La réforme territoriale entrée en vigueur en 2016 a réduit le nombre de régions métropolitaines de 22 à 13, en fusionnant plusieurs d'entre elles (par exemple Alsace, Lorraine et Champagne-Ardenne pour former le Grand Est). En ajoutant les régions d'outre-mer, la France compte 18 régions au total.</explanation>
+        </question>
+
+        <question id="11" type="multiple" theme="Villes et régions de France">
+            <text>Quelles villes françaises sont situées sur le littoral méditerranéen ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Marseille</option>
+                <option id="B">Nice</option>
+                <option id="C">Bordeaux</option>
+                <option id="D">Toulon</option>
+                <option id="E">Sète</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>Marseille, Nice, Toulon et Sète bordent la mer Méditerranée. Bordeaux se trouve dans le Sud-Ouest, sur la Garonne, à une soixantaine de kilomètres de l'océan Atlantique : c'est un port fluvial relié à la mer par l'estuaire de la Gironde.</explanation>
+        </question>
+
+        <question id="12" type="single" theme="Villes et régions de France">
+            <text>Quelle ville française accueille le siège du Parlement européen ?</text>
+            <options>
+                <option id="A">Lyon</option>
+                <option id="B">Strasbourg</option>
+                <option id="C">Paris</option>
+                <option id="D">Lille</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Strasbourg, capitale de la région Grand Est, est le siège officiel du Parlement européen, où se tiennent les sessions plénières. La ville accueille également le Conseil de l'Europe et la Cour européenne des droits de l'homme, ce qui en fait une capitale européenne.</explanation>
+        </question>
+
+        <question id="13" type="single" theme="Villes et régions de France">
+            <text>Combien de départements compte la France (métropole et outre-mer) ?</text>
+            <options>
+                <option id="A">83</option>
+                <option id="B">95</option>
+                <option id="C">101</option>
+                <option id="D">110</option>
+            </options>
+            <answer>C</answer>
+            <explanation>La France compte 101 départements : 96 en métropole (dont la Corse-du-Sud et la Haute-Corse) et 5 départements d'outre-mer (Guadeloupe, Martinique, Guyane, La Réunion et Mayotte). Les départements ont été créés en 1790, pendant la Révolution française.</explanation>
+        </question>
+
+        <question id="14" type="single" theme="Villes et régions de France">
+            <text>Quelle ville est le chef-lieu de la région Auvergne-Rhône-Alpes ?</text>
+            <options>
+                <option id="A">Grenoble</option>
+                <option id="B">Clermont-Ferrand</option>
+                <option id="C">Lyon</option>
+                <option id="D">Saint-Étienne</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Lyon est le chef-lieu de la région Auvergne-Rhône-Alpes. Située au confluent du Rhône et de la Saône, c'est la troisième commune de France par sa population, et son Vieux Lyon est inscrit au patrimoine mondial de l'UNESCO.</explanation>
+        </question>
+
+        <!-- ===================== LITTORAL, ÎLES ET OUTRE-MER FRANÇAIS ===================== -->
+        <question id="15" type="single" theme="Littoral, îles et outre-mer français">
+            <text>Quelle est la plus grande île française de la Méditerranée ?</text>
+            <options>
+                <option id="A">La Corse</option>
+                <option id="B">L'île d'Oléron</option>
+                <option id="C">L'île de Ré</option>
+                <option id="D">Belle-Île-en-Mer</option>
+            </options>
+            <answer>A</answer>
+            <explanation>La Corse, surnommée "l'île de Beauté", couvre environ 8 700 km². Elle est divisée en deux départements et possède un statut de collectivité territoriale unique. Les îles d'Oléron, de Ré et Belle-Île se trouvent au large de la côte atlantique.</explanation>
+        </question>
+
+        <question id="16" type="multiple" theme="Littoral, îles et outre-mer français">
+            <text>Quels territoires sont des départements et régions d'outre-mer (DROM) ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">La Guadeloupe</option>
+                <option id="B">La Nouvelle-Calédonie</option>
+                <option id="C">La Guyane</option>
+                <option id="D">La Réunion</option>
+                <option id="E">Mayotte</option>
+            </options>
+            <answer>A,C,D,E</answer>
+            <explanation>Les cinq DROM sont la Guadeloupe, la Martinique, la Guyane, La Réunion et Mayotte (devenue département en 2011). La Nouvelle-Calédonie possède un statut particulier de collectivité "sui generis", avec une large autonomie et une citoyenneté propre.</explanation>
+        </question>
+
+        <question id="17" type="single" theme="Littoral, îles et outre-mer français">
+            <text>Quel territoire français, situé en Amérique du Sud, est le plus vaste département de France ?</text>
+            <options>
+                <option id="A">La Martinique</option>
+                <option id="B">La Guyane</option>
+                <option id="C">La Guadeloupe</option>
+                <option id="D">Saint-Pierre-et-Miquelon</option>
+            </options>
+            <answer>B</answer>
+            <explanation>La Guyane couvre environ 84 000 km², soit près de 15 % de la superficie de la France métropolitaine. Recouverte à plus de 90 % par la forêt amazonienne, elle abrite également le Centre spatial guyanais de Kourou, base de lancement européenne.</explanation>
+        </question>
+
+        <question id="18" type="single" theme="Littoral, îles et outre-mer français">
+            <text>Quel détroit sépare la France du Royaume-Uni au point le plus étroit ?</text>
+            <options>
+                <option id="A">Le détroit de Gibraltar</option>
+                <option id="B">Le pas de Calais</option>
+                <option id="C">Le détroit de Messine</option>
+                <option id="D">Le golfe de Gascogne</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Le pas de Calais sépare la France de l'Angleterre sur seulement 33 km au point le plus étroit, entre Calais et Douvres. C'est sous ce détroit que passe le tunnel sous la Manche, ouvert en 1994.</explanation>
+        </question>
+
+        <question id="19" type="single" theme="Littoral, îles et outre-mer français">
+            <text>Sur quelle île française se trouve le volcan actif du Piton de la Fournaise ?</text>
+            <options>
+                <option id="A">La Martinique</option>
+                <option id="B">La Corse</option>
+                <option id="C">La Réunion</option>
+                <option id="D">La Guadeloupe</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Le Piton de la Fournaise se trouve à La Réunion, dans l'océan Indien. C'est l'un des volcans les plus actifs du monde, avec des éruptions fréquentes. Le point culminant de l'île est un autre volcan, éteint celui-là : le Piton des Neiges, qui dépasse 3 000 mètres.</explanation>
+        </question>
+
+        <question id="20" type="single" theme="Littoral, îles et outre-mer français">
+            <text>Où se situe la dune du Pilat, la plus haute dune de sable d'Europe ?</text>
+            <options>
+                <option id="A">En Bretagne, près de Quiberon</option>
+                <option id="B">En Gironde, à l'entrée du bassin d'Arcachon</option>
+                <option id="C">Dans le Nord, près de Dunkerque</option>
+                <option id="D">En Camargue, près des Saintes-Maries-de-la-Mer</option>
+            </options>
+            <answer>B</answer>
+            <explanation>La dune du Pilat se dresse en Gironde, à l'entrée du bassin d'Arcachon, et culmine à environ 100 mètres. Elle se déplace lentement vers l'intérieur des terres sous l'effet des vents d'ouest, recouvrant progressivement la forêt landaise.</explanation>
+        </question>
+
+        <!-- ===================== PAYS ET CAPITALES DU MONDE ===================== -->
+        <question id="21" type="single" theme="Pays et capitales du monde">
+            <text>Quelle est la capitale de l'Australie ?</text>
+            <options>
+                <option id="A">Sydney</option>
+                <option id="B">Melbourne</option>
+                <option id="C">Canberra</option>
+                <option id="D">Brisbane</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Canberra est la capitale de l'Australie depuis 1913. La ville a été créée de toutes pièces pour mettre fin à la rivalité entre Sydney et Melbourne, les deux plus grandes villes du pays, qui revendiquaient chacune ce statut.</explanation>
+        </question>
+
+        <question id="22" type="single" theme="Pays et capitales du monde">
+            <text>Quelle est la capitale du Canada ?</text>
+            <options>
+                <option id="A">Toronto</option>
+                <option id="B">Montréal</option>
+                <option id="C">Vancouver</option>
+                <option id="D">Ottawa</option>
+            </options>
+            <answer>D</answer>
+            <explanation>Ottawa, située dans la province de l'Ontario à la frontière du Québec, est la capitale fédérale du Canada depuis 1857. Toronto est la ville la plus peuplée du pays et Montréal la principale métropole francophone.</explanation>
+        </question>
+
+        <question id="23" type="multiple" theme="Pays et capitales du monde">
+            <text>Quels pays ont une frontière terrestre commune avec la France métropolitaine ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">La Belgique</option>
+                <option id="B">Le Portugal</option>
+                <option id="C">La Suisse</option>
+                <option id="D">L'Italie</option>
+                <option id="E">L'Andorre</option>
+            </options>
+            <answer>A,C,D,E</answer>
+            <explanation>La France métropolitaine partage une frontière terrestre avec huit pays : la Belgique, le Luxembourg, l'Allemagne, la Suisse, l'Italie, Monaco, l'Espagne et l'Andorre. Le Portugal n'a de frontière qu'avec l'Espagne. À noter que la France a aussi une frontière avec le Brésil et le Suriname, via la Guyane.</explanation>
+        </question>
+
+        <question id="24" type="single" theme="Pays et capitales du monde">
+            <text>Quelle est la capitale du Brésil ?</text>
+            <options>
+                <option id="A">Rio de Janeiro</option>
+                <option id="B">São Paulo</option>
+                <option id="C">Brasília</option>
+                <option id="D">Salvador</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Brasília est devenue la capitale du Brésil en 1960, remplaçant Rio de Janeiro. Construite en quelques années au centre du pays pour favoriser le développement de l'intérieur, elle a été conçue par l'urbaniste Lúcio Costa et l'architecte Oscar Niemeyer.</explanation>
+        </question>
+
+        <question id="25" type="single" theme="Pays et capitales du monde">
+            <text>Quel est aujourd'hui le pays le plus peuplé du monde ?</text>
+            <options>
+                <option id="A">La Chine</option>
+                <option id="B">L'Inde</option>
+                <option id="C">Les États-Unis</option>
+                <option id="D">L'Indonésie</option>
+            </options>
+            <answer>B</answer>
+            <explanation>L'Inde a dépassé la Chine en 2023 pour devenir le pays le plus peuplé du monde, avec plus de 1,4 milliard d'habitants. La Chine, longtemps première, voit sa population décliner en raison d'un taux de natalité très bas.</explanation>
+        </question>
+
+        <question id="26" type="single" theme="Pays et capitales du monde">
+            <text>Quel est le plus vaste pays du monde par sa superficie ?</text>
+            <options>
+                <option id="A">Le Canada</option>
+                <option id="B">La Chine</option>
+                <option id="C">La Russie</option>
+                <option id="D">Les États-Unis</option>
+            </options>
+            <answer>C</answer>
+            <explanation>La Russie couvre environ 17 millions de km², soit près de deux fois la superficie du Canada, deuxième au classement. Elle s'étend sur deux continents (Europe et Asie) et traverse onze fuseaux horaires.</explanation>
+        </question>
+
+        <question id="27" type="multiple" theme="Pays et capitales du monde">
+            <text>Quels pays sont traversés par l'équateur ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Le Brésil</option>
+                <option id="B">Le Mexique</option>
+                <option id="C">Le Kenya</option>
+                <option id="D">L'Indonésie</option>
+                <option id="E">L'Équateur</option>
+            </options>
+            <answer>A,C,D,E</answer>
+            <explanation>L'équateur traverse une dizaine de pays, dont le Brésil, le Kenya, l'Indonésie et l'Équateur (qui lui doit son nom). Le Mexique se situe entièrement dans l'hémisphère nord, largement au-dessus de la ligne équatoriale, traversé quant à lui par le tropique du Cancer.</explanation>
+        </question>
+
+        <!-- ===================== RELIEFS, FLEUVES ET OCÉANS DU MONDE ===================== -->
+        <question id="28" type="single" theme="Reliefs, fleuves et océans du monde">
+            <text>Quel est le plus haut sommet du monde ?</text>
+            <options>
+                <option id="A">Le K2</option>
+                <option id="B">L'Everest</option>
+                <option id="C">Le Kilimandjaro</option>
+                <option id="D">L'Aconcagua</option>
+            </options>
+            <answer>B</answer>
+            <explanation>L'Everest, situé dans l'Himalaya à la frontière entre le Népal et la Chine (Tibet), culmine à 8 849 mètres selon la mesure officielle de 2020. Le K2 est le deuxième sommet mondial, l'Aconcagua le plus haut d'Amérique et le Kilimandjaro celui d'Afrique.</explanation>
+        </question>
+
+        <question id="29" type="single" theme="Reliefs, fleuves et océans du monde">
+            <text>Quel fleuve d'Amérique du Sud possède le plus important débit du monde ?</text>
+            <options>
+                <option id="A">Le Nil</option>
+                <option id="B">Le Mississippi</option>
+                <option id="C">L'Amazone</option>
+                <option id="D">Le Yangtsé</option>
+            </options>
+            <answer>C</answer>
+            <explanation>L'Amazone déverse dans l'océan Atlantique un débit supérieur à celui des sept fleuves suivants réunis. Son bassin, le plus vaste du monde, couvre une grande partie de l'Amérique du Sud et abrite la forêt amazonienne.</explanation>
+        </question>
+
+        <question id="30" type="multiple" theme="Reliefs, fleuves et océans du monde">
+            <text>Quels sont des océans du globe ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">L'océan Pacifique</option>
+                <option id="B">L'océan Atlantique</option>
+                <option id="C">La mer Méditerranée</option>
+                <option id="D">L'océan Indien</option>
+                <option id="E">L'océan Arctique</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>On distingue cinq océans : le Pacifique (le plus vaste), l'Atlantique, l'Indien, l'Arctique et l'océan Austral autour de l'Antarctique. La Méditerranée est une mer, c'est-à-dire une étendue d'eau salée plus petite et largement fermée, reliée à l'Atlantique par le détroit de Gibraltar.</explanation>
+        </question>
+
+        <question id="31" type="single" theme="Reliefs, fleuves et océans du monde">
+            <text>Quel est le plus grand désert chaud du monde ?</text>
+            <options>
+                <option id="A">Le désert de Gobi</option>
+                <option id="B">Le Sahara</option>
+                <option id="C">Le désert d'Atacama</option>
+                <option id="D">Le désert du Kalahari</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Le Sahara s'étend sur environ 9 millions de km² à travers une dizaine de pays d'Afrique du Nord, une superficie comparable à celle des États-Unis. L'Atacama, au Chili, est quant à lui le désert le plus aride du monde.</explanation>
+        </question>
+
+        <question id="32" type="multiple" theme="Reliefs, fleuves et océans du monde">
+            <text>Quelles sont des chaînes de montagnes ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">L'Himalaya</option>
+                <option id="B">Les Andes</option>
+                <option id="C">Le Sahel</option>
+                <option id="D">Les montagnes Rocheuses</option>
+                <option id="E">L'Oural</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>L'Himalaya (Asie), les Andes (Amérique du Sud, la plus longue chaîne du monde avec 7 000 km), les Rocheuses (Amérique du Nord) et l'Oural (frontière conventionnelle entre l'Europe et l'Asie) sont des chaînes de montagnes. Le Sahel est une bande de savane semi-aride au sud du Sahara.</explanation>
+        </question>
+
+        <question id="33" type="single" theme="Reliefs, fleuves et océans du monde">
+            <text>Quelle est la plus grande île du monde ?</text>
+            <options>
+                <option id="A">Madagascar</option>
+                <option id="B">L'Australie</option>
+                <option id="C">Le Groenland</option>
+                <option id="D">Bornéo</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Le Groenland, territoire autonome rattaché au Danemark, couvre environ 2,2 millions de km² et est recouvert à plus de 80 % par une calotte glaciaire. L'Australie, bien plus vaste, est considérée comme un continent et non comme une île.</explanation>
+        </question>
+
+        <question id="34" type="single" theme="Reliefs, fleuves et océans du monde">
+            <text>Quelle étendue d'eau, située entre Israël et la Jordanie, correspond au point émergé le plus bas de la planète ?</text>
+            <options>
+                <option id="A">La mer Caspienne</option>
+                <option id="B">La mer Morte</option>
+                <option id="C">Le lac Baïkal</option>
+                <option id="D">La mer d'Aral</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Les rives de la mer Morte se situent à plus de 400 mètres sous le niveau de la mer. Sa très forte salinité, environ dix fois supérieure à celle des océans, empêche toute vie aquatique et permet aux baigneurs de flotter sans effort.</explanation>
+        </question>
+
+        <!-- ===================== CONTINENTS ET RECORDS GÉOGRAPHIQUES ===================== -->
+        <question id="35" type="multiple" theme="Continents et records géographiques">
+            <text>Quels pays se situent en Amérique du Sud ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Le Pérou</option>
+                <option id="B">Le Costa Rica</option>
+                <option id="C">Le Chili</option>
+                <option id="D">La Colombie</option>
+                <option id="E">L'Argentine</option>
+            </options>
+            <answer>A,C,D,E</answer>
+            <explanation>Le Pérou, le Chili, la Colombie et l'Argentine appartiennent à l'Amérique du Sud. Le Costa Rica se trouve en Amérique centrale, cet isthme étroit qui relie le Mexique à la Colombie et regroupe aussi le Panama, le Nicaragua ou le Guatemala.</explanation>
+        </question>
+
+        <question id="36" type="single" theme="Continents et records géographiques">
+            <text>Quel est le plus vaste continent du monde ?</text>
+            <options>
+                <option id="A">L'Afrique</option>
+                <option id="B">L'Amérique du Nord</option>
+                <option id="C">L'Asie</option>
+                <option id="D">L'Europe</option>
+            </options>
+            <answer>C</answer>
+            <explanation>L'Asie couvre environ 44 millions de km², soit près de 30 % des terres émergées, et rassemble à elle seule plus de 60 % de la population mondiale. L'Afrique arrive en deuxième position par la superficie.</explanation>
+        </question>
+
+        <question id="37" type="single" theme="Continents et records géographiques">
+            <text>Quels espaces maritimes le canal de Suez relie-t-il ?</text>
+            <options>
+                <option id="A">L'Atlantique et le Pacifique</option>
+                <option id="B">La Méditerranée et la mer Rouge</option>
+                <option id="C">La mer Noire et la Méditerranée</option>
+                <option id="D">La Baltique et la mer du Nord</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Ouvert en 1869 en Égypte, le canal de Suez relie la mer Méditerranée à la mer Rouge. Il évite aux navires de contourner l'Afrique et constitue l'un des passages stratégiques les plus fréquentés du commerce mondial.</explanation>
+        </question>
+
+        <question id="38" type="single" theme="Continents et records géographiques">
+            <text>Comment appelle-t-on le méridien de référence correspondant à la longitude 0° ?</text>
+            <options>
+                <option id="A">L'équateur</option>
+                <option id="B">Le tropique du Cancer</option>
+                <option id="C">Le méridien de Greenwich</option>
+                <option id="D">Le cercle polaire arctique</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Le méridien de Greenwich, qui passe par l'observatoire du même nom près de Londres, sert de référence pour les longitudes depuis 1884 et pour les fuseaux horaires. L'équateur, lui, est le parallèle de référence pour les latitudes (0°).</explanation>
+        </question>
+
+        <question id="39" type="single" theme="Continents et records géographiques">
+            <text>Quelle région du globe constitue en réalité le plus vaste désert du monde ?</text>
+            <options>
+                <option id="A">Le Sahara</option>
+                <option id="B">L'Antarctique</option>
+                <option id="C">La Sibérie</option>
+                <option id="D">Le désert d'Arabie</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Un désert se définit par la faiblesse de ses précipitations, et non par sa température. Avec environ 14 millions de km² et des chutes de neige très rares, l'Antarctique est le plus grand désert du monde : un désert froid, devant le Sahara.</explanation>
+        </question>
+
+        <question id="40" type="multiple" theme="Continents et records géographiques">
+            <text>Quelles affirmations géographiques sont exactes ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Le canal de Panama relie l'océan Atlantique à l'océan Pacifique</option>
+                <option id="B">Istanbul est une ville à cheval sur l'Europe et l'Asie</option>
+                <option id="C">Le Vatican est le plus petit État indépendant du monde</option>
+                <option id="D">L'océan Pacifique est le plus petit des océans</option>
+                <option id="E">Le Nil traverse notamment l'Égypte et le Soudan</option>
+            </options>
+            <answer>A,B,C,E</answer>
+            <explanation>Le canal de Panama, ouvert en 1914, relie bien l'Atlantique au Pacifique. Istanbul s'étend de part et d'autre du Bosphore, sur deux continents. Le Vatican, avec 0,44 km², est le plus petit État souverain. Le Nil traverse l'Égypte et le Soudan avant de rejoindre la Méditerranée. En revanche, le Pacifique est le plus vaste des océans, et non le plus petit : c'est l'océan Arctique qui est le plus réduit.</explanation>
+        </question>
+
+    </questions>
+</quiz>

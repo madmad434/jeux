@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/webp" href="../../assets/favicons/jeux.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔐 Gestionnaire des messages à décoder v2.3</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a4a8a;--blue-mid:#2563eb;--blue-light:#3b82f6;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --green:#15803d;--green-bg:#f0fdf4;--green-border:#86efac;
+  --red:#b91c1c;--red-bg:#fef2f2;--red-border:#fca5a5;
+  --orange:#c2410c;--orange-bg:#fff7ed;--orange-border:#fdba74;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
+  --gray-400:#94a3b8;--gray-600:#475569;--gray-700:#334155;--gray-900:#0f172a;
+  --white:#ffffff;--radius:10px;--radius-sm:6px;--shadow:0 2px 8px rgba(0,0,0,.08);
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;font-size:15px;color:var(--gray-900);background:var(--gray-100)}
+#app{display:flex;flex-direction:column;height:100vh}
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--blue);flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.app-title{font-weight:800;color:#fff;font-size:17px;margin-right:6px;white-space:nowrap}
+.toolbar-sep{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px}
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.statusbar{display:flex;align-items:center;gap:12px;padding:6px 16px;background:var(--white);border-top:2px solid var(--gray-200);font-size:13px;color:var(--gray-600);flex-shrink:0;flex-wrap:wrap}
+.btn{cursor:pointer;font-family:inherit;font-size:14px;border:2px solid transparent;border-radius:var(--radius-sm);padding:7px 15px;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn-white{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+.btn-white:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.6)}
+.btn-yellow{background:#fbbf24;color:#78350f;border-color:#f59e0b}.btn-yellow:hover{background:#f59e0b}
+.btn-green{background:#22c55e;color:#fff;border-color:#16a34a}.btn-green:hover{background:#16a34a}
+.btn-red{background:#ef4444;color:#fff;border-color:#dc2626}.btn-red:hover{background:#dc2626}
+.btn-gray{background:var(--white);color:var(--gray-700);border-color:var(--gray-300)}.btn-gray:hover{background:var(--gray-100)}
+.btn-blue{background:var(--blue-mid);color:#fff;border-color:var(--blue)}.btn-blue:hover{background:var(--blue)}
+.btn-sm{font-size:12px;padding:5px 11px}.btn-lg{font-size:16px;padding:10px 22px;border-radius:var(--radius)}
+.list-section{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:10px 12px;min-height:0}
+.list-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-shrink:0;flex-wrap:wrap}
+.list-title{font-weight:700;font-size:14px;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px}
+.list-count{background:var(--blue-mid);color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700}
+.list-filter{flex:1;max-width:280px;padding:6px 12px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;outline:none}
+.list-filter:focus{border-color:var(--blue-light)}
+.stats-bar{display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);font-size:13px;color:var(--blue);font-weight:600;flex-shrink:0;margin-bottom:8px;flex-wrap:wrap}
+.stat-item{display:flex;align-items:center;gap:5px}
+.stat-sep{width:1px;height:16px;background:var(--blue-border)}
+.stat-chip{border-radius:20px;padding:1px 10px;font-size:12px;font-weight:700}
+.stat-chip.ok{color:var(--green);background:var(--green-bg);border:1px solid var(--green-border)}
+.stat-chip.warn{color:var(--orange);background:var(--orange-bg);border:1px solid var(--orange-border)}
+.word-table-wrap{flex:1;overflow-y:auto;border:2px solid var(--gray-200);border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow)}
+.word-table{width:100%;border-collapse:collapse}
+.word-table th{background:var(--blue);color:#fff;font-size:13px;font-weight:700;padding:10px 12px;text-align:left;position:sticky;top:0;z-index:2}
+.word-table th:last-child{text-align:center;width:130px}
+.word-table td{padding:9px 12px;border-bottom:1px solid var(--gray-100);font-size:14px;vertical-align:middle}
+.word-table tr:last-child td{border-bottom:none}
+.word-table tr:hover td{background:var(--blue-bg)}
+.word-table tr.expanded td{background:var(--blue-bg)}
+.td-id{font-weight:700;color:var(--blue-mid);width:60px}
+.td-type{width:60px;text-align:center;font-size:16px}
+.td-cat span{background:var(--gray-100);border:1px solid var(--gray-200);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600}
+.td-mot{font-weight:700;color:var(--gray-900);font-size:15px}
+.td-action{text-align:center}
+.expand-btn{background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:5px 12px;font-size:13px;font-weight:700;color:var(--blue-mid);cursor:pointer;transition:all .15s}
+.expand-btn:hover{background:var(--blue-mid);color:#fff}
+.expand-btn.open{background:var(--blue-mid);color:#fff}
+.expanded-row td{padding:0}
+.expanded-panel{padding:16px 20px;background:linear-gradient(to bottom,var(--blue-bg),#fafcff);border-top:2px solid var(--blue-border);display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.detail-fields{flex:1;min-width:260px;display:grid;grid-template-columns:auto 1fr;gap:9px 14px;align-items:center}
+.df-label{font-size:12px;font-weight:700;color:var(--blue);text-align:right;white-space:nowrap;padding-right:2px}
+.df-value{background:var(--white);border:2px solid var(--blue-border);border-radius:var(--radius-sm);padding:8px 13px;font-size:15px;font-weight:600;color:var(--gray-900);display:flex;align-items:center;min-height:40px}
+.df-value.df-id{color:var(--blue-mid);font-weight:800;font-size:16px}
+.df-value.df-cat .cat-badge{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:20px;padding:3px 13px;font-size:13px;font-weight:700;color:var(--blue)}
+.df-value.df-mot{font-size:18px;font-weight:800;letter-spacing:1.5px;color:var(--gray-900)}
+.expanded-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;justify-content:center;padding-top:4px}
+.empty-list{padding:40px;text-align:center;color:var(--gray-400)}
+.empty-list .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-list p{font-size:15px;line-height:1.6}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:16px 20px;background:var(--blue);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-header h2{color:#fff;font-size:17px;font-weight:800}
+.modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+.modal-close:hover{background:rgba(255,255,255,.4)}
+.modal-body{overflow-y:auto;flex:1}
+.modal-footer{padding:14px 20px;border-top:2px solid var(--gray-100);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;background:var(--gray-50)}
+.form-body{padding:20px}
+.form-section{margin-bottom:18px}
+.form-section label{display:block;font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:6px}
+.form-section label .req{color:var(--red)}
+.form-section input[type="text"],.form-section select{width:100%;padding:10px 13px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;outline:none;transition:border .15s;color:var(--gray-900);background:var(--white)}
+.form-section input:focus,.form-section select:focus{border-color:var(--blue-light);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.form-section input[readonly]{background:var(--gray-100);color:var(--gray-600)}
+.form-section .hint{font-size:12px;color:var(--gray-400);margin-top:4px}
+.char-counter{font-size:13px;font-weight:600;margin-top:5px}
+.char-counter.ok{color:var(--green)}.char-counter.warn{color:var(--orange)}.char-counter.over{color:var(--red)}
+.form-error{background:var(--red-bg);border:2px solid var(--red-border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--red);font-size:14px;font-weight:600;margin-top:8px}
+.type-radios{display:flex;gap:14px;flex-wrap:wrap}
+.type-radio{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600;color:var(--gray-700);cursor:pointer;background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius-sm);padding:9px 14px;transition:all .15s}
+.type-radio:hover{border-color:var(--blue-light)}
+.type-radio.selected{border-color:var(--blue-mid);background:var(--blue-bg);color:var(--blue)}
+.type-radio input{margin:0;accent-color:var(--blue-mid)}
+.wizard-steps{padding:0 20px 10px}
+.wizard-progress{display:flex;align-items:center;margin-bottom:20px;padding:16px 20px 0}
+.wiz-step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;transition:all .3s;border:3px solid var(--gray-200);color:var(--gray-400);background:var(--white)}
+.wiz-step-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.wiz-step-dot.current{background:var(--blue-mid);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-bg)}
+.wiz-connector{flex:1;height:3px;background:var(--gray-200)}.wiz-connector.done{background:var(--green)}
+.wiz-panel{display:none}.wiz-panel.active{display:block}
+.wiz-title{font-size:19px;font-weight:800;color:var(--blue);margin-bottom:6px}
+.wiz-sub{font-size:14px;color:var(--gray-600);margin-bottom:16px;line-height:1.6}
+.wiz-note{background:var(--orange-bg);border-left:4px solid var(--orange-border);padding:12px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--orange);line-height:1.6;margin-top:12px}
+.wiz-nav{display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:2px solid var(--gray-100);background:var(--gray-50)}
+.wiz-nav-counter{font-size:13px;color:var(--gray-400);flex:1}
+.status-badge{display:inline-flex;align-items:center;gap:5px;font-weight:700;padding:3px 10px;border-radius:20px;font-size:13px}
+.status-clean{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.status-dirty{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+.welcome-area{padding:16px 14px 8px;flex-shrink:0}
+.welcome-box{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-mid) 100%);border-radius:var(--radius);padding:14px 18px;color:#fff;display:flex;align-items:center;gap:14px}
+.welcome-box .wb-icon{font-size:36px;flex-shrink:0}
+.welcome-box h2{font-size:16px;font-weight:800;margin-bottom:3px}
+.welcome-box p{font-size:13px;opacity:.85;line-height:1.5}
+.welcome-box .wb-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.save-success-body{padding:24px;text-align:center}
+.save-success-icon{font-size:52px;margin-bottom:10px}
+.save-success-title{font-size:20px;font-weight:800;color:var(--green);margin-bottom:12px}
+.save-success-path{background:var(--green-bg);border:2px solid var(--green-border);border-radius:var(--radius);padding:14px 18px;font-size:14px;color:var(--green);font-weight:600;margin:10px 0;word-break:break-all;text-align:left;line-height:1.8}
+.save-success-path .path-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;display:block}
+.save-success-path .path-sub{font-size:12px;color:var(--gray-400);font-weight:400;display:block;margin-top:3px}
+.save-success-stats{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--blue);margin-top:10px;text-align:left}
+.save-success-note{font-size:13px;color:var(--gray-400);line-height:1.6;margin-top:10px}
+.toast-erreur{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);background:var(--red);color:#fff;border-radius:var(--radius);padding:16px 28px;font-size:16px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.35);z-index:9999;text-align:center;max-width:340px;line-height:1.5;animation:toastIn .2s ease forwards}
+.toast-erreur.toast-out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes toastOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-50%) scale(.85)}}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--gray-400)}
+#fileInput{display:none}
+html body #btn-quitter{background:#c62828 !important;color:#fff !important;border-color:#c62828 !important;font-weight:700}
+html body #btn-quitter:hover{background:#8d1a1a !important;border-color:#8d1a1a !important;color:#fff !important}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="toolbar">
+    <span class="app-title">🔐 Gestionnaire des messages à décoder</span>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-white" onclick="openXML()">📂 Ouvrir XML</button>
+    <button class="btn btn-white" onclick="exportXML()">💾 Enregistrer</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn btn-yellow" onclick="newMotWizard()">➕ Nouvelle Entrée</button>
+    <button class="btn btn-white btn-sm" onclick="resetConfig()">🔄 Réinitialiser</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-white btn-sm" onclick="showHelp()">❓ Aide</button>
+    <button class="btn btn-white btn-sm" onclick="quitterApp()" id="btn-quitter">🚪 Quitter</button>
+  </div>
+
+  <div class="main-area">
+    <div class="welcome-area" id="welcomeArea">
+      <div class="welcome-box">
+        <div class="wb-icon">🔐</div>
+        <div style="flex:1">
+          <h2>Bienvenue dans le gestionnaire des messages à décoder</h2>
+          <p>Gérez vos <strong>mots</strong> (5 à 12 lettres) et vos <strong>phrases courtes</strong> (2 à 6 mots, style télégraphique) par catégorie, au format XML. Tout est enregistré en MAJUSCULES.</p>
+          <p style="margin-top:6px">Le fichier produit — <strong>MessageCodes.xml</strong> — se place dans <strong>jeudecode/textecode/</strong> : c'est la source de mots et de phrases du <strong>Jeu de Décodage</strong>. L'attribut <strong>type</strong> (mot ou phrase) et la <strong>catégorie</strong> y sont utilisés : les phrases ne sont proposées qu'aux niveaux Agent et Expert, et la catégorie est affichée au joueur pendant la partie.</p>
+          <div class="wb-actions">
+            <button class="btn btn-white btn-sm" onclick="openXML()">📂 Ouvrir un fichier XML existant</button>
+            <button class="btn btn-yellow btn-sm" onclick="newMotWizard()">➕ Créer ma première entrée</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-header">
+        <span class="list-title">📋 Liste des entrées</span>
+        <span class="list-count" id="listCount">0</span>
+        <input class="list-filter" type="text" placeholder="🔍 Rechercher un mot, une phrase ou une catégorie…" oninput="filterList(this.value)" id="filterInput">
+      </div>
+
+      <div class="stats-bar" id="statsBar" style="display:none">
+        <div class="stat-item">📦 <strong id="statTotal">0</strong>&nbsp;entrée(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">🔤 <strong id="statMots">0</strong>&nbsp;mot(s) • 💬 <strong id="statPhrases">0</strong>&nbsp;phrase(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">📂 <strong id="statCats">0</strong>&nbsp;catégorie(s)</div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">🗃️ Capacité&nbsp;: <span id="statCapacity" class="stat-chip ok">0 / 200</span></div>
+        <div class="stat-sep" id="statFilterSep" style="display:none"></div>
+        <div class="stat-item" id="statFilterInfo" style="display:none">🔍&nbsp;<strong id="statFiltered">0</strong>&nbsp;résultat(s) affiché(s)</div>
+      </div>
+
+      <div class="word-table-wrap">
+        <table class="word-table">
+          <thead>
+            <tr>
+              <th style="width:60px">N°</th>
+              <th style="width:60px;text-align:center">Type</th>
+              <th style="width:160px">Catégorie</th>
+              <th>Mot / Phrase</th>
+              <th style="width:130px;text-align:center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wordTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="status-badge status-clean" id="modifiedIndicator">✅ Aucune modification</span>
+    <span id="statusMsg" style="color:var(--gray-600)">Prêt</span>
+    <span style="flex:1"></span>
+    <span style="font-size:12px;color:var(--gray-400)">v2.3</span>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".xml" onchange="handleFileOpen(event)">
+
+<script>
+const MAX_TEXTES       = 200;
+const MIN_MOT_CHARS    = 5;
+const MAX_MOT_CHARS    = 12;
+const MIN_PHRASE_MOTS  = 2;
+const MAX_PHRASE_MOTS  = 6;
+const DEFAULT_CATEGORIES = ['animaux','films','nourriture','pays','vocabulaire','metier','phrases'];
+
+let textesData    = [];
+let currentFilter = '';
+let modified      = false;
+let expandedRow   = null;
+
+/* ── NORMALISATION : mots ET phrases en MAJUSCULES, style télégraphique ──────*/
+function normVal(type, raw) {
+  let v = String(raw || '').replace(/['’]/g, '');
+  v = v.toUpperCase();
+  if (type === 'phrase') v = v.replace(/[^A-ZÀ-ÖØ-Þ\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  else                   v = v.replace(/[^A-ZÀ-ÖØ-Þ]/g, '');
+  return v.trim();
+}
+function compteMots(p){ return p ? p.split(' ').filter(Boolean).length : 0; }
+
+function validerValeur(type, val) {
+  if (type === 'phrase') {
+    const nb = compteMots(val);
+    if (nb < MIN_PHRASE_MOTS) return `⚠️ Phrase trop courte !\n${nb} mot${nb>1?'s':''} — minimum ${MIN_PHRASE_MOTS} mots.`;
+    if (nb > MAX_PHRASE_MOTS) return `⚠️ Phrase trop longue !\n${nb} mots — maximum ${MAX_PHRASE_MOTS} mots.`;
+  } else {
+    const L = val.length;
+    if (L < MIN_MOT_CHARS) return `⚠️ Mot trop court !\n${L} lettre${L>1?'s':''} — minimum ${MIN_MOT_CHARS} lettres.`;
+    if (L > MAX_MOT_CHARS) return `⚠️ Mot trop long !\n${L} lettres — maximum ${MAX_MOT_CHARS} lettres.`;
+    if (!/^[A-ZÀ-ÖØ-Þ]+$/.test(val)) return '⚠️ Un mot ne doit contenir que des lettres.';
+  }
+  return null;
+}
+function typeIcon(t){ return t === 'phrase' ? '💬' : '🔤'; }
+
+/* ── XML ──────────────────────────────────────────────────────────────────────*/
+function parseXMLConfig(xmlString) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlString, 'text/xml');
+  if (doc.querySelector('parseerror,parsererror')) throw new Error('Fichier XML invalide ou corrompu.');
+  const textes = [];
+  doc.querySelectorAll('mot').forEach(n => {
+    const valeur = (n.textContent.trim() || n.getAttribute('valeur') || '');
+    let type = n.getAttribute('type') || '';
+    if (type !== 'mot' && type !== 'phrase') type = /\s/.test(valeur) ? 'phrase' : 'mot'; // compat anciens fichiers
+    textes.push({
+      id:        n.getAttribute('id')        || n.getAttribute('index') || '',
+      type:      type,
+      categorie: n.getAttribute('categorie') || n.getAttribute('theme') || '',
+      valeur:    normVal(type, valeur)
+    });
+  });
+  textes.sort((a,b) => (parseInt(a.id)||0) - (parseInt(b.id)||0));
+  return textes;
+}
+
+function generateXML() {
+  const cats = [...new Set(textesData.map(m => m.categorie))];
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<mots>\n';
+  cats.forEach(cat => {
+    textesData.filter(m => m.categorie === cat).forEach(m => {
+      xml += `  <mot id="${escX(m.id)}" type="${escX(m.type)}" categorie="${escX(m.categorie)}">${escX(m.valeur)}</mot>\n`;
+    });
+  });
+  return xml + '</mots>';
+}
+function escX(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ── FICHIER ───────────────────────────────────────────────────────────────────*/
+function openXML(){ document.getElementById('fileInput').click(); }
+
+function handleFileOpen(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      textesData = parseXMLConfig(e.target.result);
+      expandedRow = null;
+      setModified(false);
+      updateStatus('✅ Fichier chargé : ' + file.name);
+      renderTable();
+    } catch(err) {
+      showInfo('❌ Erreur de lecture', 'Impossible de lire le fichier :\n' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+async function exportXML() {
+  if (textesData.length === 0) {
+    showInfo('⚠️ Rien à enregistrer', 'La liste est vide.\nAjoutez au moins une entrée avant d\'enregistrer.');
+    return;
+  }
+  const xml      = generateXML();
+  const filename = 'MessageCodes.xml';
+
+  if (window.showSaveFilePicker) {
+    try {
+      const fh = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'Fichier XML', accept: {'application/xml':['.xml']} }]
+      });
+      const w = await fh.createWritable();
+      await w.write(xml); await w.close();
+      setModified(false);
+      updateStatus('✅ Fichier enregistré');
+      showSaveSuccess(fh.name || filename, false);
+      return;
+    } catch(e) { if (e.name === 'AbortError') return; }
+  }
+  const blob = new Blob([xml], {type:'application/xml;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setModified(false);
+  updateStatus('✅ Fichier téléchargé');
+  showSaveSuccess(filename, true);
+}
+
+function showSaveSuccess(filename, isDownload) {
+  const total = textesData.length;
+  const nbMot = textesData.filter(m => m.type !== 'phrase').length;
+  const nbPhr = total - nbMot;
+  const cats  = [...new Set(textesData.map(m => m.categorie))].length;
+  const pathHtml = isDownload
+    ? `<span class="path-label">📁 Emplacement du fichier</span>
+       <strong>Dossier Téléchargements</strong>
+       <span class="path-sub">Chemin habituel : C:\\Utilisateurs\\VotreNom\\Téléchargements\\${escH(filename)}</span>`
+    : `<span class="path-label">📁 Fichier enregistré</span>
+       <strong>${escH(filename)}</strong>
+       <span class="path-sub">dans le dossier que vous avez choisi lors de l'enregistrement</span>`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:460px">
+      <div class="modal-header" style="background:var(--green)">
+        <h2>💾 Fichier sauvegardé avec succès !</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="save-success-body">
+          <div class="save-success-icon">✅</div>
+          <div class="save-success-title">Enregistrement réussi !</div>
+          <div class="save-success-path">${pathHtml}</div>
+          <div class="save-success-stats">
+            📊 Contenu sauvegardé : <strong>${total} entrée${total>1?'s':''}</strong> dont
+            <strong>${nbMot} mot${nbMot>1?'s':''}</strong> 🔤 et <strong>${nbPhr} phrase${nbPhr>1?'s':''}</strong> 💬,
+            réparties dans <strong>${cats || 0} catégorie${cats>1?'s':''}</strong>
+          </div>
+          <div class="save-success-note">Vous pouvez rouvrir ce fichier à tout moment via <strong>📂 Ouvrir XML</strong>.</div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:center">
+        <button class="btn btn-green btn-lg" onclick="this.closest('.modal-overlay').remove()">✅ OK, j'ai compris</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.btn-green').focus();
+}
+
+function resetConfig() {
+  showConfirm('🔄 Réinitialiser ?',
+    'Tous les mots et phrases seront effacés de la mémoire.\nIrréversible si vous n\'avez pas encore enregistré.\n\nVoulez-vous continuer ?',
+    () => { textesData = []; expandedRow = null; setModified(false); renderTable(); updateStatus('Liste réinitialisée'); });
+}
+
+/* ── RENDU TABLEAU ─────────────────────────────────────────────────────────────*/
+function renderTable() {
+  const tbody    = document.getElementById('wordTableBody');
+  const total    = textesData.length;
+  const filtered = textesData.filter(m =>
+    !currentFilter ||
+    m.valeur.toLowerCase().includes(currentFilter) ||
+    m.categorie.toLowerCase().includes(currentFilter) ||
+    m.id.includes(currentFilter)
+  );
+
+  document.getElementById('listCount').textContent = total;
+
+  const statsBar = document.getElementById('statsBar');
+  if (total > 0) {
+    statsBar.style.display = 'flex';
+    document.getElementById('statTotal').textContent   = total;
+    document.getElementById('statMots').textContent    = textesData.filter(m => m.type !== 'phrase').length;
+    document.getElementById('statPhrases').textContent = textesData.filter(m => m.type === 'phrase').length;
+    document.getElementById('statCats').textContent    = [...new Set(textesData.map(m => m.categorie))].length;
+    const capEl = document.getElementById('statCapacity');
+    capEl.textContent = total + ' / ' + MAX_TEXTES;
+    capEl.className = 'stat-chip ' + (total >= MAX_TEXTES * 0.8 ? 'warn' : 'ok');
+    const fSep  = document.getElementById('statFilterSep');
+    const fInfo = document.getElementById('statFilterInfo');
+    if (currentFilter) {
+      fSep.style.display = ''; fInfo.style.display = '';
+      document.getElementById('statFiltered').textContent = filtered.length;
+    } else {
+      fSep.style.display = 'none'; fInfo.style.display = 'none';
+    }
+  } else { statsBar.style.display = 'none'; }
+
+  document.getElementById('welcomeArea').style.display = total === 0 ? '' : 'none';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-list">
+      <div class="empty-icon">${currentFilter ? '🔍' : '📭'}</div>
+      <p>${currentFilter
+        ? 'Aucune entrée ne correspond à "<strong>' + escH(currentFilter) + '</strong>".'
+        : 'Aucune entrée pour l\'instant.<br>Utilisez <strong>➕ Nouvelle Entrée</strong> pour commencer.'}</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(mot => {
+    const idx    = textesData.indexOf(mot);
+    const isOpen = expandedRow === idx;
+    const isPhr  = mot.type === 'phrase';
+    html += `
+      <tr class="${isOpen?'expanded':''}" id="row-${idx}">
+        <td class="td-id">#${escH(mot.id)}</td>
+        <td class="td-type" title="${isPhr?'Phrase courte':'Mot'}">${typeIcon(mot.type)}</td>
+        <td class="td-cat"><span>${escH(mot.categorie)}</span></td>
+        <td class="td-mot">${escH(mot.valeur)}</td>
+        <td class="td-action">
+          <button class="expand-btn ${isOpen?'open':''}" onclick="toggleExpand(${idx})">${isOpen?'▲ Fermer':'▼ Détails'}</button>
+        </td>
+      </tr>`;
+    if (isOpen) {
+      html += `
+      <tr class="expanded-row" id="expanded-${idx}">
+        <td colspan="5">
+          <div class="expanded-panel">
+            <div class="detail-fields">
+              <span class="df-label">🔢 Numéro</span>
+              <div class="df-value df-id">${escH(mot.id)}</div>
+              <span class="df-label">🏷️ Type</span>
+              <div class="df-value">${typeIcon(mot.type)} ${isPhr ? 'Phrase courte (2–5 mots)' : 'Mot (5–12 lettres)'}</div>
+              <span class="df-label">📂 Catégorie</span>
+              <div class="df-value df-cat"><span class="cat-badge">${escH(mot.categorie)}</span></div>
+              <span class="df-label">${typeIcon(mot.type)}</span>
+              <div class="df-value df-mot">${escH(mot.valeur)}</div>
+            </div>
+            <div class="expanded-actions">
+              <button class="btn btn-blue" onclick="openEditModal(${idx})">✏️ Modifier</button>
+              <button class="btn btn-red"  onclick="deleteMot(${idx})">🗑️ Supprimer</button>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }
+  });
+  tbody.innerHTML = html;
+}
+
+function toggleExpand(idx) {
+  expandedRow = (expandedRow === idx) ? null : idx;
+  renderTable();
+  if (expandedRow !== null) {
+    setTimeout(() => {
+      const r = document.getElementById('expanded-' + idx);
+      if (r) r.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }, 50);
+  }
+}
+
+function filterList(val) {
+  currentFilter = val.trim().toLowerCase();
+  expandedRow   = null;
+  renderTable();
+}
+
+/* ── GESTION DU TYPE ───────────────────────────────────────────────────────────*/
+function getTypeOf(prefix) {
+  const r = document.querySelector(`input[name="${prefix}_type"]:checked`);
+  return r ? r.value : 'mot';
+}
+
+function applyTypeUI(prefix) {
+  const type = getTypeOf(prefix);
+  document.querySelectorAll(`input[name="${prefix}_type"]`).forEach(r => {
+    const lab = r.closest('.type-radio');
+    if (lab) lab.classList.toggle('selected', r.checked);
+  });
+  const inp  = document.getElementById(prefix + '_valeur');
+  const hint = document.getElementById(prefix + '_hint');
+  if (inp) {
+    inp.placeholder = type === 'phrase'
+      ? 'Tapez ici la phrase courte… ex : LES CAROTTES SONT CUITES'
+      : 'Tapez ici le nouveau mot…';
+    inp.style.letterSpacing = type === 'phrase' ? '.5px' : '2px';
+  }
+  /* Une phrase appartient toujours a la categorie « phrases » : le choix est
+     force et grise tant que le type reste « phrase ». */
+  const catSel = document.getElementById(prefix + '_cat_select');
+  const catCus = document.getElementById(prefix + '_cat_custom');
+  if (catSel) {
+    if (type === 'phrase') {
+      if (![...catSel.options].some(o => o.value === 'phrases'))
+        catSel.insertAdjacentHTML('afterbegin', '<option value="phrases">phrases</option>');
+      catSel.value = 'phrases';
+      catSel.disabled = true;
+      catSel.title = 'Les phrases sont toujours rangées dans la catégorie « phrases »';
+      if (catCus) { catCus.style.display = 'none'; catCus.disabled = true; catCus.value = ''; }
+    } else {
+      catSel.disabled = false;
+      catSel.title = '';
+      if (catCus) { catCus.disabled = false; catCus.style.display = catSel.value === '__autre__' ? 'block' : 'none'; }
+    }
+  }
+  if (hint) {
+    hint.innerHTML = type === 'phrase'
+      ? `Tout est mis en <strong>MAJUSCULES</strong> ; la ponctuation et les apostrophes sont supprimées (style télégraphique). Entre ${MIN_PHRASE_MOTS} et ${MAX_PHRASE_MOTS} mots.`
+      : `Le mot sera automatiquement mis en <strong>MAJUSCULES</strong>. Entre ${MIN_MOT_CHARS} et ${MAX_MOT_CHARS} lettres uniquement.`;
+  }
+  updateCounter(prefix);
+}
+
+function updateCounter(prefix) {
+  const inp = document.getElementById(prefix + '_valeur');
+  const ctr = document.getElementById(prefix + '_counter');
+  if (!inp || !ctr) return;
+  if (getTypeOf(prefix) === 'phrase') {
+    const nb = compteMots(normVal('phrase', inp.value));
+    ctr.textContent = `${nb} / ${MAX_PHRASE_MOTS} mots`;
+    ctr.className = 'char-counter ' + ((nb === 0) || (nb >= MIN_PHRASE_MOTS && nb <= MAX_PHRASE_MOTS) ? 'ok' : 'over');
+  } else {
+    const L = normVal('mot', inp.value).length;
+    ctr.textContent = `${L} / ${MAX_MOT_CHARS} lettres`;
+    ctr.className = 'char-counter ' +
+      (L === 0 ? 'ok' : (L < MIN_MOT_CHARS || L > MAX_MOT_CHARS) ? 'over'
+              : (L > MAX_MOT_CHARS * 0.8) ? 'warn' : 'ok');
+  }
+}
+
+/* ── EDIT MODAL ────────────────────────────────────────────────────────────────*/
+function buildCatOptions(currentCat, existingCats) {
+  const all     = [...new Set([...DEFAULT_CATEGORIES,...existingCats])].sort();
+  const isKnown = all.includes(currentCat);
+  let html = '';
+  all.forEach(c => { html += `<option value="${escH(c)}" ${currentCat===c?'selected':''}>${escH(c)}</option>`; });
+  html += `<option value="__autre__" ${!isKnown && currentCat!=='' ? 'selected' : ''}>➕ Autre (nouvelle catégorie)</option>`;
+  return html;
+}
+
+function openEditModal(idx) {
+  const mot = textesData[idx];
+  const existingCats = [...new Set(textesData.map(m => m.categorie))];
+  const catOptions   = buildCatOptions(mot.categorie, existingCats);
+  const all          = [...new Set([...DEFAULT_CATEGORIES,...existingCats])].sort();
+  const isCustomCat  = !all.includes(mot.categorie) && mot.categorie !== '';
+  const isPhr        = mot.type === 'phrase';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'editModal';
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>✏️ Modifier l'entrée #${escH(mot.id)}</h2>
+        <button class="modal-close" onclick="document.getElementById('editModal').remove()">✕</button>
+      </div>
+      <div class="modal-body"><div class="form-body">
+        <div class="form-section">
+          <label>Numéro (ID) <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(non modifiable)</span></label>
+          <input type="text" value="${escH(mot.id)}" readonly>
+        </div>
+        <div class="form-section">
+          <label>Type d'entrée <span class="req">*</span></label>
+          <div class="type-radios">
+            <label class="type-radio ${isPhr?'':'selected'}"><input type="radio" name="em_type" value="mot" ${isPhr?'':'checked'} onchange="applyTypeUI('em')"> 🔤 Mot</label>
+            <label class="type-radio ${isPhr?'selected':''}"><input type="radio" name="em_type" value="phrase" ${isPhr?'checked':''} onchange="applyTypeUI('em')"> 💬 Phrase courte</label>
+          </div>
+        </div>
+        <div class="form-section">
+          <label>Catégorie <span class="req">*</span></label>
+          <select id="em_cat_select" onchange="handleCatSelect('em_cat_select','em_cat_custom')">${catOptions}</select>
+          <input type="text" id="em_cat_custom" placeholder="Tapez ici le nom de la nouvelle catégorie…"
+            value="${isCustomCat ? escH(mot.categorie) : ''}"
+            style="margin-top:8px;display:${isCustomCat?'block':'none'}">
+        </div>
+        <div class="form-section">
+          <label>Contenu <span class="req">*</span></label>
+          <input type="text" id="em_valeur" value="${escH(mot.valeur)}" placeholder="Tapez ici…"
+            oninput="updateCounter('em')" maxlength="80" style="font-weight:700">
+          <div class="char-counter ok" id="em_counter"></div>
+          <div class="hint" id="em_hint"></div>
+        </div>
+        <div id="em_error" style="display:none" class="form-error"></div>
+      </div></div>
+      <div class="modal-footer">
+        <button class="btn btn-gray" onclick="document.getElementById('editModal').remove()">❌ Annuler</button>
+        <button class="btn btn-blue btn-lg" onclick="saveEdit(${idx})">💾 Enregistrer la modification</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  applyTypeUI('em');
+}
+
+function handleCatSelect(selId, customId) {
+  const sel = document.getElementById(selId);
+  const inp = document.getElementById(customId);
+  inp.style.display = sel.value === '__autre__' ? 'block' : 'none';
+  if (sel.value === '__autre__') inp.focus();
+}
+
+function saveEdit(idx) {
+  const sel       = document.getElementById('em_cat_select');
+  const customInp = document.getElementById('em_cat_custom');
+  const valInp    = document.getElementById('em_valeur');
+  const errEl     = document.getElementById('em_error');
+  const type      = getTypeOf('em');
+  let categorie   = sel.value === '__autre__' ? customInp.value.trim().toLowerCase() : sel.value;
+  if (type === 'phrase') categorie = 'phrases';
+  const valeur    = normVal(type, valInpValue('em'));
+
+  const errType = validerValeur(type, valeur);
+  if (errType) { showToast(errType); return; }
+
+  const errors = [];
+  if (!categorie) errors.push('La catégorie est obligatoire.');
+  if (!valeur)    errors.push('Le contenu est obligatoire.');
+  if (errors.length) { errEl.textContent = errors.join(' '); errEl.style.display = 'block'; return; }
+
+  errEl.style.display = 'none';
+  textesData[idx].categorie = categorie;
+  textesData[idx].valeur    = valeur;
+  textesData[idx].type      = type;
+  setModified(true);
+  expandedRow = idx;
+  document.getElementById('editModal').remove();
+  renderTable();
+  updateStatus('✅ Entrée #' + textesData[idx].id + ' modifiée en mémoire');
+}
+function valInpValue(){ return document.getElementById('em_valeur').value; }
+
+/* ── DELETE ────────────────────────────────────────────────────────────────────*/
+function deleteMot(idx) {
+  const mot = textesData[idx];
+  showConfirm('🗑️ Supprimer cette entrée ?',
+    `Vous allez supprimer définitivement :\n\n  ${typeIcon(mot.type)} ${mot.valeur}\n  📂 Catégorie : ${mot.categorie}\n  🔢 Numéro : #${mot.id}\n\nCette action est irréversible.`,
+    () => {
+      textesData.splice(idx, 1);
+      reindex();
+      expandedRow = null;
+      setModified(true);
+      renderTable();
+      updateStatus('🗑️ Entrée supprimée — numéros réorganisés');
+    });
+}
+function reindex(){ textesData.forEach((m,i) => { m.id = String(i+1); }); }
+
+/* ── WIZARD NOUVELLE ENTRÉE (5 étapes) ─────────────────────────────────────────*/
+function newMotWizard() {
+  if (textesData.length >= MAX_TEXTES) {
+    showInfo('⚠️ Limite atteinte', `Maximum de ${MAX_TEXTES} entrées atteint.\nSupprimez des entrées existantes pour en ajouter de nouvelles.`);
+    return;
+  }
+  const existingCats = [...new Set(textesData.map(m => m.categorie))];
+  const catOptions   = buildCatOptions('phrases', existingCats);
+  let currentStep    = 1;
+  const totalSteps   = 5;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'wizModal';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:540px">
+      <div class="modal-header">
+        <h2>➕ Ajouter une nouvelle entrée — Guide pas à pas</h2>
+        <button class="modal-close" onclick="document.getElementById('wizModal').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wizard-progress">
+          <div class="wiz-step-dot current" id="wdot1">1</div><div class="wiz-connector" id="wcon1"></div>
+          <div class="wiz-step-dot" id="wdot2">2</div><div class="wiz-connector" id="wcon2"></div>
+          <div class="wiz-step-dot" id="wdot3">3</div><div class="wiz-connector" id="wcon3"></div>
+          <div class="wiz-step-dot" id="wdot4">4</div><div class="wiz-connector" id="wcon4"></div>
+          <div class="wiz-step-dot" id="wdot5">5</div>
+        </div>
+        <div class="wizard-steps">
+          <div class="wiz-panel active" id="wizStep1">
+            <div class="wiz-title">👋 Étape 1 — Prêt à ajouter une entrée ?</div>
+            <div class="wiz-sub">Ce guide vous accompagne pas à pas. Suivez les étapes — c'est simple et rapide !</div>
+            <div style="background:var(--blue-bg);border:2px solid var(--blue-border);border-radius:var(--radius);padding:14px 16px">
+              <p style="font-size:14px;color:var(--blue);font-weight:700;margin-bottom:8px">📝 Ce que vous allez faire :</p>
+              <p style="font-size:14px;color:var(--gray-600);line-height:2">
+                <strong>① Choisir le type</strong> — 🔤 mot (5–12 lettres) ou 💬 phrase courte (2–6 mots)<br>
+                <strong>② Choisir une catégorie</strong> — ex : animaux, pays, phrases…<br>
+                <strong>③ Saisir le contenu</strong> puis vérifier et confirmer
+              </p>
+            </div>
+            <div class="wiz-note">💡 La liste contient actuellement <strong>${textesData.length} entrée(s)</strong>.
+              Après l'ajout, pensez à cliquer sur <strong>💾 Enregistrer</strong> pour sauvegarder sur votre ordinateur.</div>
+          </div>
+          <div class="wiz-panel" id="wizStep2">
+            <div class="wiz-title">🏷️ Étape 2 — Type d'entrée</div>
+            <div class="wiz-sub">Que voulez-vous ajouter ? Dans les deux cas, tout sera converti automatiquement en <strong>MAJUSCULES</strong>, sans ponctuation ni apostrophe (style télégraphique).</div>
+            <div class="type-radios">
+              <label class="type-radio selected"><input type="radio" name="wiz_type" value="mot" checked onchange="applyTypeUI('wiz')"> 🔤 Mot (5 à 12 lettres)</label>
+              <label class="type-radio"><input type="radio" name="wiz_type" value="phrase" onchange="applyTypeUI('wiz')"> 💬 Phrase courte (2 à 6 mots)</label>
+            </div>
+            <div class="wiz-note" style="margin-top:14px">💬 Les phrases doivent être courtes et sans ponctuation.
+              Exemples : <strong>LES CAROTTES SONT CUITES</strong> • <strong>LA NUIT PORTE CONSEIL</strong> • <strong>QUI VIVRA VERRA</strong>.</div>
+          </div>
+          <div class="wiz-panel" id="wizStep3">
+            <div class="wiz-title">📂 Étape 3 — Choisissez une catégorie</div>
+            <div class="wiz-sub">La catégorie regroupe les entrées par thème. Choisissez-en une ou créez-en une nouvelle.</div>
+            <div class="form-section">
+              <label>Catégorie <span class="req">*</span></label>
+              <select id="wiz_cat_select" onchange="handleCatSelect('wiz_cat_select','wiz_cat_custom')" style="font-size:16px;padding:12px">${catOptions}</select>
+              <input type="text" id="wiz_cat_custom" placeholder="Tapez ici le nom de la nouvelle catégorie…" style="margin-top:10px;display:none;font-size:16px;padding:12px">
+            </div>
+          </div>
+          <div class="wiz-panel" id="wizStep4">
+            <div class="wiz-title">⌨️ Étape 4 — Saisie</div>
+            <div class="wiz-sub" id="wiz_saisie_sub">Saisissez le contenu à ajouter.</div>
+            <div class="form-section">
+              <label>Contenu <span class="req">*</span> <span id="wiz_rule_label" style="font-size:12px;font-weight:400;color:var(--gray-400)">(entre ${MIN_MOT_CHARS} et ${MAX_MOT_CHARS} lettres)</span></label>
+              <input type="text" id="wiz_valeur" placeholder="Tapez ici…"
+                oninput="updateCounter('wiz')" maxlength="80"
+                style="font-size:20px;padding:14px;font-weight:800;letter-spacing:2px">
+              <div class="char-counter ok" id="wiz_counter" style="font-size:15px;margin-top:8px">0 / ${MAX_MOT_CHARS} lettres</div>
+              <div class="hint" id="wiz_hint"></div>
+            </div>
+          </div>
+          <div class="wiz-panel" id="wizStep5">
+            <div class="wiz-title">✅ Étape 5 — Vérification avant ajout</div>
+            <div class="wiz-sub">Relisez les informations ci-dessous. Si tout est correct, cliquez sur <strong>"✅ Ajouter !"</strong></div>
+            <div class="detail-fields" style="background:var(--gray-50);border:2px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+              <span class="df-label">🔢 Numéro</span><div class="df-value df-id" id="recap_id">—</div>
+              <span class="df-label">🏷️ Type</span><div class="df-value" id="recap_type">—</div>
+              <span class="df-label">📂 Catégorie</span><div class="df-value df-cat"><span class="cat-badge" id="recap_cat">—</span></div>
+              <span class="df-label">📝 Contenu</span><div class="df-value df-mot" id="recap_mot">—</div>
+            </div>
+            <div class="wiz-note">💾 <strong>Rappel :</strong> Après l'ajout, cliquez sur <strong>"💾 Enregistrer"</strong> pour sauvegarder le fichier sur votre ordinateur.</div>
+          </div>
+        </div>
+      </div>
+      <div class="wiz-nav">
+        <span class="wiz-nav-counter">Étape <span id="wiz_step_num">1</span> sur ${totalStepsTxt()}</span>
+        <button class="btn btn-gray" id="wizBtnPrev" onclick="wizNav(-1)" style="display:none">◀ Précédent</button>
+        <button class="btn btn-blue btn-lg" id="wizBtnNext" onclick="wizNav(1)">Suivant ▶</button>
+        <button class="btn btn-green btn-lg" id="wizBtnConfirm" onclick="wizConfirm()" style="display:none">✅ Ajouter !</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  applyTypeUI('wiz');
+
+  /* totalSteps est deja declare en tete de newMotWizard : la seconde
+     declaration provoquait une erreur de syntaxe qui empechait tout le
+     script de l'editeur de s'executer. */
+
+  function wizShowError(msg) { showToast(msg); }
+
+  function wizNav(dir) {
+    if (dir === 1 && currentStep === 3) {
+      const sel    = document.getElementById('wiz_cat_select');
+      const custom = document.getElementById('wiz_cat_custom');
+      const cat    = sel.value === '__autre__' ? custom.value.trim() : sel.value;
+      if (!cat) { wizShowError('⚠️ Veuillez choisir ou saisir une catégorie avant de continuer.'); return; }
+    }
+    if (dir === 1 && currentStep === 4) {
+      const type = getTypeOf('wiz');
+      const val  = normVal(type, document.getElementById('wiz_valeur').value);
+      if (!val) { wizShowError('⚠️ Veuillez saisir un contenu avant de continuer.'); return; }
+      const err = validerValeur(type, val);
+      if (err) { wizShowError(err); return; }
+    }
+    currentStep += dir;
+    updateWizUI();
+    if (currentStep === 5) buildRecap();
+  }
+
+  function buildRecap() {
+    const type = getTypeOf('wiz');
+    const sel    = document.getElementById('wiz_cat_select');
+    const custom = document.getElementById('wiz_cat_custom');
+    const cat    = type === 'phrase' ? 'phrases'
+                 : sel.value === '__autre__' ? custom.value.trim().toLowerCase() : sel.value;
+    const val    = normVal(type, document.getElementById('wiz_valeur').value);
+    document.getElementById('recap_id').textContent   = '#' + getNextId();
+    document.getElementById('recap_type').textContent = typeIcon(type) + ' ' + (type === 'phrase' ? 'Phrase courte' : 'Mot');
+    document.getElementById('recap_cat').textContent  = cat;
+    document.getElementById('recap_mot').textContent  = val;
+  }
+
+  function updateWizUI() {
+    for (let i = 1; i <= totalSteps; i++) {
+      document.getElementById('wizStep' + i).classList.toggle('active', i === currentStep);
+      document.getElementById('wdot' + i).className = 'wiz-step-dot' + (i < currentStep ? ' done' : i === currentStep ? ' current' : '');
+      if (i < totalSteps) document.getElementById('wcon' + i).className = 'wiz-connector' + (i < currentStep ? ' done' : '');
+    }
+    document.getElementById('wiz_step_num').textContent    = currentStep;
+    document.getElementById('wizBtnPrev').style.display    = currentStep > 1 ? '' : 'none';
+    document.getElementById('wizBtnNext').style.display    = currentStep < totalSteps ? '' : 'none';
+    document.getElementById('wizBtnConfirm').style.display = currentStep === totalSteps ? '' : 'none';
+  }
+
+  window.wizNav = wizNav;
+  window.wizConfirm = function() {
+    const type = getTypeOf('wiz');
+    const sel    = document.getElementById('wiz_cat_select');
+    const custom = document.getElementById('wiz_cat_custom');
+    const cat    = type === 'phrase' ? 'phrases'
+                 : sel.value === '__autre__' ? custom.value.trim().toLowerCase() : sel.value;
+    const val    = normVal(type, document.getElementById('wiz_valeur').value);
+    const nextId = getNextId();
+    textesData.push({ id: String(nextId), type: type, categorie: cat, valeur: val });
+    expandedRow  = textesData.length - 1;
+    setModified(true);
+    renderTable();
+    updateStatus('✅ "' + val + '" ajouté (#' + nextId + ', ' + type + ')');
+    document.getElementById('wizModal').remove();
+    setTimeout(() => {
+      const row = document.getElementById('row-' + (textesData.length - 1));
+      if (row) row.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 100);
+  };
+}
+function totalStepsTxt(){ return 5; }
+
+function getNextId() {
+  const ids = textesData.map(m => parseInt(m.id)||0);
+  let n = 1; while (ids.includes(n)) n++;
+  return n;
+}
+
+/* ── TOAST ERREUR ──────────────────────────────────────────────────────────────*/
+function showToast(msg) {
+  const old = document.querySelector('.toast-erreur');
+  if (old) old.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast-erreur';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  toast.style.pointerEvents = 'auto';
+  toast.style.cursor = 'pointer';
+  const timer = setTimeout(() => {
+    toast.classList.add('toast-out');
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+  }, 2700);
+  toast.addEventListener('click', () => {
+    clearTimeout(timer);
+    toast.classList.add('toast-out');
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+  });
+}
+
+/* ── DIALOGS ───────────────────────────────────────────────────────────────────*/
+function showInfo(title, message) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-header"><h2>${title}</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body" style="padding:22px 24px">
+        <p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-blue btn-lg" onclick="this.closest('.modal-overlay').remove()">OK</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function showConfirm(title, message, onOk) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:440px">
+      <div class="modal-header" style="background:var(--red)"><h2>${title}</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body" style="padding:22px 24px">
+        <p style="font-size:15px;line-height:1.7;color:var(--gray-600)">${escH(message).replace(/\n/g,'<br>')}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-gray" onclick="this.closest('.modal-overlay').remove()">❌ Non, annuler</button>
+        <button class="btn btn-red btn-lg" id="_confirmYes">✅ Oui, confirmer</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_confirmYes').addEventListener('click', () => { overlay.remove(); onOk(); });
+}
+
+/* ── AIDE ──────────────────────────────────────────────────────────────────────*/
+function showHelp() {
+  const o = document.createElement('div');
+  o.className = 'modal-overlay';
+  o.id = 'helpModal';
+  o.innerHTML = `
+  <div class="modal-box">
+    <div class="modal-header"><h2>❓ Aide — Préparer la liste de mots et de phrases</h2>
+      <button class="modal-close" onclick="document.getElementById('helpModal').remove()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px">
+      <p style="margin-bottom:10px">Cet outil prépare la liste utilisée par le <strong>Jeu de décodage</strong>. Deux types d'entrées sont possibles :</p>
+      <ul style="padding-left:20px;margin-bottom:12px;line-height:1.8">
+        <li>🔤 <strong>Mot</strong> : entre <strong>${'5'}</strong> et <strong>${'12'}</strong> lettres, en MAJUSCULES automatiques.</li>
+        <li>💬 <strong>Phrase courte</strong> : entre <strong>${'2'}</strong> et <strong>${'5'}</strong> mots, style télégraphique —
+        MAJUSCULES automatiques, <strong>sans ponctuation</strong>, apostrophes supprimées.
+        Exemple : LES CAROTTES SONT CUITES, QUI VIVRA VERRA.</li>
+      </ul>
+      <p style="margin-bottom:10px"><strong>Ajouter</strong> : bouton ➕ Nouvelle Entrée (guide en 5 étapes).
+      <strong>Modifier / supprimer</strong> : bouton ▼ Détails sur une ligne, puis ✏️ Modifier ou 🗑️ Supprimer.</p>
+      <p style="margin-bottom:10px"><strong>💾 Enregistrer</strong> écrit le fichier <strong>MessageCodes.xml</strong> sur votre ordinateur
+      (Chrome/Edge : dossier au choix ; autres navigateurs : dossier Téléchargements). Le type de chaque entrée est mémorisé dans l'attribut <strong>type</strong> du XML.</p>
+      <p>⚠️ Tant que vous n'avez pas enregistré, votre travail n'existe que dans cette page.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-blue btn-lg" onclick="document.getElementById('helpModal').remove()">Fermer</button>
+    </div>
+  </div>`;
+  document.body.appendChild(o);
+}
+
+/* ── QUITTER ───────────────────────────────────────────────────────────────────*/
+function quitterApp() {
+  if (modified) {
+    showConfirm('🚪 Quitter sans sauvegarder ?',
+      '⚠️ Attention ! Vous avez des modifications non enregistrées.\n\nSi vous quittez maintenant, elles seront définitivement perdues.\n\nVoulez-vous vraiment quitter sans enregistrer ?',
+      () => doQuit());
+  } else { doQuit(); }
+}
+
+function doQuit() {
+  window.onbeforeunload = null;
+  document.open();
+  document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Fermé</title>
+  <style>body{margin:0;background:#1a4a8a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Segoe UI',sans-serif}
+  .box{text-align:center;color:#fff}.icon{font-size:64px;margin-bottom:16px}.title{font-size:22px;font-weight:800;margin-bottom:8px}
+  .sub{font-size:15px;opacity:.7;margin-bottom:24px}
+  button{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:15px;cursor:pointer;font-family:inherit;font-weight:700}
+  button:hover{background:#1d4ed8}</style></head>
+  <body><div class="box"><div class="icon">🚪</div><div class="title">Application fermée</div>
+  <div class="sub">Vous pouvez maintenant fermer cet onglet.</div>
+  <button onclick="window.close()">Fermer l'onglet</button></div></body></html>`);
+  document.close();
+}
+
+/* ── STATE ─────────────────────────────────────────────────────────────────────*/
+function setModified(val) {
+  modified = val;
+  const el = document.getElementById('modifiedIndicator');
+  el.textContent = val ? '⚠️ Modifications non sauvegardées' : '✅ Aucune modification';
+  el.className   = 'status-badge ' + (val ? 'status-dirty' : 'status-clean');
+}
+function updateStatus(msg) { document.getElementById('statusMsg').textContent = msg; }
+
+function travailEnCours() {
+  if (window.__qzSortieConfirmee) return false;
+  if (modified) return true;
+  return false;
+}
+window.addEventListener('beforeunload', function (e) {
+  if (travailEnCours()) { e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ── INIT ──────────────────────────────────────────────────────────────────────*/
+renderTable();
+</script>
+
+<script src="../../assets/js/ressources.js"></script>
+<script src="../../assets/js/bibliotheque.js" data-jeu="editeurdecode" data-base="../../"></script>
+<script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
+<script src="../../assets/js/aide-uniforme.js" data-titre="Aide" data-observer="1"></script>
+</body>
+</html>

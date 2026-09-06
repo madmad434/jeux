@@ -1,0 +1,62 @@
+/* =========================================================================
+   CHARTE GRAPHIQUE COMMUNE — collection de jeux
+   Extraite des jeux existants (JeuTaquin, JeuPuzzle, JeuMotsMasques...).
+   Fichier de reference : a importer dans un nouveau jeu pour rester coherent.
+   ========================================================================= */
+
+:root {
+  /* --- Bleus de la charte -------------------------------------------- */
+  --bl:          #C2F6FF;   /* bleu clair  : fond de page, zone de jeu     */
+  --bl-strong:   #A5EEFD;   /* bleu clair renforce : survol, separateurs   */
+  --bl-pale:     #E1F4FF;   /* bleu pale   : elements actifs sur blanc     */
+  --bd:          #38B6FF;   /* bleu franc  : bandeaux, boutons, chrome     */
+  --bd-hover:    #1E9BE0;   /* bleu franc au survol                        */
+  --deep:        #0B4E75;   /* bleu profond: texte sur fond bleu           */
+  --deep-soft:   #2A6E96;   /* bleu profond adouci : texte secondaire      */
+
+  /* --- Surfaces et bordures ------------------------------------------ */
+  --white:       #ffffff;
+  --border:      #8FDCFF;
+  --border-soft: #D6F2FF;
+
+  /* --- Couleurs d'etat ----------------------------------------------- */
+  --green:       #16a34a;
+  --green-light: #d1fae5;
+  --red:         #dc2626;
+  --red-light:   #fee2e2;
+  --gold:        #f59e0b;
+  --gold-dark:   #d97706;
+
+  /* --- Rythme ---------------------------------------------------------*/
+  --radius:      14px;
+  --radius-sm:   9px;
+  --radius-lg:   22px;
+  --shadow:      0 2px 12px rgba(0, 80, 130, .15);
+  --shadow-lift: 0 10px 26px rgba(0, 70, 120, .24);
+  --t:           .18s ease;
+
+  /* --- Typographie ----------------------------------------------------*/
+  --font: 'Nunito', 'Varela Round', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
+}
+
+html, body {
+  font-family: var(--font);
+  background: var(--bl);
+  color: var(--deep);
+}
+
+/* Bouton standard de la charte */
+.btn {
+  font: inherit;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--bd);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background var(--t), transform var(--t);
+}
+.btn:hover  { background: var(--bd-hover); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 3px solid var(--deep); outline-offset: 2px; }

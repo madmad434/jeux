@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+    <config>
+        <title>Quiz Cinéma Français - Culture Générale</title>
+    </config>
+    <questions>
+
+        <!-- ===================== GRANDS CLASSIQUES DU CINÉMA FRANÇAIS ===================== -->
+        <question id="1" type="single" theme="Grands classiques du cinéma français">
+            <text>Qui a réalisé "Le Fabuleux Destin d'Amélie Poulain" (2001) ?</text>
+            <options>
+                <option id="A">Luc Besson</option>
+                <option id="B">Jean-Pierre Jeunet</option>
+                <option id="C">Cédric Klapisch</option>
+                <option id="D">Jacques Audiard</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Jean-Pierre Jeunet a réalisé "Le Fabuleux Destin d'Amélie Poulain", sorti en 2001 avec Audrey Tautou dans le rôle-titre. Le film, tourné en grande partie à Montmartre, est devenu l'un des plus grands succès français à l'international et a remporté 4 Césars en 2002, dont celui du Meilleur film.</explanation>
+        </question>
+
+        <question id="2" type="single" theme="Grands classiques du cinéma français">
+            <text>Quel film de 1995 de Mathieu Kassovitz raconte 24 heures dans la vie de trois jeunes de banlieue ?</text>
+            <options>
+                <option id="A">L'Esquive</option>
+                <option id="B">Le Thé au harem d'Archimède</option>
+                <option id="C">La Haine</option>
+                <option id="D">Banlieue 13</option>
+            </options>
+            <answer>C</answer>
+            <explanation>"La Haine" (1995), tourné en noir et blanc, suit Vinz, Hubert et Saïd (Vincent Cassel, Hubert Koundé et Saïd Taghmaoui) après une bavure policière. Mathieu Kassovitz y a obtenu le Prix de la mise en scène à Cannes et le film a reçu le César du Meilleur film en 1996.</explanation>
+        </question>
+
+        <question id="3" type="multiple" theme="Grands classiques du cinéma français">
+            <text>Quels films font partie des grands classiques du cinéma français ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Les Enfants du paradis (1945)</option>
+                <option id="B">La Règle du jeu (1939)</option>
+                <option id="C">Le Parrain (1972)</option>
+                <option id="D">Les Parapluies de Cherbourg (1964)</option>
+                <option id="E">Le Salaire de la peur (1953)</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>"Les Enfants du paradis" de Marcel Carné, "La Règle du jeu" de Jean Renoir, "Les Parapluies de Cherbourg" de Jacques Demy et "Le Salaire de la peur" d'Henri-Georges Clouzot sont des classiques du patrimoine cinématographique français. "Le Parrain" est un film américain de Francis Ford Coppola.</explanation>
+        </question>
+
+        <question id="4" type="single" theme="Grands classiques du cinéma français">
+            <text>Dans quel film de 1966 Bourvil et Louis de Funès traversent-ils la France occupée pour aider des aviateurs anglais ?</text>
+            <options>
+                <option id="A">Le Corniaud</option>
+                <option id="B">La Grande Vadrouille</option>
+                <option id="C">La Traversée de Paris</option>
+                <option id="D">Le Jour le plus long</option>
+            </options>
+            <answer>B</answer>
+            <explanation>"La Grande Vadrouille" (1966), réalisée par Gérard Oury, réunit Bourvil (Augustin Bouvet, le peintre) et Louis de Funès (Stanislas Lefort, le chef d'orchestre). Avec plus de 17 millions d'entrées, il a détenu le record d'entrées en France pendant plus de trente ans.</explanation>
+        </question>
+
+        <question id="5" type="single" theme="Grands classiques du cinéma français">
+            <text>Qui sont les pionniers français ayant organisé la première projection publique payante de cinéma en décembre 1895 ?</text>
+            <options>
+                <option id="A">Georges Méliès et Charles Pathé</option>
+                <option id="B">Les frères Lumière (Auguste et Louis)</option>
+                <option id="C">Léon Gaumont et Alice Guy</option>
+                <option id="D">Émile Reynaud et Étienne-Jules Marey</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Les frères Auguste et Louis Lumière ont organisé la première projection publique payante le 28 décembre 1895, au Salon indien du Grand Café à Paris. Ils y ont notamment projeté "La Sortie de l'usine Lumière à Lyon", considérée comme l'un des premiers films de l'histoire.</explanation>
+        </question>
+
+        <question id="6" type="single" theme="Grands classiques du cinéma français">
+            <text>Quel film de Jean-Luc Godard sorti en 1960, avec Jean-Paul Belmondo et Jean Seberg, est un manifeste de la Nouvelle Vague ?</text>
+            <options>
+                <option id="A">Pierrot le Fou</option>
+                <option id="B">Le Mépris</option>
+                <option id="C">À bout de souffle</option>
+                <option id="D">Alphaville</option>
+            </options>
+            <answer>C</answer>
+            <explanation>"À bout de souffle" (1960) est le premier long métrage de Jean-Luc Godard. Tourné caméra à l'épaule, en décors naturels et avec un montage volontairement heurté (les fameux "faux raccords"), il a bousculé les codes du cinéma classique et symbolise l'esprit de la Nouvelle Vague.</explanation>
+        </question>
+
+        <!-- ===================== ACTEURS ET ACTRICES ===================== -->
+        <question id="7" type="single" theme="Acteurs et actrices">
+            <text>Quelle actrice française a remporté l'Oscar de la Meilleure actrice en 2008 pour son rôle d'Édith Piaf dans "La Môme" ?</text>
+            <options>
+                <option id="A">Juliette Binoche</option>
+                <option id="B">Marion Cotillard</option>
+                <option id="C">Audrey Tautou</option>
+                <option id="D">Léa Seydoux</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Marion Cotillard a reçu l'Oscar de la Meilleure actrice en 2008 pour son interprétation d'Édith Piaf dans "La Môme" d'Olivier Dahan. Elle est devenue la première actrice à obtenir cet Oscar pour un rôle joué intégralement en langue française.</explanation>
+        </question>
+
+        <question id="8" type="single" theme="Acteurs et actrices">
+            <text>Quel duo d'acteurs tient les rôles principaux du film "Intouchables" (2011) ?</text>
+            <options>
+                <option id="A">Jean Dujardin et Gilles Lellouche</option>
+                <option id="B">Kad Merad et Dany Boon</option>
+                <option id="C">Omar Sy et François Cluzet</option>
+                <option id="D">Vincent Cassel et Romain Duris</option>
+            </options>
+            <answer>C</answer>
+            <explanation>"Intouchables", d'Olivier Nakache et Éric Toledano, réunit Omar Sy (Driss) et François Cluzet (Philippe). Le film a dépassé les 19 millions d'entrées en France et Omar Sy y a obtenu le César du Meilleur acteur en 2012.</explanation>
+        </question>
+
+        <question id="9" type="multiple" theme="Acteurs et actrices">
+            <text>Quels acteurs sont des figures majeures du cinéma français des années 1960-1980 ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Jean Gabin</option>
+                <option id="B">Alain Delon</option>
+                <option id="C">Marcello Mastroianni</option>
+                <option id="D">Jean-Paul Belmondo</option>
+                <option id="E">Lino Ventura</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>Jean Gabin, Alain Delon, Jean-Paul Belmondo et Lino Ventura sont des monuments du cinéma français de cette période, souvent réunis dans des films policiers et des polars. Marcello Mastroianni était un acteur italien, même s'il a tourné plusieurs fois en France.</explanation>
+        </question>
+
+        <question id="10" type="single" theme="Acteurs et actrices">
+            <text>Quel acteur français a obtenu l'Oscar du Meilleur acteur en 2012 pour "The Artist" ?</text>
+            <options>
+                <option id="A">Jean Dujardin</option>
+                <option id="B">Gérard Depardieu</option>
+                <option id="C">Vincent Lindon</option>
+                <option id="D">Mathieu Amalric</option>
+            </options>
+            <answer>A</answer>
+            <explanation>Jean Dujardin a reçu l'Oscar du Meilleur acteur en 2012 pour "The Artist" de Michel Hazanavicius, un film muet en noir et blanc. Il est le premier acteur français à obtenir cette récompense, et le film a également remporté l'Oscar du Meilleur film.</explanation>
+        </question>
+
+        <question id="11" type="single" theme="Acteurs et actrices">
+            <text>Quelle actrice a joué dans "Les Parapluies de Cherbourg", "Belle de jour" et "Indochine" ?</text>
+            <options>
+                <option id="A">Jeanne Moreau</option>
+                <option id="B">Catherine Deneuve</option>
+                <option id="C">Isabelle Adjani</option>
+                <option id="D">Brigitte Bardot</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Catherine Deneuve a tourné "Les Parapluies de Cherbourg" (Jacques Demy), "Belle de jour" (Luis Buñuel) et "Indochine" (Régis Wargnier). Sa carrière s'étend sur plus de soixante ans et elle a reçu deux Césars de la Meilleure actrice, pour "Le Dernier Métro" et "Indochine".</explanation>
+        </question>
+
+        <question id="12" type="single" theme="Acteurs et actrices">
+            <text>Quel acteur a incarné Cyrano de Bergerac dans le film de Jean-Paul Rappeneau en 1990 ?</text>
+            <options>
+                <option id="A">Fabrice Luchini</option>
+                <option id="B">Christian Clavier</option>
+                <option id="C">Gérard Depardieu</option>
+                <option id="D">Daniel Auteuil</option>
+            </options>
+            <answer>C</answer>
+            <explanation>Gérard Depardieu incarne Cyrano dans l'adaptation d'Edmond Rostand réalisée par Jean-Paul Rappeneau en 1990. Le rôle lui a valu le César du Meilleur acteur ainsi que le Prix d'interprétation masculine au Festival de Cannes.</explanation>
+        </question>
+
+        <!-- ===================== RÉALISATEURS FRANÇAIS ===================== -->
+        <question id="13" type="single" theme="Réalisateurs français">
+            <text>Qui a réalisé "Les Quatre Cents Coups" (1959), premier film du cycle consacré à Antoine Doinel ?</text>
+            <options>
+                <option id="A">Claude Chabrol</option>
+                <option id="B">François Truffaut</option>
+                <option id="C">Éric Rohmer</option>
+                <option id="D">Alain Resnais</option>
+            </options>
+            <answer>B</answer>
+            <explanation>François Truffaut a réalisé "Les Quatre Cents Coups" en 1959, avec Jean-Pierre Léaud dans le rôle d'Antoine Doinel, personnage largement inspiré de sa propre enfance. Le film lui a valu le Prix de la mise en scène à Cannes et a lancé la Nouvelle Vague.</explanation>
+        </question>
+
+        <question id="14" type="multiple" theme="Réalisateurs français">
+            <text>Quels réalisateurs sont associés au mouvement de la Nouvelle Vague ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">François Truffaut</option>
+                <option id="B">Jean-Luc Godard</option>
+                <option id="C">Luc Besson</option>
+                <option id="D">Claude Chabrol</option>
+                <option id="E">Agnès Varda</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>La Nouvelle Vague, à la fin des années 1950 et dans les années 1960, réunit notamment François Truffaut, Jean-Luc Godard, Claude Chabrol, Éric Rohmer, Jacques Rivette et Agnès Varda. Luc Besson appartient à une génération bien postérieure, celle du "cinéma du look" des années 1980.</explanation>
+        </question>
+
+        <question id="15" type="single" theme="Réalisateurs français">
+            <text>Quel réalisateur a signé "Le Grand Bleu", "Nikita", "Léon" et "Le Cinquième Élément" ?</text>
+            <options>
+                <option id="A">Jean-Jacques Beineix</option>
+                <option id="B">Luc Besson</option>
+                <option id="C">Léos Carax</option>
+                <option id="D">Jacques Audiard</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Luc Besson a réalisé ces quatre films entre 1988 et 1997. Son style visuel spectaculaire et son ambition internationale ont marqué le cinéma français ; il a également fondé la société de production EuropaCorp et les studios de la Cité du Cinéma.</explanation>
+        </question>
+
+        <question id="16" type="single" theme="Réalisateurs français">
+            <text>Quel cinéaste français a créé le personnage de Monsieur Hulot ?</text>
+            <options>
+                <option id="A">Jacques Tati</option>
+                <option id="B">Pierre Étaix</option>
+                <option id="C">Marcel Pagnol</option>
+                <option id="D">Sacha Guitry</option>
+            </options>
+            <answer>A</answer>
+            <explanation>Jacques Tati a créé et interprété Monsieur Hulot, personnage maladroit et silencieux, dans "Les Vacances de Monsieur Hulot" (1953), "Mon Oncle" (1958), "Playtime" (1967) et "Trafic" (1971). "Mon Oncle" a remporté l'Oscar du Meilleur film en langue étrangère.</explanation>
+        </question>
+
+        <question id="17" type="single" theme="Réalisateurs français">
+            <text>Qui est le réalisateur du film de science-fiction pionnier "Le Voyage dans la Lune" (1902) ?</text>
+            <options>
+                <option id="A">Louis Feuillade</option>
+                <option id="B">Georges Méliès</option>
+                <option id="C">Charles Pathé</option>
+                <option id="D">Abel Gance</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Georges Méliès, illusionniste devenu cinéaste, a réalisé "Le Voyage dans la Lune" en 1902. Pionnier des trucages et des effets spéciaux, il est considéré comme l'inventeur du cinéma de fiction et du spectacle cinématographique.</explanation>
+        </question>
+
+        <question id="18" type="multiple" theme="Réalisateurs français">
+            <text>Quels films ont été réalisés par Jean-Pierre Jeunet ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Delicatessen</option>
+                <option id="B">La Cité des enfants perdus</option>
+                <option id="C">Le Fabuleux Destin d'Amélie Poulain</option>
+                <option id="D">Le Pacte des loups</option>
+                <option id="E">Un long dimanche de fiançailles</option>
+            </options>
+            <answer>A,B,C,E</answer>
+            <explanation>Jean-Pierre Jeunet a réalisé "Delicatessen" (1991) et "La Cité des enfants perdus" (1995) avec Marc Caro, puis "Le Fabuleux Destin d'Amélie Poulain" (2001) et "Un long dimanche de fiançailles" (2004). "Le Pacte des loups" (2001) est un film de Christophe Gans.</explanation>
+        </question>
+
+        <!-- ===================== COMÉDIES CULTES FRANÇAISES ===================== -->
+        <question id="19" type="single" theme="Comédies cultes françaises">
+            <text>Quel film de Dany Boon sorti en 2008 détient le record d'entrées pour un film français en France ?</text>
+            <options>
+                <option id="A">Rien à déclarer</option>
+                <option id="B">Bienvenue chez les Ch'tis</option>
+                <option id="C">La Ch'tite famille</option>
+                <option id="D">Supercondriaque</option>
+            </options>
+            <answer>B</answer>
+            <explanation>"Bienvenue chez les Ch'tis" (2008), réalisé et interprété par Dany Boon aux côtés de Kad Merad, a réuni plus de 20 millions de spectateurs en France. Il détient le record d'entrées pour un film français et a détrôné "La Grande Vadrouille".</explanation>
+        </question>
+
+        <question id="20" type="single" theme="Comédies cultes françaises">
+            <text>Dans "Les Visiteurs" (1993), quels acteurs incarnent Godefroy de Montmirail et son écuyer Jacquouille ?</text>
+            <options>
+                <option id="A">Jean Reno et Christian Clavier</option>
+                <option id="B">Gérard Jugnot et Thierry Lhermitte</option>
+                <option id="C">Michel Blanc et Josiane Balasko</option>
+                <option id="D">Daniel Auteuil et Fabrice Luchini</option>
+            </options>
+            <answer>A</answer>
+            <explanation>Dans "Les Visiteurs" de Jean-Marie Poiré, Jean Reno joue le chevalier Godefroy de Montmirail et Christian Clavier son écuyer Jacquouille la Fripouille, projetés du Moyen Âge à la fin du XXe siècle. Le film a dépassé les 13 millions d'entrées.</explanation>
+        </question>
+
+        <question id="21" type="multiple" theme="Comédies cultes françaises">
+            <text>Quels films sont issus de la troupe du Splendid ou de ses membres ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Les Bronzés</option>
+                <option id="B">Le Père Noël est une ordure</option>
+                <option id="C">Le Grand Bleu</option>
+                <option id="D">Papy fait de la résistance</option>
+                <option id="E">Les Bronzés font du ski</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>La troupe du Splendid (Thierry Lhermitte, Josiane Balasko, Michel Blanc, Christian Clavier, Gérard Jugnot, Marie-Anne Chazel, Bruno Moynot) est à l'origine des "Bronzés", du "Père Noël est une ordure" et de "Papy fait de la résistance". "Le Grand Bleu" est un film d'aventure de Luc Besson.</explanation>
+        </question>
+
+        <question id="22" type="single" theme="Comédies cultes françaises">
+            <text>Quel acteur incarne François Pignon, le "con" invité à dîner, dans "Le Dîner de cons" (1998) ?</text>
+            <options>
+                <option id="A">Thierry Lhermitte</option>
+                <option id="B">Jacques Villeret</option>
+                <option id="C">Daniel Prévost</option>
+                <option id="D">Francis Huster</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Jacques Villeret incarne François Pignon, le passionné de maquettes en allumettes, face à Thierry Lhermitte dans le rôle de Pierre Brochant. Le film de Francis Veber, adapté de sa propre pièce, a valu à Villeret le César du Meilleur acteur en 1999.</explanation>
+        </question>
+
+        <question id="23" type="single" theme="Comédies cultes françaises">
+            <text>Qui a réalisé "Astérix et Obélix : Mission Cléopâtre" (2002), où il joue également le rôle de Jules César ?</text>
+            <options>
+                <option id="A">Alain Chabat</option>
+                <option id="B">Claude Zidi</option>
+                <option id="C">Dany Boon</option>
+                <option id="D">Gérard Oury</option>
+            </options>
+            <answer>A</answer>
+            <explanation>Alain Chabat, ancien membre des Nuls, a réalisé "Astérix et Obélix : Mission Cléopâtre" tout en interprétant Jules César. Avec Christian Clavier, Gérard Depardieu, Jamel Debbouze et Monica Bellucci, le film a réuni plus de 14 millions de spectateurs.</explanation>
+        </question>
+
+        <question id="24" type="single" theme="Comédies cultes françaises">
+            <text>Dans quelle série de films Louis de Funès incarne-t-il le maréchal des logis-chef Ludovic Cruchot ?</text>
+            <options>
+                <option id="A">La série des Fantômas</option>
+                <option id="B">La série du Gendarme de Saint-Tropez</option>
+                <option id="C">La série des Grandes Vacances</option>
+                <option id="D">La série de La Soupe aux choux</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Louis de Funès joue le gendarme Ludovic Cruchot dans la saga du "Gendarme", commencée avec "Le Gendarme de Saint-Tropez" (1964) et poursuivie sur six films jusqu'en 1982. C'est l'un des rôles les plus populaires de sa carrière, aux côtés de Michel Galabru.</explanation>
+        </question>
+
+        <!-- ===================== RÉCOMPENSES ET FESTIVALS ===================== -->
+        <question id="25" type="single" theme="Récompenses et festivals">
+            <text>Quelle est la récompense suprême décernée au Festival de Cannes ?</text>
+            <options>
+                <option id="A">Le Lion d'or</option>
+                <option id="B">L'Ours d'or</option>
+                <option id="C">La Palme d'or</option>
+                <option id="D">Le César d'or</option>
+            </options>
+            <answer>C</answer>
+            <explanation>La Palme d'or récompense le meilleur film de la compétition officielle du Festival de Cannes. Le Lion d'or est décerné à Venise et l'Ours d'or à Berlin ; ces trois festivals forment les grands rendez-vous du cinéma européen.</explanation>
+        </question>
+
+        <question id="26" type="single" theme="Récompenses et festivals">
+            <text>Comment s'appelle la principale cérémonie de récompenses du cinéma français, créée en 1976 ?</text>
+            <options>
+                <option id="A">Les Molières</option>
+                <option id="B">Les Césars</option>
+                <option id="C">Les Victoires du cinéma</option>
+                <option id="D">Les Lumières</option>
+            </options>
+            <answer>B</answer>
+            <explanation>La cérémonie des Césars, dont la première édition s'est tenue en 1976, récompense chaque année les meilleurs films et artistes du cinéma français. Le trophée est une sculpture réalisée par l'artiste César Baldaccini, qui a donné son nom à la récompense. Les Molières concernent le théâtre.</explanation>
+        </question>
+
+        <question id="27" type="multiple" theme="Récompenses et festivals">
+            <text>Quels films français ont remporté la Palme d'or à Cannes ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">La Vie d'Adèle (2013)</option>
+                <option id="B">Entre les murs (2008)</option>
+                <option id="C">Intouchables (2011)</option>
+                <option id="D">Titane (2021)</option>
+                <option id="E">Anatomie d'une chute (2023)</option>
+            </options>
+            <answer>A,B,D,E</answer>
+            <explanation>"La Vie d'Adèle" d'Abdellatif Kechiche, "Entre les murs" de Laurent Cantet, "Titane" de Julia Ducournau et "Anatomie d'une chute" de Justine Triet ont tous reçu la Palme d'or. "Intouchables", malgré son immense succès public, n'a pas été présenté en compétition à Cannes.</explanation>
+        </question>
+
+        <question id="28" type="single" theme="Récompenses et festivals">
+            <text>À quelle période de l'année se déroule habituellement le Festival de Cannes ?</text>
+            <options>
+                <option id="A">En février</option>
+                <option id="B">En mai</option>
+                <option id="C">En septembre</option>
+                <option id="D">En décembre</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Le Festival de Cannes se tient chaque année au mois de mai, sur la Croisette, au Palais des Festivals. Créé en 1946, il est devenu le festival de cinéma le plus médiatisé au monde, avec sa montée des marches et son tapis rouge.</explanation>
+        </question>
+
+        <question id="29" type="single" theme="Récompenses et festivals">
+            <text>Quelle cinéaste française, seule femme majeure de la Nouvelle Vague, a reçu un Oscar d'honneur pour l'ensemble de sa carrière ?</text>
+            <options>
+                <option id="A">Claire Denis</option>
+                <option id="B">Agnès Varda</option>
+                <option id="C">Coline Serreau</option>
+                <option id="D">Diane Kurys</option>
+            </options>
+            <answer>B</answer>
+            <explanation>Agnès Varda, réalisatrice de "Cléo de 5 à 7" (1962), "Sans toit ni loi" (1985) et du documentaire "Visages Villages", a reçu un Oscar d'honneur pour l'ensemble de sa carrière. Elle est considérée comme une figure pionnière et la seule femme au cœur de la Nouvelle Vague.</explanation>
+        </question>
+
+        <question id="30" type="multiple" theme="Récompenses et festivals">
+            <text>Quelles affirmations sur les récompenses du cinéma français sont exactes ? (plusieurs réponses possibles)</text>
+            <options>
+                <option id="A">Isabelle Adjani détient le record de Césars de la Meilleure actrice</option>
+                <option id="B">"The Artist" a remporté l'Oscar du Meilleur film</option>
+                <option id="C">La Palme d'or est décernée par un jury présidé par une personnalité du cinéma</option>
+                <option id="D">Le César du Meilleur film est décerné par le public via un vote en ligne</option>
+                <option id="E">"Le Dernier Métro" de François Truffaut a remporté 10 Césars en 1981</option>
+            </options>
+            <answer>A,B,C,E</answer>
+            <explanation>Isabelle Adjani a remporté cinq fois le César de la Meilleure actrice, un record. "The Artist" de Michel Hazanavicius a obtenu l'Oscar du Meilleur film en 2012. La Palme d'or est attribuée par un jury international présidé par une personnalité du cinéma, et "Le Dernier Métro" a raflé 10 Césars en 1981. En revanche, les Césars sont votés par les membres de l'Académie des arts et techniques du cinéma, et non par le public.</explanation>
+        </question>
+
+    </questions>
+</quiz>

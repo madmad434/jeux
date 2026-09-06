@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Décodage</title>
+<link rel="icon" type="image/webp" href="../assets/favicons/jeux.webp">
+<style>
+  :root {
+    --bg: #C2F6FF;
+    --card: #ffffff;
+    --text: #0a1a3e;
+    --text-light: #2a6080;
+    --border: #7dd8f0;
+    --accent: #38B6FF;
+    --accent-dark: #1a8fd4;
+    --accent2: #0a6ea0;
+    --ink: #0a1a3e;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --radius: 12px;
+    --gsize: 72px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { height: 100%; }
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh; max-height: 100vh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex: 1; overflow: hidden; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── SCREEN ACCUEIL ── */
+  #screen-accueil { align-items: center; justify-content: center; padding: 20px; gap: 16px; }
+  .welcome-card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 32px 40px; max-width: 500px; width: 100%; text-align: center;
+  }
+  .welcome-title { font-size: 2.4rem; font-weight: 900; letter-spacing: 4px; color: #38B6FF; margin-bottom: 4px; }
+  .welcome-title span { color: #1a8fd4; }
+  .welcome-sub { color: var(--text-light); font-size: 0.9rem; margin-bottom: 24px; }
+
+  .source-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 0.9rem; font-weight: 600; font-family: inherit;
+    transition: all 0.15s ease; text-decoration: none;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .btn:active { transform: translateY(0); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-secondary { background: #ddf4ff; color: #1a6ea0; border: 1.5px solid #38B6FF; }
+  .btn-secondary:hover { background: #C2F6FF; }
+  .btn-neutral { background: #f3f4f6; color: #374151; }
+  .btn-neutral:hover { background: #e5e7eb; }
+  .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+  #file-input { display: none; }
+  .file-label {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px; border: 2px dashed var(--border); border-radius: 8px;
+    cursor: pointer; color: var(--text-light); font-size: 0.85rem; transition: all 0.15s;
+  }
+  .file-label:hover { border-color: #38B6FF; color: #1a6ea0; background: #ddf4ff; }
+  #file-name { font-size: 0.75rem; color: var(--text-light); margin-top: 4px; min-height: 16px; }
+
+  /* ── RÈGLES ── */
+  .rules-panel {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 480px; max-width: 92vw;
+    background: var(--card); box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+    z-index: 100; padding: 20px 24px; overflow-y: auto;
+    transform: translateX(-100%); transition: transform 0.3s ease;
+  }
+  .rules-panel.open { transform: translateX(0); }
+  .rules-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; }
+  .rules-overlay.open { display: block; }
+  .rules-panel h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; color: #38B6FF; }
+  .rules-panel h4 { font-size: 0.82rem; font-weight: 800; color: #38B6FF; margin: 10px 0 5px; }
+  .rules-panel p, .rules-panel li { font-size: 0.78rem; line-height: 1.6; color: #374151; }
+  .rules-panel ul { padding-left: 16px; margin-top: 4px; }
+  .rules-panel li { margin-bottom: 3px; }
+
+  /* ── TABLE DE RÉFÉRENCE (fenêtre latérale, disponible en permanence) ── */
+  .ref-panel {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 330px; max-width: 92vw;
+    background: var(--card); box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    z-index: 98; padding: 14px 16px; overflow-y: auto;
+    transform: translateX(100%); transition: transform 0.3s ease;
+  }
+  .ref-panel.open { transform: translateX(0); }
+  /* La table est posee par-dessus la page. Sans precaution elle masquait la
+     fin du message, a droite : les derniers signes a trouver etaient hors de
+     vue. Tant qu'elle est ouverte, l'ecran de jeu se retracte de la largeur
+     de la table ; la zone des signes retrecit donc, et « ajusterTaille »
+     recalcule des caracteres plus petits pour que tout reste visible. */
+  #screen-jeu { transition: padding-right 0.3s ease; }
+  body.ref-ouverte #screen-jeu { padding-right: 330px; }
+  /* Sur un ecran etroit la table occupe presque toute la largeur : lui
+     reserver la place laisserait le jeu invisible. On la referme alors en la
+     laissant recouvrir, l'utilisateur bascule de l'un a l'autre. */
+  @media (max-width: 900px) { body.ref-ouverte #screen-jeu { padding-right: 0; } }
+  .ref-panel .ref-tools { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+  .ref-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .ref-head h3 { font-size: 1rem; font-weight: 800; color: #38B6FF; }
+  .ref-note {
+    font-size: 0.72rem; line-height: 1.5; color: #374151;
+    background: #ddf4ff; border: 1px solid #38B6FF; border-radius: 8px; padding: 7px 9px; margin-top: 10px;
+  }
+  .ref-blocks { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  .ref-block { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ref-block-lbl { font-size: 0.62rem; font-weight: 800; color: var(--text-light); letter-spacing: 0.6px; }
+
+  /* Grille Pigpen de référence : divs + bordures CSS, point centré via ::after */
+  .pp-grid { display: grid; grid-template-columns: repeat(3,34px); grid-template-rows: repeat(3,34px); }
+  .pp-cell { position: relative; }
+  .pp-cell.t { border-top: 2px solid var(--ink); }
+  .pp-cell.b { border-bottom: 2px solid var(--ink); }
+  .pp-cell.l { border-left: 2px solid var(--ink); }
+  .pp-cell.r { border-right: 2px solid var(--ink); }
+  .pp-cell .lt { position: absolute; top: 1px; left: 3px; font-size: 0.6rem; font-weight: 900; color: #1a8fd4; }
+  .pp-cell.dot::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+                        width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+
+  .ref-morse { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; }
+  .ref-morse .rm { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; font-weight: 800; color: #0a3050; }
+  .ref-morse .rm .morse-code { font-size: 11px; }
+  .ref-morse .rm.mirror { background: #fef3c7; border-radius: 5px; padding: 0 4px; }
+
+  /* La table des vingt chiffres tenait dans le tiers superieur du panneau,
+     en signes de 34 px, alors que la place ne manque pas. Les signes sont
+     agrandis, et se retrecissent d'eux-memes sur un ecran peu haut. */
+  .ref-maya { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px 8px; }
+  .ref-maya .rmy { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .ref-maya .rmy svg { width: clamp(34px, 7vh, 54px); height: clamp(34px, 7vh, 54px); }
+  .ref-maya .rmy span { font-size: 0.78rem; font-weight: 800; color: #0a3050; }
+
+  /* ── SCREEN CONFIG ── */
+  #screen-config { align-items: center; justify-content: center; padding: 16px; gap: 12px; }
+  .config-card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 24px 32px; max-width: 600px; width: 100%;
+  }
+  .config-card h2 { font-size: 1.1rem; font-weight: 800; color: #38B6FF; margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase; }
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .config-item { display: flex; flex-direction: column; gap: 4px; }
+  .config-item label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); }
+  .config-item select, .config-item input[type=range] {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 6px; padding: 6px 10px;
+    font-size: 0.85rem; font-family: inherit; background: #fafafa; color: var(--text); outline: none; transition: border-color 0.15s;
+  }
+  .config-item select:focus { border-color: #38B6FF; }
+  .config-item select:disabled { background: #eef2f5; color: #94a3b8; }
+  .range-val { font-size: 0.85rem; font-weight: 700; color: #38B6FF; }
+  .toggle-group { display: flex; flex-direction: column; gap: 8px; }
+  .toggle-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .toggle-item input[type=checkbox] { accent-color: #38B6FF; width: 16px; height: 16px; }
+  .toggle-item span { font-size: 0.82rem; color: #374151; }
+  .source-info { background: #ddf4ff; border: 1px solid #38B6FF; border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: #0a3050; margin-bottom: 12px; }
+  .source-info strong { color: #1a6ea0; }
+  .cfg-warn { font-size: 0.72rem; color: #b45309; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 5px 8px; margin-bottom: 10px; }
+  .btn-row { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ── SCREEN JEU ── */
+  #screen-jeu { flex-direction: row; overflow: hidden; }
+  .jeu-panel { width: 104px; flex-shrink: 0; display: flex; flex-direction: column; background: #38B6FF; padding: 8px 6px; gap: 5px; overflow: hidden; }
+  #jeu-panel-left  { border-right: 2px solid #1a8fd4; }
+  #jeu-panel-right { border-left:  2px solid #1a8fd4; }
+  .panel-logo { font-size: 0.75rem; font-weight: 900; letter-spacing: 2px; color: #fff; text-align: center; font-family: 'Georgia', serif; flex-shrink: 0; }
+  .panel-logo span { color: #C2F6FF; }
+  .panel-sep { border: none; border-top: 1px solid rgba(255,255,255,0.4); flex-shrink: 0; }
+  .panel-block { background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); border-radius: 7px; padding: 5px 6px; flex-shrink: 0; }
+  .panel-lbl { font-size: 0.54rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.85); margin-bottom: 1px; }
+  .panel-val { font-size: 1rem; font-weight: 800; color: #fff; font-family: 'Courier New', monospace; text-align: center; line-height: 1.2; }
+  .panel-val.sm { font-size: 0.82rem; }
+  .panel-progress-wrap { background: rgba(255,255,255,0.3); border-radius: 99px; height: 5px; margin-top: 3px; }
+  .panel-progress-fill { height: 100%; border-radius: 99px; background: #C2F6FF; transition: width 0.4s ease; }
+  .panel-spacer { flex: 1; min-height: 0; }
+  .panel-nav-btn {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 7px;
+    padding: 6px; font-size: 0.65rem; font-weight: 700; cursor: pointer; color: #fff;
+    font-family: inherit; transition: all 0.12s; width: 100%; flex-shrink: 0;
+  }
+  .panel-nav-btn:hover { background: rgba(255,255,255,0.4); border-color: #fff; color: #0a1a3e; }
+  .panel-nav-btn.accent { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.6); }
+  .panel-nav-btn.accent:hover { background: rgba(255,255,255,0.5); }
+  .panel-nav-btn.danger { background: rgba(231,76,60,0.25); border-color: #fca5a5; color: #fff; }
+  .panel-nav-btn.danger:hover { background: rgba(231,76,60,0.45); }
+
+  .jeu-main { flex: 1; display: flex; flex-direction: column; padding: 6px 8px; overflow: hidden; gap: 4px; min-height: 0; }
+
+  /* Bandeau info : catégorie du texte à décoder */
+  #hint-bar {
+    flex-shrink: 0; background: #38B6FF; border: 1px solid #1a8fd4; border-radius: 6px;
+    padding: 4px 10px; font-size: 0.68rem; color: #fff;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .hint-lbl { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.8); margin-bottom: 1px; }
+  #categorie-display { font-weight: 900; font-size: 1rem; color: #fff; letter-spacing: 3px; font-family: 'Courier New', monospace; text-transform: uppercase; }
+  #hint-right { font-size: 0.68rem; color: rgba(255,255,255,0.92); flex-shrink: 0; text-align: right; line-height: 1.5; }
+
+  .game-zone { flex: 1; display: flex; flex-direction: column; gap: 4px; min-height: 0; overflow: hidden; }
+
+  /* Zone des signes codés */
+  #msg-zone {
+    flex: 1; min-height: 0; display: flex; flex-wrap: wrap;
+    align-content: center; justify-content: center;
+    /* « safe » : quand le contenu est plus grand que la zone, le centrage cede
+       la place a un alignement au debut — sans quoi le debut du message
+       deborde vers le haut et vers la gauche sans pouvoir etre atteint. */
+    align-content: safe center; justify-content: safe center;
+    gap: 10px 12px; padding: 10px 12px; background: #fff; border: 1.5px solid var(--border); border-radius: 8px; overflow: auto;
+  }
+  .mot { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .glyph-col { display: flex; flex-direction: column; align-items: center; gap: 4px; --cw: var(--gsize); }
+  #msg-zone.th-morse .glyph-col { --cw: calc(var(--gsize) * 1.35); }
+  .glyph-box {
+    width: var(--cw); height: var(--gsize); display: flex; align-items: center; justify-content: center;
+    background: #ddf4ff; border: 2px solid var(--border); border-radius: 8px; padding: 5px;
+  }
+  .glyph-box svg { width: 100%; height: 100%; overflow: visible; }
+  .morse-code { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; }
+  .mo-d { width: .34em; height: .34em; border-radius: 50%; background: var(--ink); }
+  .mo-t { width: .9em;  height: .26em; border-radius: 2px;  background: var(--ink); }
+
+  .slot {
+    width: var(--cw); height: var(--sloth, 28px); display: flex; align-items: center; justify-content: center;
+    background: #fff; border: 2px dashed var(--border); border-radius: 6px;
+    font-family: 'Courier New', monospace; font-weight: 900;
+    font-size: calc(var(--sloth, 28px) * 0.6); color: #0a3050;
+  }
+
+  /* Espace entre deux mots d'une phrase : la longueur de chaque mot reste lisible */
+  .space-col { display: flex; flex-direction: column; align-items: center; gap: 4px; width: calc(var(--gsize) * 0.42); }
+  .space-col .sp-box { width: 100%; height: var(--gsize); }
+  .space-col .sp-slot {
+    width: 100%; height: var(--sloth, 28px); display: flex; align-items: center; justify-content: center;
+    color: #2a6080; font-size: calc(var(--sloth, 28px) * 0.55); font-weight: 900;
+    border-bottom: 3px solid var(--border); border-radius: 2px; background: #eef8fd;
+  }
+  .slot.current { border-style: solid; border-color: #38B6FF; box-shadow: 0 0 0 3px rgba(56,182,255,0.25); }
+  .slot.ok { background: #dcfce7; border: 2px solid #16a34a; color: #14532d; }
+  .slot.ko { background: #fee2e2; border: 2px solid #e74c3c; color: #991b1b; text-decoration: line-through; }
+  .slot .corr { font-size: .6rem; margin-left: 5px; color: #14532d; text-decoration: none; font-weight: 900; }
+  .glyph-col.ok .glyph-box { border-color: #16a34a; }
+  .glyph-col.ko .glyph-box { border-color: #e74c3c; }
+  .shake { animation: shake 0.4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+  /* Clavier virtuel */
+  #keyboard-zone { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 0 2px; }
+  #keyboard { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+  #keyboard.locked { opacity: 0.45; pointer-events: none; }
+  .kb-row { display: flex; gap: 3px; align-items: center; }
+  .kb-key {
+    width: 36px; height: 32px; border-radius: 4px; background: #e5e7eb; border: 1px solid #d1d5db; cursor: pointer;
+    font-size: 0.85rem; font-weight: 900; font-family: 'Courier New', monospace; color: #1a1a2e;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; user-select: none; transition: background 0.1s;
+  }
+  .kb-key:hover { background: #C2F6FF; }
+  .kb-key:active { transform: scale(0.95); }
+  .kb-key.wide { width: 74px; font-size: 0.7rem; }
+  .kb-key.valider { background: #38B6FF; color: #fff; border-color: #1a8fd4; }
+  .kb-key.valider:hover { background: #1a8fd4; }
+  .kb-key.suppr { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+  /* ── MODALS ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    padding: 28px 36px; max-width: 460px; width: 90%; text-align: center; animation: popIn 0.3s ease;
+  }
+  @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+  .modal .emoji { font-size: 3rem; margin-bottom: 8px; }
+  .modal h2 { font-size: 1.5rem; font-weight: 900; margin-bottom: 8px; }
+  .modal p { font-size: 0.9rem; color: #374151; margin-bottom: 14px; }
+  .modal .mot-reveal {
+    font-size: 1.15rem; font-weight: 900; color: #1a6ea0; letter-spacing: 3px;
+    background: #C2F6FF; border-radius: 8px; padding: 8px 16px; margin-bottom: 8px; display: inline-block;
+  }
+  .modal .groupe-reveal { font-size: 0.8rem; color: var(--text-light); margin-bottom: 12px; }
+  .modal-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  #modal-recap .modal { max-height: 90vh; overflow-y: auto; max-width: 600px; width: 95%; padding: 24px 28px; }
+  #modal-recap .recap-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.76rem; }
+  #modal-recap .recap-table th, #modal-recap .recap-table td { padding: 5px 8px; text-align: center; border: 1px solid var(--border); }
+  #modal-recap .recap-table th { background: #38B6FF; color: #fff; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.3px; }
+  #modal-recap .recap-table tr.win td:first-child { color: #27ae60; font-weight: 700; }
+  #modal-recap .recap-table tr.lose td:first-child { color: #e74c3c; font-weight: 700; }
+  #modal-recap .score-big { font-size: 2rem; font-weight: 900; color: #38B6FF; margin: 4px 0; }
+  #modal-recap .modal-btns { margin-top: 14px; }
+
+  @media (max-width: 620px) {
+    .jeu-panel { width: 84px; }
+    .kb-key { width: 30px; height: 30px; font-size: 0.75rem; }
+    .modal { padding: 20px; }
+  }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ RÈGLES ══ -->
+<div class="rules-overlay" id="rules-overlay" onclick="closeRules()"></div>
+<div class="rules-panel" id="rules-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <h3>📖 Aide &amp; Règles</h3>
+    <button class="btn btn-neutral btn-sm" onclick="closeRules()">✕</button>
+  </div>
+
+  <h4>🎯 Principe du jeu</h4>
+  <p>Un message s'affiche <strong>codé</strong>, un signe par case. Vous le décodez <strong>signe par signe</strong> à l'aide du clavier virtuel ou de votre clavier physique. La <strong>catégorie</strong> du texte (animaux, pays, films…) est rappelée en haut de la zone de jeu : c'est votre seul indice sur le contenu.</p>
+  <p style="margin-top:6px;">Le retour est immédiat : la case devient verte si la réponse est juste, rouge sinon — et la bonne réponse apparaît alors en petit. Une erreur ne bloque jamais : on avance avec un malus.</p>
+
+  <hr class="divider">
+  <h4>🔤 Les trois codes</h4>
+  <ul>
+    <li><strong>Chiffre de Pigpen</strong> — chaque lettre prend la forme des parois de sa case. Un point au centre signale la seconde grille.</li>
+    <li><strong>Morse</strong> — points et traits, table internationale complète.</li>
+    <li><strong>Numération maya</strong> — point = 1, barre = 5, coquille = 0, base 20. Les étages se lisent de haut en bas, chacun valant vingt fois celui du dessous : unités, ×20, ×400, ×8 000, ×160 000. Le nombre d'étages augmente avec le niveau et au fil de la partie — jusqu'à cinq en Expert, soit des nombres allant jusqu'à 3 199 999. Tapez le nombre puis validez avec <strong>✓</strong>.</li>
+  </ul>
+
+  <hr class="divider">
+  <h4>🎚 Les trois niveaux</h4>
+  <ul>
+    <li><strong>1 · Apprenti</strong> — mots uniquement, aucune pénalité en cas d'erreur, table de référence ouverte au démarrage.</li>
+    <li><strong>2 · Agent</strong> — mots et phrases, erreurs comptées (−50 points), bonus de vitesse en fin de partie.</li>
+    <li><strong>3 · Expert</strong> — mots et phrases, erreurs à −80 points, et chaque consultation de la table de référence coûte 100 points.</li>
+  </ul>
+  <p style="margin-top:6px;">Les <strong>phrases</strong> ne sont proposées qu'aux niveaux Agent et Expert.</p>
+
+  <hr class="divider">
+  <h4>📋 Table de référence</h4>
+  <p>La table est accessible <strong>à tout moment</strong> par le bouton <strong>📋 Table</strong> du panneau gauche, quel que soit le niveau. Elle s'ouvre dans une fenêtre latérale que l'on referme avec la croix ✕ ou le bouton <strong>Fermer</strong>. Elle peut aussi être ouverte dès le lancement, par la case prévue dans les réglages.</p>
+  <p>Le compteur <strong>Table vue</strong> compte <strong>un message par message</strong> : chaque message pendant lequel la table a été ouverte compte pour une consultation, qu'elle ait été ouverte au démarrage, laissée ouverte ou ouverte en cours de route. Une partie de cinq messages jouée table toujours ouverte affiche donc 5. Ouvrir et refermer plusieurs fois pendant le même message ne compte qu'une seule consultation. Au niveau Expert, chacune est facturée 100 points.</p>
+
+  <hr class="divider">
+  <h4>📂 Source des textes</h4>
+  <p>Les mots et phrases proviennent du fichier <strong>Textecode/MessageCodes.xml</strong> livré avec le jeu. Vous pouvez aussi charger votre propre fichier depuis l'accueil. Format attendu :</p>
+  <pre style="background:#f3f4f6;border-radius:5px;padding:6px 8px;font-size:0.65rem;margin-top:4px;overflow-x:auto;">&lt;mots&gt;
+  &lt;mot id="1" type="mot" categorie="animaux"&gt;CHEVAL&lt;/mot&gt;
+  &lt;mot id="71" type="phrase" categorie="phrases"&gt;QUI VIVRA VERRA&lt;/mot&gt;
+&lt;/mots&gt;</pre>
+  <p style="margin-top:6px;">Les fichiers se préparent avec les éditeurs <strong>EditeurXMLJeuDecode</strong> (simple) et <strong>EditeurXMLJeuDecodeExpert</strong> (avancé).</p>
+  <p style="margin-top:6px;">Le code <strong>maya</strong> n'utilise pas le fichier : les nombres à décoder sont générés selon le niveau.</p>
+
+  <hr class="divider">
+  <h4>💾 Sauvegarder et reprendre</h4>
+  <p>Le bouton <strong>💾 Sauver</strong> du panneau gauche enregistre la partie en cours dans un fichier <em>.json</em> : messages, réponses déjà données, score, erreurs, consultations de la table et chronomètre. <strong>📂 Reprendre</strong>, disponible en jeu comme sur l'écran d'accueil, restaure la partie exactement là où elle avait été laissée.</p>
+
+  <hr class="divider">
+  <h4>🏆 Score</h4>
+  <p>+100 points par signe correctement décodé, moins les malus d'erreur et les consultations facturées, plus un bonus de vitesse à partir du niveau Agent. Le récapitulatif de fin de partie détaille chaque message et peut être exporté en PDF.</p>
+</div>
+
+<!-- ══ TABLE DE RÉFÉRENCE ══ -->
+<div class="ref-panel" id="ref-panel">
+  <div class="ref-head">
+    <h3 id="ref-title">📋 Table de référence</h3>
+    <button class="btn btn-neutral btn-sm" onclick="fermerTable()" title="Fermer la table">✕</button>
+  </div>
+  <div id="ref-body"></div>
+  <div class="ref-tools">
+    <button class="btn btn-neutral btn-sm" onclick="imprimerTable()" title="Imprimer la table de référence">🖨 Imprimer</button>
+    <button class="btn btn-secondary btn-sm" onclick="fermerTable()">Fermer</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN ACCUEIL ══ -->
+<div class="screen active" id="screen-accueil">
+  <div class="welcome-card">
+    <div class="welcome-title">DÉCO<span>DAGE</span></div>
+    <div class="welcome-sub">Décodez les messages secrets — Pigpen, Morse et numération maya</div>
+
+    <div class="source-options">
+      <button class="btn btn-primary" onclick="choisirDefaut()" style="width:100%;">🎲 Jouer avec les textes du jeu</button>
+      <label class="file-label" for="file-input">📂 Ou charger un fichier XML de mots et phrases</label>
+      <input type="file" id="file-input" accept=".xml" onchange="chargerFichier(event)">
+      <label class="file-label" for="file-partie">💾 Ou reprendre une partie sauvegardée (.json)</label>
+      <input type="file" id="file-partie" accept=".json" onchange="chargerPartie(event)" style="display:none">
+      <div id="file-name"></div>
+    </div>
+    <hr class="divider">
+    <button class="btn btn-secondary btn-sm" onclick="openRules()">📖 Règles du jeu</button>
+    <button class="btn btn-secondary btn-sm" id="btn-quitter-accueil">✕ Quitter</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN CONFIG ══ -->
+<div class="screen" id="screen-config">
+  <div class="config-card">
+    <h2>⚙️ Configuration de la partie</h2>
+    <div class="source-info" id="source-info-display"></div>
+    <div class="config-grid">
+      <div class="config-item">
+        <label>Code à décoder</label>
+        <select id="cfg-code" onchange="majConfig()">
+          <option value="pigpen">Chiffre de Pigpen 🐷</option>
+          <option value="morse">Morse ▪▬</option>
+          <option value="maya">Numération maya</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>Niveau</label>
+        <select id="cfg-niveau" onchange="majConfig()">
+          <option value="1">1 · Apprenti</option>
+          <option value="2">2 · Agent</option>
+          <option value="3">3 · Expert</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>Type de texte</label>
+        <select id="cfg-type" onchange="majConfig()">
+          <option value="mot">Mots</option>
+          <option value="phrase">Phrases</option>
+          <option value="tous">Mots et phrases</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>Catégorie</label>
+        <select id="cfg-categorie" onchange="majConfig()"></select>
+      </div>
+      <div class="config-item">
+        <label>Messages par partie : <span class="range-val" id="lbl-nb">5</span></label>
+        <input type="range" min="1" max="12" value="5" id="cfg-nb"
+               oninput="document.getElementById('lbl-nb').textContent=this.value">
+        <div id="info-dispo" style="font-size:0.7rem;color:var(--text-light);margin-top:2px;"></div>
+      </div>
+      <div class="config-item">
+        <label>Table de référence</label>
+        <div class="toggle-group" style="margin-top:6px;">
+          <label class="toggle-item">
+            <input type="checkbox" id="cfg-table-depart" checked> <span>Ouvrir la table au démarrage</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="cfg-warn" id="cfg-warn" style="display:none"></div>
+    <div class="btn-row">
+      <button class="btn btn-neutral" onclick="retourAccueil()">← Accueil</button>
+      <button class="btn btn-primary" onclick="demarrerJeu()">▶ Démarrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN JEU ══ -->
+<div class="screen" id="screen-jeu">
+
+  <div class="jeu-panel" id="jeu-panel-left">
+    <div class="panel-logo">DÉCO<span>D.</span></div>
+    <hr class="panel-sep">
+    <div class="panel-block">
+      <div class="panel-lbl">⏱ Total</div>
+      <div class="panel-val" id="timer-total">00:00</div>
+    </div>
+    <div class="panel-block">
+      <div class="panel-lbl">Message</div>
+      <div class="panel-val sm" id="badge-message">1 / 5</div>
+      <div class="panel-progress-wrap"><div class="panel-progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="panel-block">
+      <div class="panel-lbl">Score</div>
+      <div class="panel-val" id="score-display">0</div>
+    </div>
+    <div class="panel-spacer"></div>
+    <button class="panel-nav-btn accent" onclick="basculerTable()" id="btn-table">📋 Table</button>
+    <button class="panel-nav-btn" onclick="sauvegarderPartie()">💾 Sauver</button>
+    <button class="panel-nav-btn" onclick="document.getElementById('file-partie').click()">📂 Reprendre</button>
+    <button class="panel-nav-btn" onclick="openRules()">📖 Aide</button>
+    <button class="panel-nav-btn" onclick="retourConfig()">⚙ Config</button>
+    <button class="panel-nav-btn" onclick="retourAccueil()">🏠 Accueil</button>
+    <button class="panel-nav-btn danger" onclick="quitter()">✕ Quitter</button>
+  </div>
+
+  <div class="jeu-main">
+    <div id="hint-bar">
+      <div>
+        <div class="hint-lbl">Catégorie</div>
+        <div id="categorie-display">——————</div>
+      </div>
+      <div id="hint-right"></div>
+    </div>
+    <div class="game-zone">
+      <div id="msg-zone"></div>
+      <div id="keyboard-zone"><div id="keyboard" class="locked"></div></div>
+    </div>
+  </div>
+
+  <div class="jeu-panel" id="jeu-panel-right">
+    <div class="panel-block">
+      <div class="panel-lbl">⏱ Message</div>
+      <div class="panel-val" id="timer-msg">00:00</div>
+    </div>
+    <div class="panel-block">
+      <div class="panel-lbl">Décodés</div>
+      <div class="panel-val sm" id="badge-signes">0 / 0</div>
+    </div>
+    <div class="panel-block">
+      <div class="panel-lbl">Erreurs</div>
+      <div class="panel-val sm" id="badge-erreurs">0</div>
+    </div>
+    <div class="panel-block">
+      <div class="panel-lbl">Table vue</div>
+      <div class="panel-val sm" id="badge-table">0</div>
+    </div>
+    <div class="panel-spacer"></div>
+    <button class="panel-nav-btn accent" onclick="messageSuivant(true)" id="btn-passer">⏭ Passer</button>
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+<div class="modal-overlay" id="modal-result">
+  <div class="modal">
+    <div class="emoji" id="result-emoji"></div>
+    <h2 id="result-title"></h2>
+    <p id="result-msg"></p>
+    <div class="mot-reveal" id="result-texte"></div>
+    <div class="groupe-reveal" id="result-info"></div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="messageSuivant(false)" id="btn-msg-suiv">Message suivant ⏭</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-recap">
+  <div class="modal">
+    <div class="emoji">🏆</div>
+    <h2>Fin de partie !</h2>
+    <div class="score-big" id="recap-score"></div>
+    <p id="recap-sub" style="margin-bottom:10px;"></p>
+    <div style="margin:6px 0;text-align:left;">
+      <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:4px;">Nom du joueur (pour l'export)</label>
+      <input type="text" id="recap-nom" placeholder="Votre prénom..." maxlength="40"
+        style="width:100%;padding:6px 10px;border:1.5px solid #d1d5db;border-radius:7px;font-size:0.85rem;font-family:inherit;outline:none;">
+    </div>
+    <div style="overflow-x:auto;"><table class="recap-table" id="recap-table"></table></div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="nouvellePartie()">🔄 Nouvelle partie</button>
+      <button class="btn btn-secondary" onclick="exporterPDF()">📄 Export PDF</button>
+      <button class="btn btn-neutral" onclick="retourAccueil()">🏠 Accueil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  SOURCE DES TEXTES
+//  Le jeu lit Textecode/MessageCodes.xml. Ouvert en local
+//  (protocole file://) la lecture reseau est bloquee par le
+//  navigateur : la copie embarquee ci-dessous prend le relais.
+// ══════════════════════════════════════════════════════
+const XML_PATH = 'Textecode/MessageCodes.xml';
+const MESSAGES_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<mots>
+  <mot id="1" type="mot" categorie="animaux">CHEVAL</mot><mot id="2" type="mot" categorie="animaux">TIGRE</mot><mot id="3" type="mot" categorie="animaux">GIRAFE</mot><mot id="4" type="mot" categorie="animaux">PANTHERE</mot><mot id="5" type="mot" categorie="animaux">DAUPHIN</mot><mot id="6" type="mot" categorie="animaux">PERROQUET</mot><mot id="7" type="mot" categorie="animaux">CROCODILE</mot><mot id="8" type="mot" categorie="animaux">ELEPHANT</mot><mot id="9" type="mot" categorie="animaux">RENARD</mot><mot id="10" type="mot" categorie="animaux">HIBOU</mot><mot id="11" type="mot" categorie="animaux">MOUETTE</mot><mot id="12" type="mot" categorie="animaux">SERPENT</mot>
+  <mot id="13" type="mot" categorie="films">AVATAR</mot><mot id="14" type="mot" categorie="films">TITANIC</mot><mot id="15" type="mot" categorie="films">INCEPTION</mot><mot id="16" type="mot" categorie="films">GLADIATEUR</mot><mot id="17" type="mot" categorie="films">MATRIX</mot><mot id="18" type="mot" categorie="films">PARASITE</mot><mot id="19" type="mot" categorie="films">AMADEUS</mot><mot id="20" type="mot" categorie="films">SCARFACE</mot><mot id="21" type="mot" categorie="films">CASABLANCA</mot><mot id="22" type="mot" categorie="films">MEMENTO</mot><mot id="23" type="mot" categorie="films">GOODFELLAS</mot><mot id="24" type="mot" categorie="films">SHINING</mot>
+  <mot id="25" type="mot" categorie="vocabulaire">EQUINOXE</mot><mot id="26" type="mot" categorie="vocabulaire">LABYRINTHE</mot><mot id="27" type="mot" categorie="vocabulaire">PARADOXE</mot><mot id="28" type="mot" categorie="vocabulaire">MYSTERE</mot><mot id="29" type="mot" categorie="vocabulaire">GALAXIE</mot><mot id="30" type="mot" categorie="vocabulaire">HARMONIE</mot><mot id="31" type="mot" categorie="vocabulaire">SOLSTICE</mot><mot id="32" type="mot" categorie="vocabulaire">ECLIPSE</mot><mot id="33" type="mot" categorie="vocabulaire">ARCHIPEL</mot><mot id="34" type="mot" categorie="vocabulaire">PYRAMIDE</mot><mot id="35" type="mot" categorie="vocabulaire">AQUARELLE</mot><mot id="36" type="mot" categorie="vocabulaire">NOSTALGIE</mot>
+  <mot id="37" type="mot" categorie="nourriture">BAGUETTE</mot><mot id="38" type="mot" categorie="nourriture">CROISSANT</mot><mot id="39" type="mot" categorie="nourriture">CAMEMBERT</mot><mot id="40" type="mot" categorie="nourriture">RATATOUILLE</mot><mot id="41" type="mot" categorie="nourriture">BRIOCHE</mot><mot id="42" type="mot" categorie="nourriture">MACARON</mot><mot id="43" type="mot" categorie="nourriture">CREPE</mot><mot id="44" type="mot" categorie="nourriture">ECLAIR</mot><mot id="45" type="mot" categorie="nourriture">MERINGUE</mot><mot id="46" type="mot" categorie="nourriture">FRAMBOISE</mot><mot id="47" type="mot" categorie="nourriture">AVOCAT</mot><mot id="48" type="mot" categorie="nourriture">MADELEINE</mot>
+  <mot id="49" type="mot" categorie="pays">FRANCE</mot><mot id="50" type="mot" categorie="pays">BRESIL</mot><mot id="51" type="mot" categorie="pays">MEXIQUE</mot><mot id="52" type="mot" categorie="pays">AUSTRALIE</mot><mot id="53" type="mot" categorie="pays">CANADA</mot><mot id="54" type="mot" categorie="pays">MAROC</mot><mot id="55" type="mot" categorie="pays">ISLANDE</mot><mot id="56" type="mot" categorie="pays">COLOMBIE</mot><mot id="57" type="mot" categorie="pays">NIGERIA</mot><mot id="58" type="mot" categorie="pays">VIETNAM</mot><mot id="59" type="mot" categorie="pays">PORTUGAL</mot><mot id="60" type="mot" categorie="pays">ARGENTINE</mot>
+  <mot id="61" type="mot" categorie="metier">ARCHITECTE</mot><mot id="62" type="mot" categorie="metier">PHARMACIEN</mot><mot id="63" type="mot" categorie="metier">CHIRURGIEN</mot><mot id="64" type="mot" categorie="metier">INGENIEUR</mot><mot id="65" type="mot" categorie="metier">MENUISIER</mot><mot id="66" type="mot" categorie="metier">PLOMBIER</mot><mot id="67" type="mot" categorie="metier">ELECTRICIEN</mot><mot id="68" type="mot" categorie="metier">CUISINIER</mot><mot id="69" type="mot" categorie="metier">JARDINIER</mot><mot id="70" type="mot" categorie="metier">PROFESSEUR</mot>
+  <mot id="71" type="phrase" categorie="phrases">QUI VIVRA VERRA</mot><mot id="72" type="phrase" categorie="phrases">LA NUIT PORTE CONSEIL</mot><mot id="73" type="phrase" categorie="phrases">LES CAROTTES SONT CUITES</mot><mot id="74" type="phrase" categorie="phrases">LES MURS ONT DES OREILLES</mot><mot id="75" type="phrase" categorie="phrases">A BON CHAT BON RAT</mot>
+  <mot id="76" type="phrase" categorie="phrases">COMME CHIEN ET CHAT</mot><mot id="77" type="phrase" categorie="phrases">ENTRE CHIEN ET LOUP</mot><mot id="78" type="phrase" categorie="phrases">LES GRANDS ESPRITS SE RENCONTRENT</mot><mot id="79" type="phrase" categorie="phrases">VIVRE ET LAISSER VIVRE</mot><mot id="80" type="phrase" categorie="phrases">TOUT VIENT A POINT</mot>
+  <mot id="81" type="phrase" categorie="phrases">MIEUX VAUT TARD QUE JAMAIS</mot><mot id="82" type="phrase" categorie="phrases">TEL PERE TEL FILS</mot><mot id="83" type="phrase" categorie="phrases">PAS DE FUMEE SANS FEU</mot><mot id="84" type="phrase" categorie="phrases">LE MONDE EST PETIT</mot><mot id="85" type="phrase" categorie="phrases">LA FIN JUSTIFIE LES MOYENS</mot>
+  <mot id="86" type="phrase" categorie="phrases">REVENIR A LA CHARGE</mot><mot id="87" type="phrase" categorie="phrases">REMETTRE LES COMPTEURS A ZERO</mot><mot id="88" type="phrase" categorie="phrases">TIRER LES VERS DU NEZ</mot><mot id="89" type="phrase" categorie="phrases">BRULER SES NAVIRES</mot><mot id="90" type="phrase" categorie="phrases">TOMBER DANS LES POMMES</mot>
+  <mot id="91" type="phrase" categorie="phrases">DORMIR SUR SES DEUX OREILLES</mot><mot id="92" type="phrase" categorie="phrases">POSER UN LAPIN</mot><mot id="93" type="phrase" categorie="phrases">BOIRE LA TASSE</mot><mot id="94" type="phrase" categorie="phrases">PERDRE LA BOULE</mot><mot id="95" type="phrase" categorie="phrases">TOURNER LA PAGE</mot>
+  <mot id="96" type="phrase" categorie="phrases">FAIRE SON CINEMA</mot><mot id="97" type="phrase" categorie="phrases">ALLER AU CHARBON</mot><mot id="98" type="phrase" categorie="phrases">SAUVER LA MISE</mot><mot id="99" type="phrase" categorie="phrases">PASSER A LA CAISSE</mot><mot id="100" type="phrase" categorie="phrases">LAISSER TOMBER</mot>
+</mots>`;
+
+// ══════════════════════════════════════════════════════
+//  TABLES DE CODE
+// ══════════════════════════════════════════════════════
+
+/* Pigpen : A-I dans le premier « # », J-R dans le second (avec point),
+   S-V dans la premiere « ✕ », W-Z dans la seconde (avec point).
+   Le point est imprime dans la grille de reference et se retrouve au
+   centre du symbole code — « le cochon dans la porcherie ». */
+const PIGPEN = {};
+'ABCDEFGHI'.split('').forEach((c,i)=>PIGPEN[c]={type:'grid',cell:i,dot:false});
+'JKLMNOPQR'.split('').forEach((c,i)=>PIGPEN[c]={type:'grid',cell:i,dot:true});
+const WEDGES = ['top','left','right','bottom'];
+'STUV'.split('').forEach((c,i)=>PIGPEN[c]={type:'x',wedge:WEDGES[i],dot:false});
+'WXYZ'.split('').forEach((c,i)=>PIGPEN[c]={type:'x',wedge:WEDGES[i],dot:true});
+
+const MORSE = {
+  A:'.-',   B:'-...', C:'-.-.', D:'-..',  E:'.',    F:'..-.',
+  G:'--.',  H:'....', I:'..',   J:'.---', K:'-.-',  L:'.-..',
+  M:'--',   N:'-.',   O:'---',  P:'.--.', Q:'--.-', R:'.-.',
+  S:'...',  T:'-',    U:'..-',  V:'...-', W:'.--',  X:'-..-',
+  Y:'-.--', Z:'--..'
+};
+/* Lettres « miroir » signalees au niveau Expert : codes tres proches. */
+const MORSE_MIROIR = 'BXDUGWFLPVKRSHNAIM'.split('');
+
+const POINTS_OK  = 100;
+const MALUS      = {1:0, 2:50, 3:80};
+const COUT_TABLE = {1:0, 2:0, 3:100};
+/* Etages maya vises par niveau : [au premier message, au dernier].
+   Cinq etages est le maximum courant de la numeration maya ; au-dela les
+   signes deviennent illisibles a l'ecran. */
+const ETAGES_MAYA = {1:[1,1], 2:[2,3], 3:[3,5]};
+const NIVEAU_NOM = {1:'Apprenti', 2:'Agent', 3:'Expert'};
+const CODE_NOM   = {pigpen:'Pigpen', morse:'Morse', maya:'Maya'};
+
+// ══════════════════════════════════════════════════════
+//  ÉTAT GLOBAL
+// ══════════════════════════════════════════════════════
+let textes = [];                 // [{id,type,categorie,valeur}]
+let sourceName = '';
+let config  = { code:'pigpen', niveau:1, type:'mot', categorie:'', nb:5, tableDepart:true };
+let session = { index:0, messages:[], glyphIndex:0, buffer:'', reponses:[],
+                score:0, bons:0, erreurs:0, tableVues:0, historique:[], fini:false, enCours:false, messageClos:false };
+let timers  = { msgStart:0, totalStart:0, msgInterval:null, totalInterval:null };
+
+const $ = id => document.getElementById(id);
+
+// ══════════════════════════════════════════════════════
+//  LECTURE DU FICHIER XML
+// ══════════════════════════════════════════════════════
+function normaliser(s) {
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase().replace(/['’]/g,'').replace(/[^A-Z ]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function parseTextesXML(xmlStr) {
+  const doc = new DOMParser().parseFromString(xmlStr, 'application/xml');
+  if (doc.querySelector('parsererror')) throw new Error('Fichier XML invalide ou corrompu.');
+  const out = [];
+  doc.querySelectorAll('mot').forEach(n => {
+    const valeur = normaliser(n.textContent);
+    if (!valeur) return;
+    let type = n.getAttribute('type');
+    if (type !== 'mot' && type !== 'phrase') type = /\s/.test(valeur) ? 'phrase' : 'mot';
+    out.push({
+      id:        n.getAttribute('id') || String(out.length + 1),
+      type:      type,
+      categorie: (n.getAttribute('categorie') || 'divers').toLowerCase(),
+      valeur:    valeur
+    });
+  });
+  if (!out.length) throw new Error('Aucune balise <mot> exploitable dans ce fichier.');
+  return out;
+}
+
+async function choisirDefaut() {
+  let src = null, nom = XML_PATH;
+  try {
+    const rep = await fetch(XML_PATH, {cache:'no-store'});
+    if (rep.ok) src = await rep.text();
+  } catch(e) { /* lecture locale impossible : on bascule sur la copie embarquee */ }
+  if (!src) { src = MESSAGES_XML; nom = 'MessageCodes.xml (copie intégrée)'; }
+  try {
+    textes = parseTextesXML(src);
+    sourceName = nom;
+    allerConfig();
+  } catch(err) {
+    alert('Erreur de lecture des textes : ' + err.message);
+  }
+}
+
+function chargerFichier(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      textes = parseTextesXML(ev.target.result);
+      sourceName = file.name;
+      $('file-name').textContent = `✔ ${file.name} — ${textes.length} entrée(s) chargée(s)`;
+      allerConfig();
+    } catch(err) { alert('Erreur de lecture : ' + err.message); }
+  };
+  reader.onerror = () => alert('Impossible de lire ce fichier.');
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ══════════════════════════════════════════════════════
+//  CONFIGURATION
+// ══════════════════════════════════════════════════════
+function allerConfig() {
+  showScreen('screen-config');
+  remplirCategories();
+  majConfig();
+}
+
+function categoriesDisponibles(type) {
+  const cats = textes.filter(t => type === 'tous' || t.type === type).map(t => t.categorie);
+  return [...new Set(cats)].sort();
+}
+
+function remplirCategories() {
+  const sel = $('cfg-categorie'), ancien = sel.value;
+  const type = $('cfg-type').value;
+  const cats = categoriesDisponibles(type);
+  sel.innerHTML = '<option value="">Toutes les catégories</option>' +
+    cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (cats.includes(ancien)) sel.value = ancien;
+}
+
+/* Les phrases ne sont proposees qu'aux niveaux Agent et Expert.
+   Le code maya n'utilise pas le fichier : nombres generes. */
+function majConfig() {
+  const code   = $('cfg-code').value;
+  const niveau = parseInt($('cfg-niveau').value, 10);
+  const selType = $('cfg-type'), selCat = $('cfg-categorie'), warn = $('cfg-warn');
+  const maya = (code === 'maya');
+
+  selType.querySelector('option[value="phrase"]').disabled = (niveau === 1);
+  selType.querySelector('option[value="tous"]').disabled   = (niveau === 1);
+  if (niveau === 1 && selType.value !== 'mot') selType.value = 'mot';
+
+  selType.disabled = maya;
+  selCat.disabled  = maya;
+  remplirCategories();
+
+  const messages = [];
+  if (niveau === 1) messages.push('Niveau Apprenti : mots uniquement, les phrases sont réservées aux niveaux Agent et Expert.');
+  if (maya) messages.push('Numération maya : les nombres à décoder sont générés selon le niveau, le fichier XML n’est pas utilisé.');
+  if (niveau === 3) messages.push('Niveau Expert : chaque consultation de la table de référence coûte 100 points.');
+  warn.innerHTML = messages.join('<br>');
+  warn.style.display = messages.length ? 'block' : 'none';
+
+  const dispo = maya ? 99 : selectionner(false).length;
+  const slider = $('cfg-nb'), lbl = $('lbl-nb'), info = $('info-dispo');
+  const maxVal = Math.max(1, Math.min(12, dispo));
+  slider.max = maxVal;
+  if (parseInt(slider.value,10) > maxVal) { slider.value = maxVal; }
+  lbl.textContent = slider.value;
+  if (maya) info.textContent = 'Nombres générés — jusqu’à 12 messages';
+  else if (!dispo) info.innerHTML = '<span style="color:#e74c3c">⚠ Aucun texte pour ce filtre</span>';
+  else info.textContent = `${dispo} texte${dispo>1?'s':''} disponible${dispo>1?'s':''} (max ${maxVal})`;
+
+  $('source-info-display').innerHTML =
+    `<strong>${textes.length}</strong> entrée(s) disponibles : ` +
+    `${textes.filter(t=>t.type==='mot').length} mot(s) et ${textes.filter(t=>t.type==='phrase').length} phrase(s)`;
+}
+
+/* Textes retenus selon le type, la categorie et le niveau. */
+function selectionner(pourJouer) {
+  const niveau = parseInt($('cfg-niveau').value, 10);
+  let type = $('cfg-type').value;
+  if (niveau === 1) type = 'mot';
+  const cat = $('cfg-categorie').value;
+  return textes.filter(t =>
+    (type === 'tous' || t.type === type) &&
+    (!cat || t.categorie === cat) &&
+    (niveau > 1 || t.type === 'mot')
+  );
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+
+// ══════════════════════════════════════════════════════
+//  DESSIN DES SIGNES (SVG / CSS — aucune image requise)
+// ══════════════════════════════════════════════════════
+function svgPigpen(ch) {
+  const d = PIGPEN[ch];
+  if (!d) return '';
+  const a = 14, b = 86, traits = [];
+  let dx = 50, dy = 50;
+  if (d.type === 'grid') {
+    const r = Math.floor(d.cell/3), c = d.cell % 3;
+    if (r > 0) traits.push(`M${a} ${a} L${b} ${a}`);
+    if (r < 2) traits.push(`M${a} ${b} L${b} ${b}`);
+    if (c > 0) traits.push(`M${a} ${a} L${a} ${b}`);
+    if (c < 2) traits.push(`M${b} ${a} L${b} ${b}`);
+  } else {
+    const P = { top:[[a,a],[b,a]], bottom:[[a,b],[b,b]], left:[[a,a],[a,b]], right:[[b,a],[b,b]] }[d.wedge];
+    traits.push(`M${P[0][0]} ${P[0][1]} L50 50 L${P[1][0]} ${P[1][1]}`);
+    const D = { top:[50,34], bottom:[50,66], left:[34,50], right:[66,50] }[d.wedge];
+    dx = D[0]; dy = D[1];
+  }
+  const point = d.dot ? `<circle cx="${dx}" cy="${dy}" r="7" fill="var(--ink)"/>` : '';
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <path d="${traits.join(' ')}" fill="none" stroke="var(--ink)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    ${point}</svg>`;
+}
+
+function htmlMorse(code) {
+  return '<div class="morse-code">' +
+    String(code||'').split('').map(s => s === '.' ? '<span class="mo-d"></span>' : '<span class="mo-t"></span>').join('') +
+    '</div>';
+}
+
+function chiffresMaya(n) {
+  if (n === 0) return [0];
+  const d = []; let v = n;
+  while (v > 0) { d.unshift(v % 20); v = Math.floor(v/20); }
+  return d;
+}
+
+function svgMaya(n) {
+  const digits = chiffresMaya(n), H = 50;
+  let corps = '';
+  digits.forEach((d,i) => {
+    const oy = i*H;
+    if (d === 0) {
+      corps += `<g transform="translate(0 ${oy})">
+        <ellipse cx="50" cy="26" rx="26" ry="15" fill="none" stroke="var(--ink)" stroke-width="5"/>
+        <path d="M32 26 Q50 38 68 26" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/></g>`;
+    } else {
+      const barres = Math.floor(d/5), points = d % 5;
+      let g = '';
+      for (let k = 0; k < points; k++) {
+        const cx = 50 + (k - (points-1)/2)*17;
+        g += `<circle cx="${cx}" cy="9" r="5.5" fill="var(--ink)"/>`;
+      }
+      for (let k = 0; k < barres; k++) g += `<rect x="14" y="${18+k*11}" width="72" height="7" rx="3" fill="var(--ink)"/>`;
+      corps += `<g transform="translate(0 ${oy})">${g}</g>`;
+    }
+    if (i < digits.length-1)
+      corps += `<line x1="8" y1="${oy+H-2}" x2="92" y2="${oy+H-2}" stroke="#7dd8f0" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  });
+  return `<svg viewBox="0 0 100 ${H*digits.length}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">${corps}</svg>`;
+}
+
+function glypheHTML(code) {
+  if (config.code === 'pigpen') return svgPigpen(code);
+  if (config.code === 'morse')  return htmlMorse(MORSE[code]);
+  return svgMaya(parseInt(code,10));
+}
+
+// ══════════════════════════════════════════════════════
+//  TABLE DE RÉFÉRENCE — disponible en permanence
+// ══════════════════════════════════════════════════════
+function construireTable() {
+  const body = $('ref-body'), titre = $('ref-title');
+  body.innerHTML = '';
+  if (config.code === 'pigpen') {
+    titre.textContent = '📋 Chiffre de Pigpen';
+    const blocs = [
+      {lbl:'A → I', lettres:'ABCDEFGHI', dot:false, type:'grid'},
+      {lbl:'J → R', lettres:'JKLMNOPQR', dot:true,  type:'grid'},
+      {lbl:'S → V', lettres:'STUV',      dot:false, type:'x'},
+      {lbl:'W → Z', lettres:'WXYZ',      dot:true,  type:'x'}
+    ];
+    const wrap = document.createElement('div'); wrap.className = 'ref-blocks';
+    blocs.forEach(b => {
+      const bloc = document.createElement('div'); bloc.className = 'ref-block';
+      if (b.type === 'grid') {
+        const g = document.createElement('div'); g.className = 'pp-grid';
+        b.lettres.split('').forEach((L,i) => {
+          const r = Math.floor(i/3), c = i%3;
+          const cell = document.createElement('div');
+          cell.className = 'pp-cell'+(r>0?' t':'')+(r<2?' b':'')+(c>0?' l':'')+(c<2?' r':'')+(b.dot?' dot':'');
+          cell.innerHTML = `<span class="lt">${L}</span>`;
+          g.appendChild(cell);
+        });
+        bloc.appendChild(g);
+      } else {
+        const a = 14, bb = 86;
+        const pos  = { top:[50,26], left:[26,50], right:[74,50], bottom:[50,76] };
+        const dpos = { top:[50,42], left:[42,50], right:[58,50], bottom:[50,60] };
+        let lettres = '';
+        b.lettres.split('').forEach((L,i) => {
+          const w = WEDGES[i], p = pos[w], dp = dpos[w];
+          lettres += `<text x="${p[0]}" y="${p[1]}" text-anchor="middle" dominant-baseline="middle" font-size="15" font-weight="800" fill="#1a8fd4">${L}</text>`;
+          if (b.dot) lettres += `<circle cx="${dp[0]}" cy="${dp[1]}" r="4" fill="var(--ink)"/>`;
+        });
+        bloc.innerHTML = `<svg viewBox="0 0 100 100" width="102" height="102">
+          <path d="M${a} ${a} L${bb} ${bb} M${bb} ${a} L${a} ${bb}" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
+          ${lettres}</svg>`;
+      }
+      const lbl = document.createElement('div'); lbl.className = 'ref-block-lbl'; lbl.textContent = b.lbl;
+      bloc.appendChild(lbl); wrap.appendChild(bloc);
+    });
+    body.appendChild(wrap);
+    const note = document.createElement('div'); note.className = 'ref-note';
+    note.innerHTML = 'Chaque lettre prend la forme des <b>parois de sa case</b>. Un <b>point au centre</b> signale la seconde grille : le cochon est dans la porcherie 🐷.';
+    body.appendChild(note);
+
+  } else if (config.code === 'morse') {
+    titre.textContent = '📋 Alphabet Morse';
+    const g = document.createElement('div'); g.className = 'ref-morse';
+    Object.keys(MORSE).forEach(L => {
+      const d = document.createElement('div');
+      d.className = 'rm' + (config.niveau === 3 && MORSE_MIROIR.includes(L) ? ' mirror' : '');
+      d.innerHTML = `<b>${L}</b>${htmlMorse(MORSE[L])}`;
+      g.appendChild(d);
+    });
+    body.appendChild(g);
+    const note = document.createElement('div'); note.className = 'ref-note';
+    note.innerHTML = config.niveau === 3
+      ? 'Attention aux <b>lettres miroirs</b> surlignées : B et X, D et U, G et W… un seul signe les sépare.'
+      : '▪ = point (signe bref) · ▬ = trait (signe long).';
+    body.appendChild(note);
+
+  } else {
+    titre.textContent = '📋 Numération maya';
+    const g = document.createElement('div'); g.className = 'ref-maya';
+    for (let i = 0; i < 20; i++) {
+      const d = document.createElement('div'); d.className = 'rmy';
+      d.innerHTML = svgMaya(i) + `<span>${i}</span>`;
+      g.appendChild(d);
+    }
+    body.appendChild(g);
+    const note = document.createElement('div'); note.className = 'ref-note';
+    note.innerHTML = 'Un <b>point</b> vaut 1, une <b>barre</b> vaut 5, la <b>coquille</b> vaut 0. ' +
+      'Au-delà de 19 les signes s’empilent, chaque étage valant vingt fois celui du dessous :' +
+      '<br>unités · <b>×20</b> · <b>×400</b> · <b>×8 000</b> · <b>×160 000</b>, de bas en haut.' +
+      '<br>Exemple : une coquille, puis 3, puis 12 se lit 0×400 + 3×20 + 12 = <b>72</b>.';
+    body.appendChild(note);
+  }
+}
+
+/* Comptage des consultations de la table.
+   L'ancienne regle ne comptait que les ouvertures faites a la main : une table
+   ouverte au demarrage et jamais refermee restait donc a zero consultation,
+   alors qu'elle avait servi sur tout le jeu. La regle est maintenant :
+
+     une consultation par message pendant lequel la table a ete ouverte,
+     qu'elle l'ait ete au demarrage, laissee ouverte, ou ouverte en cours.
+
+   Cinq messages joues table toujours ouverte comptent donc cinq consultations.
+   Ouvrir et refermer plusieurs fois pendant le meme message n'en compte
+   qu'une : c'est le message qui a beneficie de l'aide, pas le clic. */
+function compterConsultation() {
+  if (session.tableComptee) return;      // deja compte pour ce message
+  session.tableComptee = true;
+  session.tableVues++;
+  session.score -= COUT_TABLE[config.niveau];
+  majPanneaux();
+}
+
+function ouvrirTable() {
+  construireTable();
+  $('ref-panel').classList.add('open');
+  document.body.classList.add('ref-ouverte');
+  // La zone des signes vient de retrecir : on redimensionne les caracteres.
+  setTimeout(ajusterTaille, 320);
+  // Une consultation n'est comptee que si un message est en cours. Quand la
+  // table est ouverte avant le premier message — case « Ouvrir la table au
+  // demarrage » — le comptage se fait au lancement de ce message.
+  if (session.enCours) compterConsultation();
+}
+function fermerTable() {
+  $('ref-panel').classList.remove('open');
+  document.body.classList.remove('ref-ouverte');
+  setTimeout(ajusterTaille, 320);
+}
+
+/* Impression de la table de reference, sur le meme principe que les fenetres
+   d'aide : le contenu est recopie a la racine du document et le reste de la
+   page est masque le temps de l'impression. */
+function imprimerTable() {
+  let boite = document.getElementById('aideU-impression');
+  if (!boite) {
+    boite = document.createElement('div');
+    boite.id = 'aideU-impression';
+    document.body.appendChild(boite);
+  }
+  boite.innerHTML = '';
+  const h = document.createElement('h1');
+  h.className = 'aideU-imp-titre';
+  h.textContent = $('ref-title').textContent.replace(/^\s*📋\s*/, '');
+  boite.appendChild(h);
+  const copie = $('ref-body').cloneNode(true);
+  copie.removeAttribute('id');
+  boite.appendChild(copie);
+
+  const racine = document.documentElement;
+  let fini = false;
+  const nettoyer = () => { if (!fini) { fini = true; racine.classList.remove('aideU-en-impression'); } };
+  racine.classList.add('aideU-en-impression');
+  window.addEventListener('afterprint', function apres() {
+    window.removeEventListener('afterprint', apres); nettoyer();
+  });
+  setTimeout(nettoyer, 3000);
+  try { window.print(); } catch (e) { nettoyer(); }
+}
+function basculerTable() {
+  if ($('ref-panel').classList.contains('open')) fermerTable();
+  else ouvrirTable();
+}
+
+// ══════════════════════════════════════════════════════
+//  CONSTRUCTION DES MESSAGES
+// ══════════════════════════════════════════════════════
+function construireMessages() {
+  const nb = config.nb, niveau = config.niveau;
+  const msgs = [];
+
+  if (config.code === 'maya') {
+    for (let i = 0; i < nb; i++) {
+      const prog = nb > 1 ? i/(nb-1) : 0;                    // difficulté croissante
+      const nbSignes = niveau === 1 ? 3 : niveau === 2 ? 4 : 5;
+      // La numeration maya est positionnelle en base 20 : chaque etage vaut
+      // vingt fois celui du dessous. Le nombre d'etages est donc la vraie
+      // mesure de difficulte, et il croit au fil de la partie.
+      //   1 etage  : 0 → 19
+      //   2 etages : 20 → 399
+      //   3 etages : 400 → 7 999
+      //   4 etages : 8 000 → 159 999
+      //   5 etages : 160 000 → 3 199 999
+      const etagesMin = ETAGES_MAYA[niveau][0], etagesMax = ETAGES_MAYA[niveau][1];
+      const nombres = [];
+      for (let k = 0; k < nbSignes; k++) {
+        const et  = etagesMin + Math.round(prog*(etagesMax - etagesMin));
+        const bas = et === 1 ? 0 : Math.pow(20, et-1);
+        const haut= Math.pow(20, et) - 1;
+        nombres.push(bas + Math.floor(Math.random()*(haut - bas + 1)));
+      }
+      msgs.push({
+        id:'maya-'+(i+1), type:'nombres', categorie:'nombres',
+        texte: nombres.join(' '),
+        glyphes: nombres.map(v => ({code:String(v), rep:String(v)})),
+        mots: nombres.map(v => [String(v)])
+      });
+    }
+    return msgs;
+  }
+
+  let pool = shuffle(selectionner(true)).slice(0, nb);
+  // Difficulté croissante : du texte le plus court au plus long
+  pool.sort((a,b) => a.valeur.replace(/ /g,'').length - b.valeur.replace(/ /g,'').length);
+  pool.forEach(t => {
+    const glyphes = t.valeur.split('').filter(c => c !== ' ').map(c => ({code:c, rep:c}));
+    const mots = t.valeur.split(' ').filter(Boolean).map(m => m.split(''));
+    msgs.push({ id:t.id, type:t.type, categorie:t.categorie, texte:t.valeur, glyphes, mots });
+  });
+  return msgs;
+}
+
+// ══════════════════════════════════════════════════════
+//  PARTIE
+// ══════════════════════════════════════════════════════
+function demarrerJeu() {
+  config.code        = $('cfg-code').value;
+  config.niveau      = parseInt($('cfg-niveau').value, 10);
+  config.type        = config.niveau === 1 ? 'mot' : $('cfg-type').value;
+  config.categorie   = $('cfg-categorie').value;
+  config.nb          = parseInt($('cfg-nb').value, 10);
+  config.tableDepart = $('cfg-table-depart').checked;
+
+  const messages = construireMessages();
+  if (!messages.length) { alert('Aucun texte ne correspond à ces réglages.'); return; }
+
+  session = { index:0, messages, glyphIndex:0, buffer:'', reponses:[],
+              score:0, bons:0, erreurs:0, tableVues:0, tableComptee:false,
+              historique:[], fini:false, enCours:false, messageClos:false };
+  config.nb = messages.length;
+
+  fermerModal('modal-result'); fermerModal('modal-recap');
+  showScreen('screen-jeu');
+  construireClavier();
+  construireTable();
+  if (config.tableDepart) ouvrirTable(); else fermerTable();
+  startTotalTimer();
+  lancerMessage();
+}
+
+function messageCourant() { return session.messages[session.index]; }
+
+function lancerMessage() {
+  const msg = messageCourant();
+  session.glyphIndex = 0; session.buffer = '';
+  session.reponses = msg.glyphes.map(() => ({saisie:'', statut:'pending'}));
+  session.enCours = true; session.messageClos = false;
+  // Nouveau message : la table redevient « pas encore consultee ». Si elle est
+  // restee ouverte, la consultation est comptee immediatement.
+  session.tableComptee = false;
+  if ($('ref-panel').classList.contains('open')) compterConsultation();
+  $('keyboard').classList.remove('locked');
+  $('categorie-display').textContent = msg.categorie.toUpperCase();
+  $('hint-right').innerHTML =
+    `Code <b>${CODE_NOM[config.code]}</b> · Niveau <b>${NIVEAU_NOM[config.niveau]}</b><br>` +
+    `${msg.type === 'phrase' ? 'Phrase' : msg.type === 'nombres' ? 'Nombres' : 'Mot'} · ` +
+    `${msg.glyphes.length} signe${msg.glyphes.length>1?'s':''} à décoder`;
+  rendreMessage();
+  majPanneaux();
+  startMsgTimer();
+}
+
+function rendreMessage() {
+  const zone = $('msg-zone');
+  zone.innerHTML = '';
+  zone.className = 'th-' + config.code;
+  const msg = messageCourant();
+  if (!msg) return;
+  let idx = 0;
+  msg.mots.forEach((groupe, ig) => {
+    // Entre deux mots, une case « espace » montre ou s'arrete chaque mot
+    if (ig > 0 && config.code !== 'maya') {
+      const sp = document.createElement('div');
+      sp.className = 'space-col';
+      sp.innerHTML = '<div class="sp-box"></div><div class="sp-slot">␣</div>';
+      zone.appendChild(sp);
+    }
+    const mot = document.createElement('div'); mot.className = 'mot';
+    groupe.forEach(() => {
+      const i = idx++;
+      const g = msg.glyphes[i], r = session.reponses[i];
+      const col = document.createElement('div');
+      col.className = 'glyph-col' + (r.statut === 'ok' ? ' ok' : r.statut === 'ko' ? ' ko' : '');
+      const box = document.createElement('div');
+      box.className = 'glyph-box';
+      box.innerHTML = glypheHTML(g.code);
+      const slot = document.createElement('div');
+      slot.className = 'slot' + (i === session.glyphIndex && session.enCours ? ' current' : '') +
+                       (r.statut === 'ok' ? ' ok' : r.statut === 'ko' ? ' ko' : '');
+      if (r.statut === 'ok') slot.textContent = r.saisie;
+      else if (r.statut === 'ko') slot.innerHTML = `${r.saisie || '?'}<span class="corr">→ ${g.rep}</span>`;
+      else if (i === session.glyphIndex && session.buffer) slot.textContent = session.buffer;
+      col.appendChild(box); col.appendChild(slot); mot.appendChild(col);
+    });
+    zone.appendChild(mot);
+  });
+  ajusterTaille();
+}
+
+/* Taille des signes : une estimation, puis un ajustement sur la mise en page
+   reellement obtenue tant que la zone deborde (en hauteur ou en largeur). */
+function appliquerTaille(zone, taille, hF) {
+  zone.style.setProperty('--gsize', taille + 'px');
+  zone.style.setProperty('--sloth', Math.max(20, Math.round(taille*0.34)) + 'px');
+  zone.querySelectorAll('.glyph-box').forEach(b => { b.style.height = (taille*hF) + 'px'; });
+  zone.querySelectorAll('.sp-box').forEach(b => { b.style.height = (taille*hF) + 'px'; });
+  if (config.code === 'morse') {
+    zone.querySelectorAll('.glyph-box .morse-code').forEach(mc => {
+      const len = mc.children.length || 1;
+      const avail = taille*1.35 - 16;
+      const em = Math.max(6, Math.min(22, (avail - (len-1)*4)/(len*1.05)));
+      mc.style.fontSize = em + 'px';
+    });
+  } else {
+    zone.style.fontSize = Math.round(taille*0.42) + 'px';
+  }
+}
+
+function ajusterTaille() {
+  const zone = $('msg-zone'), msg = messageCourant();
+  if (!msg) return;
+  const n = msg.glyphes.length;
+  const aw = Math.max(120, zone.clientWidth - 30), ah = Math.max(90, zone.clientHeight - 30);
+  const etages = config.code === 'maya'
+    ? Math.max(...msg.glyphes.map(g => chiffresMaya(parseInt(g.code,10)).length)) : 1;
+  const wF = config.code === 'morse' ? 1.35 : 1;
+  // La hauteur reservee suivait les etages jusqu'a trois seulement : un nombre
+  // a quatre ou cinq etages etait ecrase dans la place prevue pour trois.
+  const hF = config.code === 'morse' ? 0.8 : (etages > 1 ? Math.min(etages,5)*0.62 + 0.4 : 1);
+  const plusLongMot = config.code === 'maya' ? 1 : Math.max(...msg.mots.map(m => m.length));
+
+  // Plafond de taille. Le Pigpen et le morse alignent beaucoup de signes et
+  // s'accommodent d'un plafond bas. Les nombres mayas, eux, sont peu nombreux
+  // — trois a cinq par message — et laissaient les trois quarts de la zone
+  // vides : leur plafond est nettement plus haut, la boucle ci-dessous se
+  // chargeant de redescendre jusqu'a ce que tout tienne. Quand la table de
+  // reference occupe le tiers droit de l'ecran, les deux plafonds baissent.
+  const tableOuverte = document.body.classList.contains('ref-ouverte');
+  const maya = config.code === 'maya';
+  let taille = maya ? (tableOuverte ? 150 : 220) : (tableOuverte ? 60 : 84);
+  for (; taille >= 34; taille -= 4) {
+    const cw = taille*wF, ch = taille*hF, sloth = Math.max(20, Math.round(taille*0.34));
+    const cols = Math.max(1, Math.floor((aw+12)/(cw+12)));
+    // Les nombres mayas n'ont pas de case « espace » entre les mots : leur
+    // reserver une rangee revenait a brider la taille sans raison.
+    const rows = Math.ceil(n/cols) + (!maya && msg.mots.length > 1 ? 1 : 0);
+    const motTient = plusLongMot*cw + (plusLongMot-1)*8 <= aw;
+    if (rows*(ch + sloth + 14) <= ah && motTient) break;
+  }
+  appliquerTaille(zone, taille, hF);
+
+  // Ajustement fin : on reduit tant que le contenu deborde vraiment
+  let garde = 0;
+  while (taille > 26 && garde++ < 20 &&
+         (zone.scrollHeight > zone.clientHeight + 2 || zone.scrollWidth > zone.clientWidth + 2)) {
+    taille -= 4;
+    appliquerTaille(zone, taille, hF);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  CLAVIER VIRTUEL
+// ══════════════════════════════════════════════════════
+function construireClavier() {
+  const kb = $('keyboard'); kb.innerHTML = '';
+  const rangees = config.code === 'maya'
+    ? [['1','2','3','4','5'],['6','7','8','9','0'],['⌫','✓']]
+    : [['A','Z','E','R','T','Y','U','I','O','P'],
+       ['Q','S','D','F','G','H','J','K','L','M'],
+       ['W','X','C','V','B','N','⌫']];
+  rangees.forEach(r => {
+    const row = document.createElement('div'); row.className = 'kb-row';
+    r.forEach(k => {
+      const b = document.createElement('div');
+      b.className = 'kb-key' + (k === '✓' ? ' valider wide' : k === '⌫' ? ' suppr wide' : '');
+      b.textContent = k;
+      b.addEventListener('click', () => appuyer(k));
+      row.appendChild(b);
+    });
+    kb.appendChild(row);
+  });
+}
+
+function appuyer(k) {
+  if (!session.enCours) return;
+  const msg = messageCourant();
+  if (!msg || session.glyphIndex >= msg.glyphes.length) return;
+
+  if (k === '⌫') { session.buffer = session.buffer.slice(0,-1); rendreMessage(); return; }
+  if (k === '✓')  { if (session.buffer) valider(session.buffer); return; }
+
+  if (config.code === 'maya') {
+    // Sept chiffres : le plus grand nombre a cinq etages vaut 3 199 999.
+    if (!/^[0-9]$/.test(k) || session.buffer.length >= 7) return;
+    session.buffer += k;
+    rendreMessage();
+  } else {
+    if (!/^[A-Z]$/.test(k)) return;
+    valider(k);
+  }
+}
+
+function valider(saisie) {
+  const msg = messageCourant();
+  const i = session.glyphIndex;
+  const attendu = msg.glyphes[i].rep;
+  const rep = session.reponses[i];
+  rep.saisie = saisie;
+  if (saisie === attendu) {
+    rep.statut = 'ok'; session.bons++; session.score += POINTS_OK;
+  } else {
+    rep.statut = 'ko'; session.erreurs++; session.score -= MALUS[config.niveau];
+    const col = $('msg-zone').querySelectorAll('.glyph-col')[i];
+    if (col) { col.classList.add('shake'); setTimeout(() => col.classList.remove('shake'), 400); }
+  }
+  session.buffer = '';
+  session.glyphIndex++;
+  majPanneaux();
+  rendreMessage();
+
+  if (session.glyphIndex >= msg.glyphes.length) {
+    session.enCours = false;
+    $('keyboard').classList.add('locked');
+    stopMsgTimer();
+    setTimeout(() => terminerMessage(false), 600);
+  }
+}
+
+function terminerMessage(passe) {
+  const msg = messageCourant();
+  if (!msg || session.messageClos) return;   // un seul bilan par message
+  session.messageClos = true;
+  const err = session.reponses.filter(r => r.statut === 'ko').length;
+  const ok  = session.reponses.filter(r => r.statut === 'ok').length;
+  session.historique.push({
+    categorie: msg.categorie, type: msg.type, texte: msg.texte,
+    signes: msg.glyphes.length, ok, erreurs: err, passe,
+    temps: Math.floor((Date.now() - timers.msgStart)/1000)
+  });
+
+  const parfait = !passe && err === 0;
+  $('result-emoji').textContent = passe ? '⏭' : parfait ? '🎉' : '🔎';
+  $('result-title').textContent = passe ? 'Message passé' : parfait ? 'Sans faute !' : 'Message décodé';
+  $('result-msg').textContent   = passe
+    ? 'Le message n’a pas été décodé.'
+    : `${ok} signe${ok>1?'s':''} sur ${msg.glyphes.length} — ${err} erreur${err>1?'s':''}`;
+  $('result-texte').textContent = msg.texte;
+  $('result-info').textContent  = `Catégorie : ${msg.categorie} · ${msg.type === 'phrase' ? 'phrase' : msg.type === 'nombres' ? 'nombres' : 'mot'}`;
+
+  const dernier = session.index + 1 >= session.messages.length;
+  $('btn-msg-suiv').textContent = dernier ? '🏁 Voir le récap' : 'Message suivant ⏭';
+  $('modal-result').classList.add('open');
+}
+
+function messageSuivant(viaBtnPasser) {
+  if (viaBtnPasser) {
+    if (!session.enCours) return;
+    session.enCours = false;
+    $('keyboard').classList.add('locked');
+    stopMsgTimer();
+    terminerMessage(true);
+    return;
+  }
+  fermerModal('modal-result');
+  session.index++;
+  if (session.index >= session.messages.length) { finDePartie(); return; }
+  lancerMessage();
+}
+
+function finDePartie() {
+  stopTimers();
+  session.fini = true;
+  const totalSignes = session.historique.reduce((s,h) => s + h.signes, 0);
+  const precision = (session.bons + session.erreurs)
+    ? Math.round(session.bons/(session.bons + session.erreurs)*100) : 0;
+  let bonus = 0;
+  const tempsTotal = Math.floor((Date.now() - timers.totalStart)/1000);
+  if (config.niveau >= 2) {
+    const cible = totalSignes*6;                    // 6 s par signe = rythme de référence
+    bonus = Math.max(0, Math.round((cible - tempsTotal)*3));
+  }
+  session.score = Math.max(0, session.score + bonus);
+
+  $('recap-score').textContent = session.score + ' pts';
+  $('recap-sub').textContent =
+    `${session.bons}/${totalSignes} signes décodés — précision ${precision}% — ` +
+    `${session.erreurs} erreur(s) — table vue ${session.tableVues} fois — Durée : ${fmt(tempsTotal)}`;
+
+  const table = $('recap-table');
+  table.innerHTML = '<tr><th>#</th><th>Catégorie</th><th>Message</th><th>Signes</th><th>Erreurs</th><th>Temps</th><th>Résultat</th></tr>';
+  session.historique.forEach((h,i) => {
+    const tr = document.createElement('tr');
+    const gagne = !h.passe && h.erreurs === 0;
+    tr.className = gagne ? 'win' : 'lose';
+    tr.innerHTML = `<td>${i+1}</td>
+      <td>${h.categorie}</td>
+      <td style="font-weight:700;letter-spacing:1px">${h.texte}</td>
+      <td>${h.ok} / ${h.signes}</td>
+      <td>${h.erreurs}</td>
+      <td style="font-family:'Courier New',monospace">${fmt(h.temps||0)}</td>
+      <td>${h.passe ? '⏭' : h.erreurs === 0 ? '✅' : '⚠️'}</td>`;
+    table.appendChild(tr);
+  });
+  $('modal-recap').classList.add('open');
+}
+
+function nouvellePartie() { fermerModal('modal-recap'); demarrerJeu(); }
+
+// ══════════════════════════════════════════════════════
+//  SAUVEGARDE / REPRISE DE PARTIE
+//  Passe par partie.js quand il est present (jeu installe
+//  dans la collection), sinon par un simple fichier .json.
+// ══════════════════════════════════════════════════════
+function stamp() {
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return `${p(d.getDate())}${p(d.getMonth()+1)}${d.getFullYear()}_${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+function tempsEcoule() {
+  return timers.totalStart ? Math.floor((Date.now() - timers.totalStart)/1000) : 0;
+}
+
+function sauvegarderPartie() {
+  if (!session.messages.length || session.fini) {
+    alert('Aucune partie en cours à sauvegarder.');
+    return;
+  }
+  const data = {
+    app:'decodage', version:1, savedAt:new Date().toISOString(),
+    sourceName, config,
+    messages: session.messages, reponses: session.reponses,   // reponses du message en cours
+    index: session.index, glyphIndex: session.glyphIndex,
+    score: session.score, bons: session.bons, erreurs: session.erreurs,
+    tableVues: session.tableVues, tableComptee: session.tableComptee,
+    historique: session.historique,
+    elapsed: tempsEcoule()
+  };
+  const json = JSON.stringify(data), nom = `${stamp()}_Decodage.json`;
+  if (window.Partie && typeof Partie.enregistrer === 'function') {
+    Partie.enregistrer({ json, nomPropose: nom, jeu: 'Décodage' });
+  } else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], {type:'application/json'}));
+    a.download = nom;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    alert(`Partie sauvegardée : « ${nom} » dans le dossier Téléchargements.`);
+  }
+}
+
+function refuserReprise(nom, raison) {
+  if (window.Partie && typeof Partie.refuserReprise === 'function')
+    Partie.refuserReprise({ nomFichier: nom, raison });
+  else alert('⚠ ' + raison);
+}
+
+function chargerPartie(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => restaurerPartie(ev.target.result, file.name);
+  reader.onerror = () => alert('Impossible de lire ce fichier.');
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function restaurerPartie(texte, nom) {
+  let d;
+  try { d = JSON.parse(texte); }
+  catch(err) { refuserReprise(nom, "Ce fichier n'est pas lisible : son contenu n'est pas au format JSON."); return; }
+  if (!d || d.app !== 'decodage' || !Array.isArray(d.messages) || !Array.isArray(d.reponses)) {
+    refuserReprise(nom, "Ce fichier n'est pas une sauvegarde du Jeu de Décodage."); return;
+  }
+  if (!d.messages.length || d.messages.some(m => !Array.isArray(m.glyphes))) {
+    refuserReprise(nom, 'La sauvegarde est incomplète ou abîmée.'); return;
+  }
+
+  stopTimers();
+  config = Object.assign(config, d.config || {});
+  sourceName = d.sourceName || sourceName;
+  session = {
+    index: Math.min(d.index || 0, d.messages.length - 1),
+    messages: d.messages, glyphIndex: d.glyphIndex || 0, buffer:'',
+    reponses: d.reponses || [],
+    score: d.score || 0, bons: d.bons || 0, erreurs: d.erreurs || 0,
+    tableVues: d.tableVues || 0, tableComptee: !!d.tableComptee,
+    historique: d.historique || [],
+    fini: false, enCours: true, messageClos: false
+  };
+  $('cfg-code').value = config.code;
+  $('cfg-niveau').value = String(config.niveau);
+  majConfig();
+  $('cfg-type').value = config.type;
+  $('cfg-categorie').value = config.categorie || '';
+  $('cfg-nb').value = Math.min(12, session.messages.length);
+  $('lbl-nb').textContent = $('cfg-nb').value;
+
+  fermerModal('modal-result'); fermerModal('modal-recap');
+  showScreen('screen-jeu');
+  construireClavier();
+  construireTable();
+  if (config.tableDepart) ouvrirTable(); else fermerTable();
+
+  const msg = messageCourant();
+  if (!session.reponses.length || session.reponses.length !== msg.glyphes.length)
+    session.reponses = msg.glyphes.map(() => ({saisie:'', statut:'pending'}));
+
+  $('categorie-display').textContent = msg.categorie.toUpperCase();
+  $('hint-right').innerHTML =
+    `Code <b>${CODE_NOM[config.code]}</b> · Niveau <b>${NIVEAU_NOM[config.niveau]}</b><br>` +
+    `${msg.type === 'phrase' ? 'Phrase' : msg.type === 'nombres' ? 'Nombres' : 'Mot'} · ` +
+    `${msg.glyphes.length} signe${msg.glyphes.length>1?'s':''} à décoder`;
+  $('keyboard').classList.remove('locked');
+  rendreMessage();
+  majPanneaux();
+
+  // Les chronos repartent du temps enregistre
+  timers.totalStart = Date.now() - (d.elapsed || 0)*1000;
+  clearInterval(timers.totalInterval);
+  timers.totalInterval = setInterval(() => {
+    $('timer-total').textContent = fmt(Math.floor((Date.now() - timers.totalStart)/1000));
+  }, 1000);
+  $('timer-total').textContent = fmt(d.elapsed || 0);
+  startMsgTimer();
+
+  if (window.Partie && typeof Partie.confirmerReprise === 'function')
+    Partie.confirmerReprise({
+      nomFichier: nom,
+      resume: `${session.messages.length} message(s) — message ${session.index+1} en cours`
+    });
+}
+
+// ══════════════════════════════════════════════════════
+//  PANNEAUX
+// ══════════════════════════════════════════════════════
+function majPanneaux() {
+  const msg = messageCourant();
+  const total = session.messages.length || 1;
+  $('badge-message').textContent = `${Math.min(session.index+1,total)} / ${total}`;
+  $('progress-fill').style.width = Math.round(session.index/total*100) + '%';
+  $('score-display').textContent = Math.max(0, session.score);
+  $('badge-signes').textContent = msg ? `${session.glyphIndex} / ${msg.glyphes.length}` : '0 / 0';
+  $('badge-erreurs').textContent = session.erreurs;
+  $('badge-table').textContent = session.tableVues;
+  $('btn-table').textContent = config.niveau === 3 ? '📋 Table −100' : '📋 Table';
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function retourAccueil() {
+  stopTimers(); session.enCours = false;
+  fermerModal('modal-result'); fermerModal('modal-recap'); fermerTable();
+  showScreen('screen-accueil');
+}
+function retourConfig() {
+  stopTimers(); session.enCours = false;
+  fermerModal('modal-result'); fermerModal('modal-recap'); fermerTable();
+  if (!textes.length && config.code !== 'maya') { showScreen('screen-accueil'); return; }
+  showScreen('screen-config');
+  majConfig();
+}
+function quitter() { if (confirm('Quitter le jeu ?')) window.close(); }
+function openRules()  { $('rules-panel').classList.add('open');  $('rules-overlay').classList.add('open'); }
+function closeRules() { $('rules-panel').classList.remove('open'); $('rules-overlay').classList.remove('open'); }
+function fermerModal(id) { $(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════
+//  TIMERS
+// ══════════════════════════════════════════════════════
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmt(sec) { return `${pad(Math.floor(sec/60))}:${pad(sec%60)}`; }
+
+function startMsgTimer() {
+  timers.msgStart = Date.now();
+  clearInterval(timers.msgInterval);
+  $('timer-msg').textContent = '00:00';
+  timers.msgInterval = setInterval(() => {
+    $('timer-msg').textContent = fmt(Math.floor((Date.now() - timers.msgStart)/1000));
+  }, 1000);
+}
+function stopMsgTimer() { clearInterval(timers.msgInterval); }
+function startTotalTimer() {
+  timers.totalStart = Date.now();
+  clearInterval(timers.totalInterval);
+  $('timer-total').textContent = '00:00';
+  timers.totalInterval = setInterval(() => {
+    $('timer-total').textContent = fmt(Math.floor((Date.now() - timers.totalStart)/1000));
+  }, 1000);
+}
+function stopTimers() { clearInterval(timers.msgInterval); clearInterval(timers.totalInterval); }
+
+// ══════════════════════════════════════════════════════
+//  EXPORT PDF
+// ══════════════════════════════════════════════════════
+function exporterPDF() {
+  const nom   = $('recap-nom').value.trim() || 'Anonyme';
+  const score = $('recap-score').textContent;
+  const sub   = $('recap-sub').textContent;
+  const date  = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'});
+  const heure = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+
+  const rows = session.historique.map((h,i) => {
+    const res = h.passe ? '⏭ Passé' : h.erreurs === 0 ? '✅ Sans faute' : '⚠️ ' + h.erreurs + ' erreur(s)';
+    const cls = (!h.passe && h.erreurs === 0) ? 'win' : 'lose';
+    return `<tr class="${cls}"><td>${i+1}</td><td>${h.categorie}</td>
+      <td class="mot">${h.texte}</td><td>${h.ok} / ${h.signes}</td>
+      <td class="mono">${fmt(h.temps||0)}</td><td>${res}</td></tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<title>Décodage — Récapitulatif — ${nom}</title>
+<style>
+  @page { size: A4; margin: 20mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; color: #0a1a3e; background: #fff; font-size: 11pt; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 3px solid #38B6FF; padding-bottom: 10px; margin-bottom: 18px; }
+  .title { font-size: 22pt; font-weight: 900; letter-spacing: 4px; color: #38B6FF; }
+  .title span { color: #1a8fd4; }
+  .meta { text-align: right; font-size: 9pt; color: #6b7280; line-height: 1.7; }
+  .meta strong { color: #0a1a3e; font-size: 11pt; }
+  .stats { display: flex; gap: 16px; margin-bottom: 18px; }
+  .stat-box { flex: 1; border: 1.5px solid #7dd8f0; border-radius: 8px; padding: 10px 14px; background: #ddf4ff; text-align: center; }
+  .stat-box .lbl { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin-bottom: 3px; }
+  .stat-box .val { font-size: 16pt; font-weight: 900; color: #1a8fd4; font-family: 'Courier New', monospace; }
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  th { background: #38B6FF; color: #fff; padding: 7px 10px; text-align: left; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
+  tr.win td:first-child { color: #27ae60; font-weight: 700; }
+  tr.lose td:first-child { color: #e74c3c; font-weight: 700; }
+  tr:nth-child(even) { background: #f9fafb; }
+  .mot { font-weight: 900; letter-spacing: 1px; font-size: 10pt; }
+  .mono { font-family: 'Courier New', monospace; }
+  .footer { margin-top: 24px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 8pt; color: #9ca3af; text-align: center; }
+</style></head><body>
+<div class="header">
+  <div class="title">DÉCO<span>DAGE</span></div>
+  <div class="meta"><strong>${nom}</strong><br>${date} à ${heure}</div>
+</div>
+<div class="stats">
+  <div class="stat-box"><div class="lbl">Score</div><div class="val">${score}</div></div>
+  <div class="stat-box"><div class="lbl">Code</div><div class="val" style="font-size:11pt">${CODE_NOM[config.code]}</div></div>
+  <div class="stat-box"><div class="lbl">Niveau</div><div class="val" style="font-size:11pt">${NIVEAU_NOM[config.niveau]}</div></div>
+  <div class="stat-box"><div class="lbl">Table vue</div><div class="val">${session.tableVues}</div></div>
+</div>
+<p style="font-size:9pt;color:#6b7280;margin-bottom:10px;">${sub}</p>
+<table>
+  <thead><tr><th>#</th><th>Catégorie</th><th>Message</th><th>Signes</th><th>Temps</th><th>Résultat</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="footer">Généré par JeuDecodage — ${date}</div>
+<script>window.onload = () => { window.print(); }<\/script>
+</body></html>`;
+
+  let iframe = $('_pdf_frame');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = '_pdf_frame';
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;';
+    document.body.appendChild(iframe);
+  }
+  iframe.srcdoc = html;
+  iframe.onload = () => { iframe.contentWindow.focus(); iframe.contentWindow.print(); };
+}
+
+// ══════════════════════════════════════════════════════
+//  CLAVIER PHYSIQUE + REDIMENSIONNEMENT
+// ══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (!session.enCours) return;
+  if ($('rules-panel').classList.contains('open')) return;
+  if (e.key === 'Backspace') { e.preventDefault(); appuyer('⌫'); return; }
+  if (e.key === 'Enter')     { e.preventDefault(); appuyer('✓');  return; }
+  const k = e.key.toUpperCase();
+  if (config.code === 'maya') { if (/^[0-9]$/.test(k)) appuyer(k); }
+  else if (/^[A-Z]$/.test(k)) appuyer(k);
+});
+window.addEventListener('resize', () => { if (session.messages.length) ajusterTaille(); });
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+(function init() {
+  try { textes = parseTextesXML(MESSAGES_XML); sourceName = 'MessageCodes.xml (copie intégrée)'; }
+  catch(e) { textes = []; }
+})();
+</script>
+
+<!-- Bibliotheque de ressources en ligne (actif uniquement en http/https) -->
+<script src="../assets/js/ressources.js"></script>
+<script src="../assets/js/bibliotheque.js" data-jeu="decodage" data-base="../"></script>
+
+<!-- Sauvegarde / reprise de partie harmonisee -->
+<script src="../assets/js/partie.js" data-base="../"></script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="decodage" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#rules-panel"
+        data-voile="#rules-overlay"
+        data-titre="Comment jouer au Décodage"
+        data-fermer="closeRules()"></script>
+</body>
+</html>

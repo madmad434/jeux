@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/webp" href="../../assets/favicons/jeux.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestionnaire Anagrammes — mode expert v1.0.0</title>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --primary:#1a3a5c;--primary-light:#2980b9;--primary-lighter:#3498db;
+ --primary-bg:#eaf2f8;--primary-border:#b0c4de;
+ --white:#ffffff;--bg:#f0f4f8;--bg-card:#ffffff;
+ --text:#1e293b;--text-light:#475569;--text-muted:#94a3b8;
+ --success:#16a34a;--danger:#dc2626;--warning:#d97706;
+ --border:#cbd5e1;--border-light:#e2e8f0;
+ --shadow:0 1px 3px rgba(0,0,0,.1);
+ --radius:6px;
+ /* Panneau gauche Textes — bleu nuit */
+ --dark-panel:#071422;--dark-panel-header:#0b1c35;
+ --dark-item:#091929;--dark-item-hover:#0f2540;--dark-item-active:#163356;
+ --dark-text:#b8cfe8;--dark-text-muted:#5a7a99;--dark-border:#12263d;
+ /* Panneau droit Détails/Édition — gris anthracite */
+ --tab-dark:#1a1d23;--tab-dark-panel:#22262e;
+ --tab-text:#d4d8e0;--tab-text-muted:#7a8090;--tab-border:#32363f;
+ --tab-input:#1a1d23;--tab-input-text:#d4d8e0;
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;font-size:13px;color:var(--text);background:var(--bg)}
+button{cursor:pointer;font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 12px;background:var(--white);color:var(--text);transition:all .15s}
+button:hover{background:var(--primary-bg);border-color:var(--primary-light)}
+button:active{transform:scale(.97)}
+button.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+button.primary:hover{background:var(--primary-light)}
+button.danger{color:var(--danger);border-color:var(--danger)}
+button.danger:hover{background:#fef2f2}
+input[type="text"],select,textarea{font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px;background:var(--white);color:var(--text);outline:none;transition:border .15s}
+input[type="text"]:focus,select:focus,textarea:focus{border-color:var(--primary-lighter);box-shadow:0 0 0 2px rgba(52,152,219,.15)}
+input[readonly]{background:#e8edf2;color:#475569}
+textarea{resize:vertical}
+
+/* Aide dialog */
+.help-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:1000}
+.help-box{background:#1e2530;border:1px solid #2e3a4a;border-radius:10px;padding:0;box-shadow:0 12px 48px rgba(0,0,0,.5);width:680px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column}
+.help-box-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#162030;border-bottom:1px solid #2a3a4e;border-radius:10px 10px 0 0;flex-shrink:0}
+.help-box-header h2{color:#7eb8e8;font-size:14px;margin:0}
+.help-box-close{background:transparent;border:none;color:#5a7a99;font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+.help-box-close:hover{color:#c9d8e8}
+.help-panel{padding:16px 20px;color:var(--dark-text);overflow-y:auto;flex:1}
+.help-panel h2{color:#7eb8e8;font-size:14px;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #1e3a5c}
+.help-section{margin-bottom:18px}
+.help-section h3{color:#5ba3d9;font-size:12px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.help-section p,.help-section li{font-size:11.5px;line-height:1.7;color:#b8cfe8;margin-bottom:4px}
+.help-section ul{padding-left:20px}
+.help-section li{list-style:disc}
+.help-section .note{background:#0f1f35;border-left:3px solid #e67e22;padding:8px 12px;margin:6px 0;border-radius:0 4px 4px 0;color:#f0c080;font-size:11px;line-height:1.6}
+.help-kbd{display:inline-block;background:#162030;border:1px solid #2e4a7a;border-radius:4px;padding:1px 6px;font-family:monospace;font-size:11px;color:#7eb8e8;margin:0 2px}
+.help-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
+.help-table th{background:#0f1f3d;color:#5ba3d9;text-align:left;padding:5px 8px;border:1px solid #1e3a5c}
+.help-table td{padding:5px 8px;border:1px solid #1a3050;color:#b8cfe8;vertical-align:top}
+.help-table tr:nth-child(even) td{background:#0a1628}
+
+#app{display:flex;flex-direction:column;height:100vh}
+.toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0}
+.toolbar .sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+.toolbar .app-title{font-weight:700;color:var(--primary);font-size:13px;margin-right:8px;white-space:nowrap}
+.main{display:flex;flex:1;overflow:hidden;min-height:0}
+.statusbar{display:flex;align-items:center;gap:12px;padding:5px 12px;background:var(--white);border-top:1px solid var(--border);font-size:11px;color:var(--text-light);flex-shrink:0}
+.statusbar .modified{font-weight:600}
+.statusbar .modified.clean{color:var(--success)}
+.statusbar .modified.dirty{color:var(--danger)}
+.statusbar .spacer{flex:1}
+
+.left-panel{width:270px;min-width:270px;background:var(--dark-panel);border-right:1px solid var(--dark-border);display:flex;flex-direction:column;overflow:hidden}
+.panel-header{padding:6px 10px;font-weight:700;font-size:12px;color:#7eb8e8;background:var(--dark-panel-header);border-bottom:1px solid var(--dark-border);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.sections-list{flex:1;overflow-y:auto;padding:2px;background:var(--dark-panel)}
+.section-item{display:flex;align-items:center;padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--dark-border);font-size:11.5px;transition:background .1s;gap:6px;color:var(--dark-text)}
+.section-item:hover{background:var(--dark-item-hover)}
+.section-item.active{background:var(--dark-item-active);color:#fff}
+.section-item .sec-id{font-weight:700;color:#5ba3d9;min-width:40px;flex-shrink:0;font-size:11px}
+.section-item.active .sec-id{color:#ffd700}
+.section-item .sec-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;color:var(--dark-text)}
+.section-item .sec-author{font-size:10px;color:var(--dark-text-muted);font-style:italic}
+.section-item.active .sec-author{color:#aad4f5}
+.section-item.active .sec-name{color:#fff}
+
+.right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--tab-dark-panel)}
+.tab-bar{display:flex;background:var(--tab-dark);border-bottom:2px solid var(--tab-border);flex-shrink:0}
+.tab-btn{padding:7px 20px;font-size:12px;font-weight:600;border:none;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--tab-text-muted);margin-bottom:-2px}
+.tab-btn:hover{background:#2a2e38;color:var(--tab-text)}
+.tab-btn.active{color:#64b0e8;border-bottom-color:#3498db}
+.tab-content{flex:1;overflow-y:auto;padding:0;background:var(--tab-dark-panel)}
+.tab-panel{display:none;height:100%;overflow-y:auto;background:var(--tab-dark-panel)}
+.tab-panel.active{display:block}
+
+.details-box{padding:12px 16px;font-family:'Segoe UI',sans-serif;font-size:12px;line-height:1.6;color:var(--tab-text);background:var(--tab-dark-panel)}
+.details-box .detail-title{font-weight:700;color:#7eb8e8;font-size:14px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--tab-border)}
+.details-box .detail-label{font-weight:600;color:#64b0e8;margin-top:8px;font-size:11px}
+.details-box .detail-value{margin-left:12px;margin-bottom:4px;color:var(--tab-text)}
+.details-box .quote-text{background:var(--tab-input);border-left:3px solid #3498db;padding:12px;margin:8px 0;font-style:italic;line-height:1.8;color:#d4d8e0}
+
+.edit-container{padding:8px 14px;background:var(--tab-dark-panel);min-height:100%}
+.edit-title{font-weight:700;font-size:13px;color:#7eb8e8;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--tab-border)}
+.form-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:start}
+.form-grid label{font-size:11.5px;font-weight:600;color:#64b0e8;white-space:nowrap;text-align:right;padding-right:4px;padding-top:4px}
+.form-grid input[type="text"],.form-grid select{width:100%;background:#ffffff;color:#1e293b;border-color:#94a3b8}
+.form-grid input[type="text"]:focus,.form-grid textarea:focus{border-color:#3498db;box-shadow:0 0 0 2px rgba(52,152,219,.2)}
+.form-grid textarea{width:100%;min-height:80px;background:#ffffff;color:#1e293b;border-color:#94a3b8}
+.error-msg{color:#f87171;font-size:11px;font-weight:600;min-height:14px;margin-top:4px;grid-column:1/-1}
+.form-buttons{display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--tab-border)}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+
+#fileInput{display:none}
+
+/* Panneau bienvenue — occupe tout l'espace, visible sans scroll */
+.welcome-panel{padding:20px 28px;background:#ffffff;height:100%;overflow:hidden;color:#1e293b;display:flex;flex-direction:column;box-sizing:border-box}
+.welcome-panel h2{font-size:16px;color:#1a3a5c;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.welcome-panel .welcome-sub{font-size:12px;color:#64748b;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #e2e8f0}
+.welcome-steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:10px}
+.welcome-step{display:flex;gap:10px;align-items:flex-start}
+.welcome-step .step-num{background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.welcome-step .step-body h3{font-size:12.5px;color:#1a3a5c;margin-bottom:3px;font-weight:700}
+.welcome-step .step-body p{font-size:12px;color:#475569;line-height:1.55}
+.welcome-step .step-body .step-btn{display:inline-block;background:#eaf2f8;border:1px solid #b0c4de;border-radius:3px;padding:1px 7px;font-size:11px;color:#1a3a5c;font-weight:600;margin:0 1px}
+.welcome-cancel{background:#f8f4ff;border:1px solid #c4b5fd;border-radius:6px;padding:9px 14px;margin-bottom:10px}
+.welcome-cancel h3{font-size:12px;color:#5b21b6;margin-bottom:4px;font-weight:700;display:flex;align-items:center;gap:5px}
+.welcome-cancel p{font-size:12px;color:#6d28d9;line-height:1.55}
+.welcome-note{background:#fffbeb;border-left:3px solid #f59e0b;padding:7px 12px;border-radius:0 4px 4px 0;margin-bottom:8px;font-size:12px;color:#78350f;line-height:1.5}
+.welcome-note strong{color:#92400e}
+.welcome-new{background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:9px 14px}
+.welcome-new h3{font-size:12px;color:#166534;margin-bottom:4px;display:flex;align-items:center;gap:5px;font-weight:700}
+.welcome-new p{font-size:12px;color:#15803d;line-height:1.55}
+
+.dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:1000}
+.dialog-box{background:var(--white);border-radius:8px;padding:20px 24px;box-shadow:0 8px 32px rgba(0,0,0,.2);min-width:320px;max-width:440px}
+.dialog-box h3{font-size:14px;color:var(--primary);margin-bottom:12px}
+.dialog-box p{font-size:12px;line-height:1.5;margin-bottom:16px;color:var(--text-light)}
+.dialog-buttons{display:flex;gap:8px;justify-content:flex-end}
+
+/* ── Ajouts propres à l'éditeur d'anagrammes ──────────────────────────── */
+.section-item .sec-len{font-size:10px;color:var(--dark-text-muted);font-style:italic;flex-shrink:0}
+.section-item.active .sec-len{color:#aad4f5}
+.len-head{padding:4px 10px;background:var(--dark-panel-header);color:#7eb8e8;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--dark-border);position:sticky;top:0;z-index:1}
+.mot-line{display:inline-block;background:var(--tab-input);border-left:3px solid #3498db;padding:4px 12px;margin:3px 6px 3px 0;border-radius:4px;color:#d4d8e0;font-weight:600;letter-spacing:1px}
+.mot-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.mot-row .mot-num{font-weight:800;color:#64b0e8;min-width:18px;font-size:11.5px}
+.mot-row input[type="text"]{flex:1;background:#fff;color:#1e293b;border-color:#94a3b8;letter-spacing:1px;font-weight:600}
+.mot-row .del{border-color:#7f1d1d;color:#f87171;background:transparent;padding:3px 8px}
+.mot-row .del:hover{background:#3a1414}
+.mot-tools{display:flex;gap:8px;align-items:center;margin-top:4px}
+.mot-hint{font-size:11px;color:var(--tab-text-muted)}
+.mot-hint.warn{color:#f0c674;font-weight:600}
+.sig-ok{color:#7ee8a2;font-weight:600}
+.sig-ko{color:#f87171;font-weight:600}
+.bad{border-color:#dc2626 !important;box-shadow:0 0 0 2px rgba(220,38,38,.25)}
+.toast{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);background:#0b1c35;color:#e6f0fa;border:1px solid #2b5a8c;border-radius:8px;padding:10px 18px;font-size:12.5px;z-index:2000;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:80vw}
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="toolbar">
+    <span class="app-title">🔤 Gestionnaire Anagrammes</span>
+    <div class="sep"></div>
+    <button onclick="openXML()" title="Ouvrir un fichier XML">📂 Ouvrir XML</button>
+    <button onclick="exportXML()" title="Enregistrer le fichier XML">💾 Enregistrer</button>
+    <div class="sep"></div>
+    <button class="primary" onclick="newGroupe()" title="Ajouter un groupe (Ctrl+N)">➕ Nouveau groupe</button>
+    <button onclick="openMeta()" title="Métadonnées du fichier">📋 Métadonnées</button>
+    <button onclick="resetAll()" title="Tout réinitialiser">🔄 Réinitialiser</button>
+    <div style="flex:1"></div>
+    <button onclick="showHelp()" title="Aide">❓ Aide</button>
+    <div class="sep"></div>
+    <button id="btn-quitter" title="Quitter">🚪 Quitter</button>
+  </div>
+
+  <div class="main">
+    <div class="left-panel">
+      <div class="panel-header">📋 Groupes</div>
+      <div class="sections-list" id="sectionsList"></div>
+    </div>
+
+    <div class="right-panel">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="details" onclick="switchTab('details')">📄 Détails</button>
+        <button class="tab-btn" data-tab="edition" onclick="switchTab('edition')">✏️ Édition</button>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active" id="tabDetails">
+          <div class="details-box" id="detailsContent">
+            <div class="welcome-panel" id="welcomePanel">
+              <h2>🔤 Gestionnaire Anagrammes — mode expert</h2>
+              <p class="welcome-sub">Gérez vos groupes d'anagrammes au format XML, sans assistant : tout est accessible en deux clics.</p>
+
+              <div class="welcome-steps-grid">
+                <div class="welcome-step">
+                  <div class="step-num">1</div>
+                  <div class="step-body">
+                    <h3>📂 Charger une collection</h3>
+                    <p>Cliquez sur <span class="step-btn">📂 Ouvrir XML</span> pour charger un fichier <strong>&lt;anagrammes&gt;</strong>. Les groupes s'affichent à gauche, classés par longueur.</p>
+                  </div>
+                </div>
+                <div class="welcome-step">
+                  <div class="step-num">2</div>
+                  <div class="step-body">
+                    <h3>✏️ Consulter et modifier</h3>
+                    <p>Cliquez sur un groupe. Passez sur l'onglet <span class="step-btn">✏️ Édition</span>, modifiez, puis <span class="step-btn">💾 Sauvegarder</span>.</p>
+                  </div>
+                </div>
+                <div class="welcome-step">
+                  <div class="step-num">3</div>
+                  <div class="step-body">
+                    <h3>➕ Ajouter un groupe</h3>
+                    <p>Cliquez sur <span class="step-btn">➕ Nouveau groupe</span>. Indiquez la longueur, puis saisissez les mots : le contrôle d'anagramme est fait en direct.</p>
+                  </div>
+                </div>
+                <div class="welcome-step">
+                  <div class="step-num">4</div>
+                  <div class="step-body">
+                    <h3>💾 Enregistrer sur le disque</h3>
+                    <p>Cliquez sur <span class="step-btn">💾 Enregistrer</span> pour écrire le fichier XML. Les numéros de groupe sont renumérotés proprement.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="welcome-cancel">
+                <h3>❌ Effet du bouton Annuler</h3>
+                <p><strong>En modification</strong> : les champs reviennent aux valeurs d'origine, rien n'est appliqué.<br>
+                <strong>En création</strong> : le nouveau groupe est abandonné et la sélection précédente restaurée.</p>
+              </div>
+
+              <div class="welcome-note">
+                ⚠️ <strong>Important :</strong> <em>Sauvegarder</em> valide le groupe en mémoire. Utilisez <strong>Enregistrer</strong> pour écrire définitivement le fichier XML.
+              </div>
+
+              <div class="welcome-new">
+                <h3>🆕 Partir de zéro</h3>
+                <p>Pas de fichier ? Cliquez directement sur <span class="step-btn">➕ Nouveau groupe</span> sans rien charger, ajoutez vos groupes, puis <span class="step-btn">💾 Enregistrer</span>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="tabEdition">
+          <div class="edit-container" id="editContainer">
+            <span style="color:var(--tab-text-muted)">Sélectionnez un groupe pour l'éditer.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="modified clean" id="modifiedIndicator">✅ Aucune modification</span>
+    <span id="statusMsg">Prêt</span>
+    <span class="spacer"></span>
+    <span id="recordCount" style="font-size:11px;color:#475569">0 groupe(s)</span>
+    <span class="version">v1.0.0</span>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".xml" onchange="handleFileOpen(event)">
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+//  GESTIONNAIRE ANAGRAMMES — MODE EXPERT
+//  Même format d'interface que les autres éditeurs « expert » du site :
+//  liste à gauche, onglets Détails / Édition à droite, tout au clavier.
+//  Le format de fichier est strictement celui de l'éditeur guidé.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ==================== CONSTANTES ====================
+const VERSION     = "1.0.0";
+const MAX_GROUPES = 500;
+const MAX_MOTS    = 12;   // mots par groupe
+const MIN_LEN     = 2;
+const MAX_LEN     = 30;
+
+// ==================== ÉTAT ====================
+let groupesData   = [];
+let metaData      = { titre:'', description:'', dictionnaire:'', lien:'', licence:'',
+                      regles:[], stats_long:'', stats_gpl:'' };
+let currentIndex  = null;
+let modified      = false;
+let isCreatingNew = false;
+let backupData    = null;
+let activeTab     = 'details';
+
+// ==================== OUTILS ====================
+const $ = id => document.getElementById(id);
+function escX(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+// Signature d'un mot : ses lettres triées, accents ignorés.
+// Deux mots sont anagrammes si et seulement si leurs signatures sont égales.
+function signature(m){
+  return String(m||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .split('').sort().join('');
+}
+
+let toastTimer=null;
+function toast(msg){
+  let t=document.querySelector('.toast');
+  if(!t){ t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.remove(),3800);
+}
+function setStatus(m){ $('statusMsg').textContent=m; }
+function setModified(v){
+  modified=v;
+  const el=$('modifiedIndicator');
+  el.className='modified '+(v?'dirty':'clean');
+  el.textContent = v ? '⚠️ Modifications non enregistrées' : '✅ Aucune modification';
+}
+function updateCount(){
+  const mots = groupesData.reduce((n,g)=>n+g.mots.length,0);
+  $('recordCount').textContent = groupesData.length+' groupe(s) · '+mots+' mot(s)';
+}
+
+// ==================== DIALOGUES ====================
+function dialog(title, html, boutons){
+  const ov=document.createElement('div'); ov.className='dialog-overlay';
+  ov.innerHTML=`<div class="dialog-box"><h3>${escH(title)}</h3><p>${html}</p><div class="dialog-buttons"></div></div>`;
+  const zone=ov.querySelector('.dialog-buttons');
+  boutons.forEach(b=>{
+    const el=document.createElement('button'); el.textContent=b.label;
+    if(b.cls) el.className=b.cls;
+    el.onclick=()=>{ ov.remove(); if(b.action) b.action(); };
+    zone.appendChild(el);
+  });
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  return ov;
+}
+function info(t,m){ dialog(t,m,[{label:'OK',cls:'primary'}]); }
+function confirmer(t,m,onOui,labelOui){ dialog(t,m,[{label:'Annuler'},{label:labelOui||'Confirmer',cls:'primary',action:onOui}]); }
+
+// ==================== LECTURE DU XML ====================
+function parseXML(xmlString){
+  const doc=new DOMParser().parseFromString(xmlString,'text/xml');
+  if (doc.querySelector('parsererror')) throw new Error('Fichier XML invalide ou corrompu.');
+  if (doc.documentElement.tagName!=='anagrammes')
+    throw new Error('Racine attendue : <anagrammes>. Racine trouvée : <'+doc.documentElement.tagName+'>.');
+
+  const meta=doc.querySelector('metadonnees');
+  if (meta){
+    metaData.titre        = (meta.querySelector('titre')?.textContent||'').trim();
+    metaData.description  = (meta.querySelector('description')?.textContent||'').trim();
+    metaData.dictionnaire = (meta.querySelector('source dictionnaire')?.textContent||'').trim();
+    metaData.lien         = (meta.querySelector('source lien')?.textContent||'').trim();
+    metaData.licence      = (meta.querySelector('source licence')?.textContent||'').trim();
+    metaData.regles       = [...meta.querySelectorAll('regles regle')].map(r=>r.textContent.trim());
+    metaData.stats_long   = (meta.querySelector('statistiques longueurs')?.textContent||'').trim();
+    metaData.stats_gpl    = (meta.querySelector('statistiques groupes_par_longueur')?.textContent||'').trim();
+  }
+
+  const groupes=[];
+  doc.querySelectorAll('anagramm').forEach(n=>{
+    const mots=[...n.querySelectorAll('mot')].map(m=>m.textContent.trim()).filter(Boolean);
+    groupes.push({
+      longueur: parseInt(n.getAttribute('longueur')||'0') || (mots[0]?mots[0].length:0),
+      groupe:   parseInt(n.getAttribute('groupe')||'0'),
+      mots
+    });
+  });
+  if (!groupes.length) throw new Error('Aucune balise <anagramm> trouvée dans le fichier.');
+  groupes.sort((a,b)=> a.longueur!==b.longueur ? a.longueur-b.longueur : a.groupe-b.groupe);
+
+  // Signalements : groupes dont les mots ne sont pas de vraies anagrammes
+  const suspects=[];
+  groupes.forEach((g,i)=>{
+    if (g.mots.length<2) { suspects.push((i+1)+' (moins de 2 mots)'); return; }
+    const ref=signature(g.mots[0]);
+    if (g.mots.some(m=>signature(m)!==ref)) suspects.push(String(i+1));
+  });
+  return { groupes, suspects };
+}
+
+// ==================== ÉCRITURE DU XML ====================
+function generateXML(){
+  const total=groupesData.length;
+  const lens=[...new Set(groupesData.map(g=>g.longueur))].sort((a,b)=>a-b);
+  const minL=lens.length?lens[0]:'', maxL=lens.length?lens[lens.length-1]:'';
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<anagrammes>\n\n`;
+  xml += `  <!-- ============================================================ -->\n`;
+  xml += `  <!-- MÉTADONNÉES                                                   -->\n`;
+  xml += `  <!-- ============================================================ -->\n`;
+  xml += `  <metadonnees>\n`;
+  xml += `    <titre>${escX(metaData.titre||'Anagrammes')}</titre>\n`;
+  xml += `    <description>${escX(metaData.description)}</description>\n`;
+  xml += `    <source>\n`;
+  xml += `      <dictionnaire>${escX(metaData.dictionnaire)}</dictionnaire>\n`;
+  xml += `      <lien>${escX(metaData.lien)}</lien>\n`;
+  xml += `      <licence>${escX(metaData.licence)}</licence>\n`;
+  xml += `    </source>\n`;
+  xml += `    <regles>\n`;
+  (metaData.regles||[]).forEach(r=>{ xml += `      <regle>${escX(r)}</regle>\n`; });
+  xml += `    </regles>\n`;
+  xml += `    <statistiques>\n`;
+  xml += `      <total_groupes>${total}</total_groupes>\n`;
+  xml += `      <longueurs>${minL&&maxL ? minL+' à '+maxL+' lettres' : escX(metaData.stats_long||'')}</longueurs>\n`;
+  xml += `      <groupes_par_longueur>${escX(metaData.stats_gpl||'')}</groupes_par_longueur>\n`;
+  xml += `    </statistiques>\n`;
+  xml += `  </metadonnees>\n`;
+
+  const byLen={};
+  groupesData.forEach(g=>{ (byLen[g.longueur] ||= []).push(g); });
+  Object.keys(byLen).sort((a,b)=>a-b).forEach(len=>{
+    xml += `\n  <!-- ============================================================ -->\n`;
+    xml += `  <!-- LONGUEUR ${len.toString().padEnd(51)} -->\n`;
+    xml += `  <!-- ============================================================ -->\n\n`;
+    byLen[len].forEach((g,i)=>{
+      xml += `  <anagramm longueur="${escX(len)}" groupe="${i+1}">\n`;
+      g.mots.forEach(m=>{ xml += `    <mot>${escX(m)}</mot>\n`; });
+      xml += `  </anagramm>\n\n`;
+    });
+  });
+  return xml + `</anagrammes>`;
+}
+
+// ==================== OUVRIR / ENREGISTRER ====================
+window.openXML = function(){ $('fileInput').click(); };
+
+window.handleFileOpen = function(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload = ev => {
+    try{
+      const res=parseXML(ev.target.result);
+      groupesData=res.groupes; currentIndex=null; isCreatingNew=false;
+      setModified(false); renderList(); showWelcome(); updateCount();
+      setStatus('Fichier chargé : '+f.name);
+      if (res.suspects.length)
+        info('⚠️ Fichier chargé avec réserves',
+          escH(res.suspects.length+' groupe(s) contiennent des mots qui ne sont pas des anagrammes les uns des autres : n° '
+          + res.suspects.slice(0,20).join(', ') + (res.suspects.length>20?'…':'')
+          + '. Le contenu est conservé tel quel ; il devra être corrigé pour pouvoir enregistrer une modification.'));
+      else toast('✅ '+groupesData.length+' groupe(s) chargé(s).');
+    } catch(err){ info('❌ Lecture impossible', escH(err.message)); }
+  };
+  r.readAsText(f,'UTF-8');
+  e.target.value='';
+};
+
+window.exportXML = async function(){
+  if (!groupesData.length){ toast('⚠️ Aucun groupe à enregistrer.'); return; }
+  const xml=generateXML();
+  const nom=(metaData.titre||'anagrammes').replace(/[<>:"/\\|?*\x00-\x1f]/g,'_')+'.xml';
+  if (window.showSaveFilePicker){
+    try{
+      const h=await window.showSaveFilePicker({ suggestedName:nom,
+        types:[{description:'Fichier XML',accept:{'application/xml':['.xml']}}] });
+      const w=await h.createWritable(); await w.write(xml); await w.close();
+      setModified(false); setStatus('Enregistré : '+h.name); toast('💾 Enregistré dans '+h.name); return;
+    } catch(err){ if(err.name==='AbortError') return; }
+  }
+  const blob=new Blob([xml],{type:'application/xml;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nom; a.click();
+  URL.revokeObjectURL(a.href);
+  setModified(false); setStatus('Téléchargé : '+nom); toast('💾 Fichier téléchargé : '+nom);
+};
+
+window.resetAll = function(){
+  confirmer('🔄 Tout réinitialiser ?','Les groupes chargés et les modifications en cours seront perdus.',
+    ()=>{ groupesData=[]; currentIndex=null; isCreatingNew=false;
+          metaData={titre:'',description:'',dictionnaire:'',lien:'',licence:'',regles:[],stats_long:'',stats_gpl:''};
+          setModified(false); renderList(); showWelcome(); updateCount(); setStatus('Réinitialisé'); },
+    'Réinitialiser');
+};
+
+window.openMeta = function(){
+  const ov=dialog('📋 Métadonnées du fichier',
+    `<div style="display:grid;gap:8px">
+      <div><label style="font-size:11.5px;color:var(--primary-light);font-weight:600">Titre</label>
+        <input type="text" id="m_titre" style="width:100%" maxlength="150" value="${escH(metaData.titre)}" placeholder="Tapez ici le titre du fichier…"></div>
+      <div><label style="font-size:11.5px;color:var(--primary-light);font-weight:600">Description</label>
+        <input type="text" id="m_desc" style="width:100%" maxlength="300" value="${escH(metaData.description)}" placeholder="Tapez ici la description…"></div>
+      <div><label style="font-size:11.5px;color:var(--primary-light);font-weight:600">Dictionnaire</label>
+        <input type="text" id="m_dico" style="width:100%" maxlength="200" value="${escH(metaData.dictionnaire)}" placeholder="Tapez ici le nom du dictionnaire…"></div>
+      <div><label style="font-size:11.5px;color:var(--primary-light);font-weight:600">Lien</label>
+        <input type="text" id="m_lien" style="width:100%" maxlength="300" value="${escH(metaData.lien)}" placeholder="Tapez ici l’adresse du dictionnaire…"></div>
+      <div><label style="font-size:11.5px;color:var(--primary-light);font-weight:600">Licence</label>
+        <input type="text" id="m_lic" style="width:100%" maxlength="200" value="${escH(metaData.licence)}" placeholder="Tapez ici la licence…"></div>
+    </div>`,
+    [{label:'Annuler'},{label:'Enregistrer',cls:'primary'}]);
+  const btn=ov.querySelectorAll('.dialog-buttons button')[1];
+  btn.onclick=()=>{
+    metaData.titre        = (ov.querySelector('#m_titre').value||'').trim();
+    metaData.description  = (ov.querySelector('#m_desc').value||'').trim();
+    metaData.dictionnaire = (ov.querySelector('#m_dico').value||'').trim();
+    metaData.lien         = (ov.querySelector('#m_lien').value||'').trim();
+    metaData.licence      = (ov.querySelector('#m_lic').value||'').trim();
+    setModified(true); ov.remove(); setStatus('Métadonnées mises à jour');
+  };
+  ov.querySelector('#m_titre').focus();
+};
+
+// ==================== LISTE DE GAUCHE ====================
+function renderList(){
+  const box=$('sectionsList');
+  if (!groupesData.length){
+    box.innerHTML='<div style="padding:14px 10px;color:var(--dark-text-muted);font-size:11.5px;line-height:1.6">'
+      +'Aucun groupe.<br>Ouvrez un fichier XML ou créez un groupe.</div>';
+    return;
+  }
+  const lens=[...new Set(groupesData.map(g=>g.longueur))].sort((a,b)=>a-b);
+  let html='';
+  lens.forEach(len=>{
+    const n=groupesData.filter(g=>g.longueur===len).length;
+    html+=`<div class="len-head">${len} lettres — ${n} groupe(s)</div>`;
+    groupesData.forEach((g,i)=>{
+      if (g.longueur!==len) return;
+      const cls = i===currentIndex ? 'section-item active' : 'section-item';
+      const ref = g.mots.length ? signature(g.mots[0]) : '';
+      const ok  = g.mots.length>=2 && g.mots.every(m=>signature(m)===ref);
+      html+=`<div class="${cls}" onclick="selectGroupe(${i})">
+        <span class="sec-id">${i+1}.</span>
+        <span class="sec-name">${escH(g.mots.join(', '))||'(vide)'}${ok?'':' ⚠️'}</span>
+        <span class="sec-len">${g.mots.length} mots</span>
+      </div>`;
+    });
+  });
+  box.innerHTML=html;
+}
+
+function showWelcome(){
+  $('detailsContent').innerHTML = $('welcomeTemplate').innerHTML;
+  $('editContainer').innerHTML  = '<span style="color:var(--tab-text-muted)">Sélectionnez un groupe pour l\'éditer.</span>';
+}
+
+window.selectGroupe = function(i){
+  if (isCreatingNew){
+    confirmer('❌ Abandonner la création ?','Le groupe en cours de création sera perdu.',
+      ()=>{ annulerCreation(); selectGroupe(i); },'Abandonner');
+    return;
+  }
+  currentIndex=i; renderList(); renderDetails(); renderEdit();
+  setStatus('Groupe '+(i+1)+' sélectionné');
+};
+
+// ==================== ONGLET DÉTAILS ====================
+function renderDetails(){
+  const g=groupesData[currentIndex];
+  if(!g){ showWelcome(); return; }
+  const ref=g.mots.length?signature(g.mots[0]):'';
+  const ok=g.mots.length>=2 && g.mots.every(m=>signature(m)===ref);
+  $('detailsContent').innerHTML=`
+    <div class="detail-title">Groupe ${currentIndex+1} — ${g.longueur} lettres</div>
+    <div class="detail-label">🏷️ Numéro dans sa longueur</div><div class="detail-value">${g.groupe||'—'}</div>
+    <div class="detail-label">🔤 Mots (${g.mots.length})</div>
+    <div style="margin-left:12px;margin-bottom:6px">${g.mots.map(m=>`<span class="mot-line">${escH(m)}</span>`).join('')||'—'}</div>
+    <div class="detail-label">🔎 Contrôle</div>
+    <div class="detail-value ${ok?'sig-ok':'sig-ko'}">${ok
+      ? '✔ Tous les mots sont bien des anagrammes les uns des autres.'
+      : '✘ Ces mots ne sont pas tous composés des mêmes lettres.'}</div>
+    <div class="detail-label">🔑 Lettres communes</div><div class="detail-value">${escH(ref)||'—'}</div>`;
+}
+
+// ==================== ONGLET ÉDITION ====================
+function motRow(i, mot){
+  return `<div class="mot-row" id="mot_row_${i}">
+    <span class="mot-num">${i+1}.</span>
+    <input type="text" id="mot_${i}" value="${escH(mot)}" maxlength="${MAX_LEN}"
+      placeholder="Tapez ici le mot ${i+1}…" oninput="majControle()">
+    <button class="del" onclick="delMot(${i})" title="Supprimer ce mot">✕</button>
+  </div>`;
+}
+function lireMots(){
+  return [...document.querySelectorAll('.mot-row')].map(r=>r.querySelector('input').value.trim().toLowerCase());
+}
+
+function renderEdit(){
+  const g=groupesData[currentIndex];
+  if(!g){ $('editContainer').innerHTML='<span style="color:var(--tab-text-muted)">Sélectionnez un groupe pour l\'éditer.</span>'; return; }
+  $('editContainer').innerHTML=`
+    <div class="edit-title">${isCreatingNew?'➕ Nouveau groupe':'✏️ Modifier le groupe '+(currentIndex+1)}</div>
+    <div class="form-grid">
+      <label>Longueur</label>
+      <input type="text" id="ed_len" value="${g.longueur||''}" style="max-width:90px" oninput="majControle()">
+
+      <label>Mots</label>
+      <div>
+        <div id="mots_box">${(g.mots.length?g.mots:['','']).map((m,i)=>motRow(i,m)).join('')}</div>
+        <div class="mot-tools">
+          <button id="btn_add_mot" onclick="addMot()">➕ Ajouter un mot</button>
+          <span class="mot-hint" id="mot_hint"></span>
+        </div>
+      </div>
+
+      <label>Contrôle</label>
+      <div id="ed_controle" style="font-size:11.5px;line-height:1.6"></div>
+
+      <div class="error-msg" id="ed_error"></div>
+    </div>
+    <div class="form-buttons">
+      <button class="primary" onclick="sauverGroupe()">💾 Sauvegarder</button>
+      <button onclick="annulerEdition()">❌ Annuler</button>
+      <div style="flex:1"></div>
+      ${isCreatingNew?'':'<button class="danger" onclick="supprimerGroupe()">🗑️ Supprimer</button>'}
+    </div>`;
+  majControle();
+}
+
+// Contrôle en direct : longueur de chaque mot et égalité des signatures.
+window.majControle = function(){
+  const mots=lireMots().filter(Boolean);
+  const len=parseInt($('ed_len').value)||0;
+  const hint=$('mot_hint');
+  if (hint){
+    const tot=lireMots().length;
+    hint.className='mot-hint'+(tot>=MAX_MOTS?' warn':'');
+    hint.textContent=tot+' mot'+(tot>1?'s':'')+' sur '+MAX_MOTS+' possibles';
+  }
+  const btn=$('btn_add_mot');
+  if (btn){ const plein=lireMots().length>=MAX_MOTS;
+    btn.disabled=plein; btn.style.opacity=plein?'.45':''; btn.style.cursor=plein?'not-allowed':'pointer';
+    btn.textContent=plein?'⛔ Maximum '+MAX_MOTS+' mots':'➕ Ajouter un mot'; }
+
+  lireMots().forEach((m,i)=>{
+    const el=$('mot_'+i); if(!el) return;
+    el.classList.toggle('bad', !!m && len>0 && m.length!==len);
+  });
+
+  const box=$('ed_controle'); if(!box) return;
+  if (mots.length<2){ box.innerHTML='<span class="mot-hint">Saisissez au moins deux mots.</span>'; return; }
+  const mauvais = len>0 ? mots.filter(m=>m.length!==len) : [];
+  const ref=signature(mots[0]);
+  const hors=mots.filter(m=>signature(m)!==ref);
+  let html='';
+  html += mauvais.length
+    ? `<div class="sig-ko">✘ ${mauvais.length} mot(s) ne font pas ${len} lettres : ${escH(mauvais.join(', '))}</div>`
+    : `<div class="sig-ok">✔ Tous les mots font ${len||mots[0].length} lettres.</div>`;
+  html += hors.length
+    ? `<div class="sig-ko">✘ Pas des anagrammes de « ${escH(mots[0])} » : ${escH(hors.join(', '))}</div>`
+    : `<div class="sig-ok">✔ Tous les mots utilisent les mêmes lettres (${escH(ref)}).</div>`;
+  box.innerHTML=html;
+};
+
+window.addMot = function(){
+  const etat=lireMots();
+  if (etat.length>=MAX_MOTS){ toast('⚠️ Maximum '+MAX_MOTS+' mots par groupe.'); return; }
+  etat.push('');
+  $('mots_box').innerHTML=etat.map((m,i)=>motRow(i,m)).join('');
+  majControle();
+  const el=$('mot_'+(etat.length-1)); if(el) el.focus();
+};
+
+window.delMot = function(i){
+  const etat=lireMots();
+  if (etat.length<=2){ toast('⚠️ Un groupe doit contenir au moins 2 mots.'); return; }
+  etat.splice(i,1);
+  $('mots_box').innerHTML=etat.map((m,j)=>motRow(j,m)).join('');
+  majControle();
+};
+
+function erreur(msg){ const e=$('ed_error'); if(e) e.textContent=msg; toast(msg); }
+
+window.sauverGroupe = function(){
+  const len  = parseInt($('ed_len').value)||0;
+  const mots = lireMots().filter(Boolean);
+  if (len<MIN_LEN || len>MAX_LEN) return erreur(`⚠️ La longueur doit être comprise entre ${MIN_LEN} et ${MAX_LEN}.`);
+  if (mots.length<2)              return erreur('⚠️ Un groupe doit contenir au moins 2 mots.');
+  const mauvais=mots.find(m=>m.length!==len);
+  if (mauvais)                    return erreur(`⚠️ Le mot « ${mauvais} » fait ${mauvais.length} lettres au lieu de ${len}.`);
+  const doublon=mots.find((m,i)=>mots.indexOf(m)!==i);
+  if (doublon)                    return erreur(`⚠️ Le mot « ${doublon} » est saisi deux fois.`);
+  const ref=signature(mots[0]);
+  const hors=mots.find(m=>signature(m)!==ref);
+  if (hors)                       return erreur(`⚠️ « ${hors} » n'est pas une anagramme de « ${mots[0]} ».`);
+
+  const ancien=groupesData[currentIndex];
+  groupesData[currentIndex]={ longueur:len, groupe:ancien.groupe||0, mots };
+  isCreatingNew=false; backupData=null;
+  groupesData.sort((a,b)=> a.longueur!==b.longueur ? a.longueur-b.longueur : (a.groupe||0)-(b.groupe||0));
+  currentIndex=groupesData.findIndex(g=>g.mots===mots);
+  setModified(true);
+  renderList(); renderDetails(); renderEdit(); updateCount(); switchTab('details');
+  setStatus('Groupe enregistré en mémoire');
+  toast('✅ Groupe enregistré. Pensez à 💾 Enregistrer le fichier.');
+};
+
+function annulerCreation(){
+  groupesData.splice(currentIndex,1);
+  isCreatingNew=false;
+  currentIndex = backupData!==null ? backupData : null;
+  backupData=null;
+  renderList(); updateCount();
+  if (currentIndex===null) showWelcome(); else { renderDetails(); renderEdit(); }
+}
+
+window.annulerEdition = function(){
+  if (isCreatingNew){
+    confirmer('❌ Abandonner la création ?','Le nouveau groupe sera supprimé.',
+      ()=>{ annulerCreation(); switchTab('details'); setStatus('Création abandonnée'); },'Abandonner');
+  } else {
+    renderEdit(); setStatus('Modifications annulées'); toast('❌ Champs restaurés.');
+  }
+};
+
+window.supprimerGroupe = function(){
+  const g=groupesData[currentIndex]; if(!g) return;
+  confirmer('🗑️ Supprimer ce groupe ?',
+    'Le groupe <strong>'+escH(g.mots.join(', '))+'</strong> sera retiré de la collection.',
+    ()=>{
+      groupesData.splice(currentIndex,1);
+      currentIndex = groupesData.length ? Math.min(currentIndex, groupesData.length-1) : null;
+      setModified(true); renderList(); updateCount();
+      if (currentIndex===null) showWelcome(); else { renderDetails(); renderEdit(); }
+      setStatus('Groupe supprimé');
+    },'Supprimer');
+};
+
+window.newGroupe = function(){
+  if (groupesData.length>=MAX_GROUPES){ info('⚠️ Limite atteinte','Maximum '+MAX_GROUPES+' groupes.'); return; }
+  if (isCreatingNew){ toast('⚠️ Terminez d\'abord le groupe en cours de création.'); switchTab('edition'); return; }
+  backupData=currentIndex;
+  const lens=groupesData.map(g=>g.longueur);
+  const len = lens.length ? Math.max(...lens) : 5;
+  const num = groupesData.filter(g=>g.longueur===len).length+1;
+  groupesData.push({ longueur:len, groupe:num, mots:['',''] });
+  currentIndex=groupesData.length-1;
+  isCreatingNew=true;
+  renderList(); renderEdit(); switchTab('edition'); updateCount();
+  setStatus('Nouveau groupe — saisissez la longueur et les mots, puis Sauvegarder');
+  setTimeout(()=>{ const el=$('mot_0'); if(el) el.focus(); },60);
+};
+
+// ==================== ONGLETS ====================
+window.switchTab = function(tab){
+  activeTab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  $('tabDetails').classList.toggle('active', tab==='details');
+  $('tabEdition').classList.toggle('active', tab==='edition');
+};
+
+// ==================== AIDE ====================
+window.showHelp = function(){
+  const ov=document.createElement('div'); ov.className='help-overlay';
+  ov.innerHTML=`<div class="help-box">
+    <div class="help-box-header">❓ Aide — Gestionnaire Anagrammes, mode expert
+      <button class="help-box-close" onclick="this.closest('.help-overlay').remove()">✕</button></div>
+    <div class="help-panel">
+      <div class="help-section">
+        <h2>À qui s'adresse ce mode</h2>
+        <p>Tout est accessible directement, sans guide pas à pas. Pour une saisie accompagnée,
+        utilisez l'éditeur guidé <strong>EditeurAnagrammeXML.html</strong> : les deux écrivent le même
+        format de fichier, vous pouvez passer de l'un à l'autre.</p>
+      </div>
+      <div class="help-section">
+        <h2>Qu'est-ce qu'un groupe</h2>
+        <p>Un groupe rassemble des mots formés exactement des mêmes lettres — <em>porte</em>,
+        <em>opter</em>, <em>trope</em>. Ils ont donc tous la même longueur. L'éditeur vérifie
+        cette règle en direct pendant la saisie et signale les groupes fautifs par un ⚠️ dans la liste.</p>
+      </div>
+      <div class="help-section">
+        <h2>Déroulé</h2>
+        <p><strong>1.</strong> <em>Ouvrir XML</em> charge une collection. Les groupes apparaissent à gauche, classés par longueur.<br>
+        <strong>2.</strong> Un clic sur un groupe l'affiche dans <em>Détails</em>.<br>
+        <strong>3.</strong> L'onglet <em>Édition</em> permet de le modifier, puis <em>Sauvegarder</em> valide en mémoire.<br>
+        <strong>4.</strong> <em>Enregistrer</em> écrit le fichier XML sur le disque.</p>
+      </div>
+      <div class="help-section">
+        <h2>Règles de saisie</h2>
+        <table class="help-table">
+          <tr><td>Mots par groupe</td><td>2 au minimum, ${MAX_MOTS} au maximum</td></tr>
+          <tr><td>Longueur des mots</td><td>de ${MIN_LEN} à ${MAX_LEN} lettres, identique pour tout le groupe</td></tr>
+          <tr><td>Lettres</td><td>identiques d'un mot à l'autre, accents ignorés dans le contrôle</td></tr>
+          <tr><td>Doublons</td><td>refusés à l'intérieur d'un même groupe</td></tr>
+          <tr><td>Groupes</td><td>${MAX_GROUPES} au maximum</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <h2>Raccourcis</h2>
+        <p><span class="help-kbd">Ctrl</span> + <span class="help-kbd">N</span> nouveau groupe ·
+        <span class="help-kbd">Ctrl</span> + <span class="help-kbd">S</span> enregistrer le fichier ·
+        <span class="help-kbd">Échap</span> ferme les fenêtres</p>
+      </div>
+      <div class="help-section">
+        <h2>Structure du fichier</h2>
+        <p>Racine <span class="help-kbd">&lt;anagrammes&gt;</span>, un bloc
+        <span class="help-kbd">&lt;metadonnees&gt;</span>, puis une suite de
+        <span class="help-kbd">&lt;anagramm&gt;</span> portant les attributs <em>longueur</em> et
+        <em>groupe</em>, chacune contenant ses <span class="help-kbd">&lt;mot&gt;</span>.
+        Les numéros de groupe sont réattribués proprement à l'enregistrement.</p>
+      </div>
+    </div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+};
+
+// ==================== CLAVIER ====================
+document.addEventListener('keydown', e=>{
+  if (e.key==='Escape'){
+    const h=document.querySelector('.help-overlay'); if(h){ h.remove(); return; }
+    const d=document.querySelector('.dialog-overlay'); if(d){ d.remove(); return; }
+  }
+  if (!(e.ctrlKey||e.metaKey)) return;
+  const k=e.key.toLowerCase();
+  if (k==='n'){ e.preventDefault(); newGroupe(); }
+  if (k==='s'){ e.preventDefault(); exportXML(); }
+});
+
+/* Garde-fou de fermeture d'onglet.
+   Il ne se declenche que si un travail est reellement en cours ET si la
+   sortie n'a pas deja ete confirmee dans l'application (bouton Quitter).
+   Sans cette seconde condition, le navigateur affichait sa propre demande
+   de confirmation apres coup, sans possibilite de revenir enregistrer. */
+function travailEnCours() {
+  if (window.__qzSortieConfirmee) return false;
+  if (modified) return true;
+  try { if (isCreatingNew) return true; } catch (e) { /* editeur guide */ }
+  return false;
+}
+window.addEventListener('beforeunload', function (e) {
+  if (travailEnCours()) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// ==================== DÉMARRAGE ====================
+(function init(){
+  const tpl=document.createElement('div');
+  tpl.id='welcomeTemplate'; tpl.style.display='none';
+  tpl.innerHTML=$('detailsContent').innerHTML;
+  document.body.appendChild(tpl);
+  renderList(); updateCount(); setModified(false);
+})();
+</script>
+
+<!-- Modules communs du site -->
+<script src="../../assets/js/ressources.js"></script>
+<script src="../../assets/js/bibliotheque.js" data-jeu="editeurana" data-base="../../"></script>
+<script src="../../assets/js/quitter.js" data-base="../../" data-contexte="editeur"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas.
+     L'aide des editeurs etant construite au moment du clic, le script
+     surveille les fenetres ajoutees a la volee (data-observer). -->
+<script src="../../assets/js/aide-uniforme.js"
+        data-titre="Aide"
+        data-observer="1"></script>
+</body>
+</html>

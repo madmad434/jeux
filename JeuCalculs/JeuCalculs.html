@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mémoire calculée</title>
+<link rel="icon" type="image/png" href="../assets/favicons/calculs.png">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* ── CHARTE GRAPHIQUE (identique au Jeu de Mémoire) ── */
+    --brand-light:  #C2F6FF;   /* bleu clair : zone de jeu + body */
+    --brand-dark:   #38B6FF;   /* bleu foncé : header et tout hors zone de jeu */
+
+    --config-bg:    #38B6FF;
+    --config-border:#1e9fe8;
+    --config-text:  #063a52;
+    --config-muted: #0a5b80;
+    --input-bg:     #ffffff;
+    --input-border: #7dd3f0;
+    --game-bg:      #C2F6FF;
+    --side-bg:      #38B6FF;
+    --side-border:  #1e9fe8;
+    --stats-bg:     #38B6FF;
+    --stats-border: #1e9fe8;
+    --accent:       #0284c7;
+    --accent-light: #e0f6ff;
+    --accent-dark:  #075985;
+    --green:        #10b981;
+    --green-light:  #d1fae5;
+    --green-dark:   #065f46;
+    --red:          #ef4444;
+    --red-light:    #fee2e2;
+    --yellow:       #f59e0b;
+    --yellow-light: #fef3c7;
+    --purple:       #8b5cf6;
+    --card-back:    #1e3a7a;
+    --card-back2:   #152d62;
+    --card-front:   #ffffff;
+    --text:         #06283d;
+    --text-muted:   #0a5b80;
+    --radius:       12px;
+    --radius-sm:    8px;
+    --t:            0.18s ease;
+  }
+
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--game-bg); color:var(--text); font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; user-select:none; }
+
+  #app { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  /* ── CONFIG ── */
+  #configpanel {
+    background:var(--config-bg);
+    border-bottom:1px solid var(--config-border);
+    padding:10px 16px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex-shrink:0;
+    box-shadow:0 1px 4px #00000010;
+  }
+  .game-title { font-size:1.2rem; font-weight:900; color:#ffffff; letter-spacing:2px; text-transform:uppercase; white-space:nowrap; font-family:'Courier New',Courier,monospace; margin-right:4px; }
+  .separator  { width:1px; height:28px; background:#8adcff; flex-shrink:0; }
+  .cfg-group  { display:flex; align-items:center; gap:6px; }
+  .cfg-label  { font-size:.72rem; font-weight:800; color:#eaffff; text-transform:uppercase; letter-spacing:.8px; white-space:nowrap; }
+
+  select, input[type=number] {
+    height:34px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:var(--radius-sm);
+    color:var(--config-text); font-size:.85rem; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; font-weight:700; cursor:pointer;
+    outline:none; transition:border-color var(--t),box-shadow var(--t);
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 8px center; background-color:var(--input-bg);
+    padding:0 26px 0 8px; box-shadow:0 1px 3px #0000000a;
+  }
+  select:hover { border-color:var(--accent); }
+  select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #3b82f630; }
+  select#sel-theme { min-width:210px; }
+  select#sel-level { min-width:150px; }
+  select#sel-click { min-width:135px; }
+
+  .range-wrap { display:flex; align-items:center; gap:6px; }
+  input[type=range] {
+    -webkit-appearance:none; width:90px; height:4px; border-radius:2px;
+    background:var(--config-border); outline:none; cursor:pointer;
+    box-shadow:none; background-image:none; padding:0;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--accent); border:2px solid #fff; cursor:pointer; box-shadow:0 1px 4px #3b82f640;
+  }
+  #tv-val { font-family:'Courier New',Courier,monospace; font-size:.78rem; color:#ffffff; min-width:26px; font-weight:700; }
+
+  .btn {
+    display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 14px;
+    border-radius:var(--radius-sm); border:1px solid var(--input-border);
+    background:var(--input-bg); color:var(--config-text);
+    font-size:.82rem; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; font-weight:700;
+    cursor:pointer; transition:all var(--t); white-space:nowrap; box-shadow:0 1px 3px #0000000a;
+  }
+  .btn:hover { border-color:var(--accent); background:var(--accent-light); color:var(--accent-dark); }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-size:.88rem; padding:0 18px; box-shadow:0 2px 8px #3b82f640; }
+  .btn.primary:hover { background:var(--accent-dark); box-shadow:0 3px 12px #3b82f660; }
+  .btn.danger { background:var(--red-light); border-color:#fca5a5; color:#b91c1c; }
+  .btn.danger:hover { background:#fecaca; border-color:var(--red); }
+  .btn.btn-solution { background:#f3e8ff; border-color:#c4b5fd; color:#6d28d9; }
+  .btn.btn-solution:hover { background:#ede9fe; border-color:var(--purple); }
+  .btn.btn-solution.active { background:#ddd6fe; border-color:var(--purple); }
+  .btn.btn-save { background:#ecfdf5; border-color:#6ee7b7; color:#065f46; }
+  .btn.btn-save:hover { background:#d1fae5; border-color:#10b981; }
+  .btn.btn-load { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+  .btn.btn-load:hover { background:#dbeafe; border-color:#3b82f6; }
+  .btn.btn-aide-toggle { background:#fefce8; border-color:#fde68a; color:#92400e; }
+  .btn.btn-aide-toggle:hover { background:#fef9c3; border-color:#f59e0b; }
+  .btn.btn-aide-toggle.active { background:#fef3c7; border-color:#f59e0b; box-shadow:0 0 0 2px #fde68a; }
+  .btn.toggle.active { background:#fef3c7; border-color:var(--yellow); color:#92400e; }
+  #btn-quit { margin-left:auto; }
+
+  /* ── VALIDATION / INFO ── */
+  #val-msg { font-size:.75rem; color:#b91c1c; padding:4px 16px; font-weight:700; background:var(--red-light); border-bottom:1px solid #fca5a5; display:none; }
+  #val-msg.visible { display:block; }
+
+  /* ── STATS BAR ── */
+  #statsbar { display:flex; align-items:stretch; background:var(--stats-bg); border-bottom:1px solid var(--stats-border); flex-shrink:0; }
+  .stat-block { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px 16px; flex:1; border-right:1px solid var(--stats-border); transition:background var(--t); cursor:default; }
+  .stat-block:last-child { border-right:none; }
+  .stat-block:hover { background:#1e9fe8; }
+  .stat-label { font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#dff7ff; }
+  .stat-value { font-family:'Courier New',Courier,monospace; font-size:1rem; font-weight:700; color:#ffffff; line-height:1.1; }
+  .stat-value.c-green  { color:#7dffcf; }
+  .stat-value.c-yellow { color:#ffe27a; }
+  .stat-value.c-purple { color:#e5c9ff; }
+
+  /* ── MAIN ── */
+  #main { display:flex; flex:1 1 auto; overflow:hidden; min-height:0; }
+
+  /* ── SIDE PANEL ── */
+  #sidepanel { width:210px; min-width:180px; background:var(--side-bg); border-right:1px solid var(--side-border); display:flex; flex-direction:column; padding:14px 12px; overflow-y:auto; flex-shrink:0; gap:16px; box-shadow:2px 0 8px #00000008; }
+  .side-section-title { font-size:.63rem; font-weight:900; color:#ffffff; text-transform:uppercase; letter-spacing:1.5px; padding-bottom:6px; border-bottom:2px solid #1e9fe8; }
+
+  #progress-wrap { display:flex; flex-direction:column; gap:6px; }
+  .progress-bar-track { width:100%; height:14px; background:#1e9fe8; border-radius:7px; overflow:hidden; }
+  .progress-bar-fill  { height:100%; background:linear-gradient(90deg,var(--green),#34d399); border-radius:7px; width:0%; transition:width .4s ease; box-shadow:0 1px 4px #10b98140; }
+  .progress-bar-label { display:flex; justify-content:space-between; align-items:baseline; }
+  .prog-pct  { font-family:'Courier New',Courier,monospace; font-size:1rem; font-weight:700; color:#ffffff; }
+  .pairs-text { font-size:.72rem; color:#eaffff; font-weight:700; }
+  .pairs-text span { color:#7dffcf; font-weight:900; }
+
+  .objectif-box { background:#e0f6ff; border:1px solid #7dd3f0; border-radius:var(--radius-sm); padding:8px 10px; font-size:.74rem; color:#063a52; font-weight:700; line-height:1.35; margin-top:8px; }
+
+  #found-list { display:flex; flex-direction:column; gap:4px; min-height:24px; margin-top:8px; }
+  .found-chip { display:flex; align-items:center; justify-content:center; background:var(--green-light); border:1px solid #6ee7b7; border-radius:var(--radius-sm); font-family:'Courier New',Courier,monospace; font-size:.78rem; font-weight:700; color:var(--green-dark); padding:4px 6px; animation:popIn .3s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+  #record-box { display:flex; flex-direction:column; gap:5px; margin-top:8px; }
+  .rec-line { display:flex; align-items:center; justify-content:space-between; background:#f3e8ff; border:1px solid #c4b5fd; border-radius:var(--radius-sm); padding:5px 9px; }
+  .rec-line .rl-label { font-size:.71rem; color:#6d28d9; font-weight:700; }
+  .rec-line .rl-val   { font-family:'Courier New',Courier,monospace; color:#6d28d9; font-weight:700; font-size:.85rem; }
+  .rec-empty { font-size:.72rem; color:#eaffff; font-style:italic; }
+
+  /* ── GRID AREA ── */
+  #grid-area { flex:1; display:flex; align-items:center; justify-content:center; padding:16px; overflow:hidden; min-width:0; background:var(--game-bg); }
+  #grid { display:flex; flex-direction:column; gap:8px; align-items:center; }
+  .grid-row { display:flex; gap:8px; justify-content:center; }
+
+  /* ── CARDS ── */
+  .card { position:relative; cursor:pointer; perspective:700px; border-radius:var(--radius); }
+  .card-inner { width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .42s cubic-bezier(.4,0,.2,1); border-radius:var(--radius); }
+  .card.flipped .card-inner, .card.peeking .card-inner { transform:rotateY(180deg); }
+
+  .card-face { position:absolute; inset:0; border-radius:var(--radius); display:flex; align-items:center; justify-content:center; backface-visibility:hidden; -webkit-backface-visibility:hidden; border:2px solid transparent; transition:border-color var(--t),box-shadow var(--t); overflow:hidden; }
+
+  .card-back-face { background:linear-gradient(145deg,var(--card-back) 0%,var(--card-back2) 100%); border-color:#2a4e9e; box-shadow:0 2px 8px #1e3a7a40,inset 0 1px 0 #ffffff20; }
+  .card-back-face .q { font-family:'Courier New',Courier,monospace; font-size:1.05em; font-weight:900; color:#ffffff; letter-spacing:.06em; opacity:.92; text-shadow:0 2px 4px #00000060; }
+  .card-back-face::after { content:''; position:absolute; inset:5px; border-radius:8px; border:1px solid rgba(255,255,255,.35); pointer-events:none; }
+  .card:hover:not(.found):not(.flipped) .card-back-face { border-color:var(--accent); box-shadow:0 4px 16px #3b82f640,0 0 0 3px #3b82f620; }
+
+  .card-front-face { background:var(--card-front); transform:rotateY(180deg); border-color:var(--accent); line-height:1; box-shadow:0 2px 12px #3b82f630; }
+  .card.found .card-face       { border-color:var(--green)!important; }
+  .card.found .card-front-face { background:#f0fdf4; box-shadow:0 2px 10px #10b98130; }
+  .card.wrong .card-front-face { background:#fef2f2; border-color:var(--red)!important; }
+
+  .card-text { display:block; width:100%; padding:0 6%; text-align:center; font-family:'Courier New',Courier,monospace; font-weight:900; color:#0f172a; white-space:nowrap; letter-spacing:.01em; }
+  .card-text.k-expr { color:#1d4ed8; }
+  .card-text.k-num  { color:#0f172a; }
+  .card-text.k-word { color:#6d28d9; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; font-weight:800; white-space:normal; line-height:1.15; }
+  .card-text.k-roman{ color:#92400e; }
+
+  .timer-bar { position:absolute; bottom:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),var(--purple)); border-radius:0 0 var(--radius) var(--radius); transition:width linear; z-index:2; }
+
+  /* ── OVERLAY ── */
+  #overlay { display:none; position:fixed; inset:0; background:#00000070; backdrop-filter:blur(8px); z-index:100; align-items:center; justify-content:center; flex-direction:column; }
+  #overlay.show { display:flex; }
+
+  .overlay-card { background:#fff; border:1px solid var(--side-border); border-radius:20px; padding:32px 40px; display:flex; flex-direction:column; align-items:center; gap:16px; box-shadow:0 30px 80px #00000030; animation:slideUp .4s cubic-bezier(.34,1.56,.64,1); min-width:340px; max-width:92vw; }
+  @keyframes slideUp { from{transform:translateY(30px) scale(.95);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+  .overlay-card h2 { font-size:1.9rem; font-weight:900; color:var(--green-dark); }
+  #ov-record { font-size:.85rem; font-weight:800; color:#92400e; background:var(--yellow-light); border:1px solid #fde68a; border-radius:var(--radius-sm); padding:6px 14px; display:none; }
+  #ov-record.show { display:block; }
+
+  .overlay-stats { display:flex; gap:20px; background:var(--stats-bg); border-radius:var(--radius); padding:14px 20px; width:100%; justify-content:center; flex-wrap:wrap; }
+  .ov-stat { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .ov-stat-val { font-family:'Courier New',Courier,monospace; font-size:1.4rem; font-weight:700; color:#ffffff; }
+  .ov-stat-lbl { font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#dff7ff; }
+
+  .overlay-buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+  #solved-grid-wrap { display:none; flex-direction:column; align-items:center; gap:8px; width:100%; max-height:38vh; overflow-y:auto; }
+  #solved-grid-wrap.visible { display:flex; }
+  #solved-grid-title { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
+  #solved-grid { display:flex; flex-direction:column; gap:4px; align-items:center; background:var(--game-bg); border:1px solid var(--side-border); border-radius:var(--radius); padding:8px; }
+  .s-line { font-family:'Courier New',Courier,monospace; font-size:.85rem; font-weight:700; color:var(--green-dark); background:#f0fdf4; border:1px solid var(--green); border-radius:6px; padding:3px 10px; }
+
+  /* ── TABLE DES CHIFFRES ROMAINS ── */
+  .btn.btn-romains { background:#fff7ed; border-color:#fdba74; color:#9a3412; }
+  .btn.btn-romains:hover { background:#ffedd5; border-color:#f97316; }
+  .btn.btn-romains.active { background:#ffedd5; border-color:#f97316; box-shadow:0 0 0 2px #fed7aa; }
+  .rom-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(78px,1fr)); gap:5px; }
+  .rom-cell { display:flex; flex-direction:column; align-items:center; gap:1px; background:#fff7ed; border:1px solid #fed7aa; border-radius:6px; padding:5px 4px; }
+  .rom-cell .rc-num { font-family:'Courier New',Courier,monospace; font-size:.82rem; font-weight:900; color:#0f172a; }
+  .rom-cell .rc-rom { font-family:'Courier New',Courier,monospace; font-size:.82rem; font-weight:700; color:#9a3412; }
+  .rom-sub { font-size:.7rem; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#0a5b80; margin:2px 0 4px; }
+  .rom-piege { display:flex; align-items:center; gap:8px; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:5px 9px; font-family:'Courier New',Courier,monospace; font-size:.8rem; font-weight:700; color:#b91c1c; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--config-border); border-radius:3px; }
+
+  @media (max-width:700px) {
+    #sidepanel { width:140px; min-width:120px; }
+    .stat-block { padding:5px 8px; }
+    .game-title { font-size:1rem; }
+  }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- CONFIG -->
+  <div id="configpanel">
+    <span class="game-title">🧮 Mémoire calculée</span>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Thème</span>
+      <select id="sel-theme">
+        <option value="ops">1 · Opérations &amp; résultats</option>
+        <option value="tables">2 · Tables de multiplication</option>
+        <option value="doubles">3 · Doubles &amp; moitiés</option>
+        <option value="complements">4 · Compléments</option>
+        <option value="romains">5 · Chiffres romains</option>
+      </select>
+    </div>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Niveau</span>
+      <select id="sel-level">
+        <option value="1">1 · 3×4 — 6 paires</option>
+        <option value="2" selected>2 · 4×4 — 8 paires</option>
+        <option value="3">3 · 4×5 — 10 paires</option>
+      </select>
+    </div>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Délai retournement</span>
+      <div class="range-wrap">
+        <input type="range" id="sl-tv" min="1" max="10" value="3">
+        <span id="tv-val">3s</span>
+      </div>
+    </div>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Action clic</span>
+      <select id="sel-click">
+        <option value="click">Clic gauche</option>
+        <option value="dblclick">Double-clic</option>
+        <option value="contextmenu">Clic droit</option>
+      </select>
+    </div>
+    <div class="separator"></div>
+    <button class="btn toggle active" id="btn-bonus" title="Bonus : +2 points par paire trouvée en moins de 5 s">⚡ Bonus rapidité</button>
+    <button class="btn btn-romains" id="btn-romains" style="display:none" title="Afficher la correspondance entre nombres et chiffres romains">🏛 Chiffres romains</button>
+    <div class="separator"></div>
+    <button class="btn primary"      id="btn-start">▶ Lancer</button>
+    <button class="btn btn-solution" id="btn-peek">👁 Voir solution</button>
+    <div class="separator"></div>
+    <button class="btn btn-save"     id="btn-save">💾 Sauvegarder partie</button>
+    <button class="btn btn-load"     id="btn-load">📂 Charger partie</button>
+    <input type="file" id="inp-load" accept=".json" style="display:none">
+    <button class="btn btn-aide-toggle" id="btn-aide-toggle">❓ Aide</button>
+    <button class="btn danger"       id="btn-quit">✕ Quitter</button>
+  </div>
+
+  <!-- VALIDATION -->
+  <div id="val-msg"></div>
+
+  <!-- STATS BAR -->
+  <div id="statsbar">
+    <div class="stat-block">
+      <span class="stat-label">Temps</span>
+      <span class="stat-value" id="st-time">00:00</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Essais</span>
+      <span class="stat-value c-yellow" id="st-tries">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Paires trouvées</span>
+      <span class="stat-value c-green" id="st-pairs-full">0 / 0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Score</span>
+      <span class="stat-value c-green" id="st-score">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Solutions vues</span>
+      <span class="stat-value c-purple" id="st-peek">0</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- PANNEAU LATÉRAL -->
+    <div id="sidepanel">
+      <div>
+        <div class="side-section-title">Progression</div>
+        <div id="progress-wrap" style="margin-top:10px;">
+          <div class="progress-bar-label">
+            <span class="prog-pct" id="ring-pct">0%</span>
+            <span class="pairs-text"><span id="sp-found">0</span> / <span id="sp-total">0</span> paires</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="ring-fill"></div>
+          </div>
+        </div>
+        <div class="objectif-box" id="objectif-box">Choisissez un thème puis cliquez sur ▶ Lancer.</div>
+      </div>
+      <div>
+        <div class="side-section-title">Record du thème</div>
+        <div id="record-box"></div>
+      </div>
+      <div>
+        <div class="side-section-title">Paires trouvées</div>
+        <div id="found-list"></div>
+      </div>
+    </div>
+
+    <!-- GRILLE -->
+    <div id="grid-area">
+      <div id="grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALE AIDE -->
+<div id="aide-modal" style="display:none;position:fixed;inset:0;background:#00000070;backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:30px 34px;max-width:560px;width:92vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px #00000030;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h2 style="font-size:1.2rem;font-weight:900;color:#1d4ed8;margin:0;">🧮 Comment jouer</h2>
+      <button id="btn-aide-modal-close" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1rem;font-weight:700;color:#64748b;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:9px;font-size:.87rem;color:#1e293b;line-height:1.5;">
+      <li>Choisissez un <strong>thème</strong> et un <strong>niveau</strong> (niveau 1 : 3×4 = 6 paires · niveau 2 : 4×4 = 8 paires · niveau 3 : 4×5 = 10 paires), puis cliquez sur <strong>▶ Lancer</strong>.</li>
+      <li>Chaque paire associe <strong>deux cartes liées</strong> : par exemple « 8 × 7 » et « 56 ».</li>
+      <li>Retournez deux cartes : <strong>1 essai = 2 cartes retournées</strong>. Si elles forment une paire valide, elles restent visibles et sont marquées comme trouvées.</li>
+      <li>Sinon, elles se recachent après le <strong>délai de retournement</strong> réglé dans la barre du haut.</li>
+      <li>Une carte retournée seule se recache elle aussi après ce délai si aucune seconde carte n'est jouée.</li>
+      <li><strong>⚡ Bonus rapidité</strong> (activable) : +2 points par paire dont les deux clics sont espacés de moins de 5 secondes.</li>
+      <li><strong>👁 Voir solution</strong> révèle toutes les cartes pendant 5 secondes (chaque utilisation est comptabilisée et coûte 5 points).</li>
+      <li><strong>🏛 Chiffres romains</strong> : dans le thème 5, ce bouton ouvre la table de correspondance (symboles, règle de soustraction, nombres de 1 à 1 000 et pièges de lecture). Consultation libre, sans pénalité.</li>
+      <li><strong>💾 Sauvegarder</strong> / <strong>📂 Charger</strong> : la partie en cours s'enregistre dans un fichier <em>.json</em>.</li>
+    </ol>
+    <div style="background:#f3e8ff;border-radius:8px;padding:10px 14px;font-size:.8rem;color:#5b21b6;line-height:1.5;">
+      <strong>Les 5 thèmes :</strong><br>
+      1 · Opérations &amp; résultats (+, −, ×) — 2 · Tables de multiplication — 3 · Doubles &amp; moitiés — 4 · Compléments (à 20, 100 ou 1 000 : les cartes ne portent que des nombres, c'est le thème le plus difficile visuellement) — 5 · Chiffres romains (9 ↔ IX, avec pièges de lecture XIV/XL au niveau 3).
+    </div>
+    <div style="background:#dbeafe;border-radius:8px;padding:10px 14px;font-size:.8rem;color:#1e40af;">
+      💡 Le meilleur score retient d'abord le <strong>nombre d'essais le plus faible</strong>, le chrono départageant les égalités. Un record est mémorisé <strong>par thème et par niveau</strong> (15 combinaisons).
+    </div>
+    <button id="btn-aide-ok" style="align-self:center;height:38px;padding:0 28px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">OK</button>
+  </div>
+</div>
+
+<!-- MODALE CORRESPONDANCE DES CHIFFRES ROMAINS -->
+<div id="romains-modal" style="display:none;position:fixed;inset:0;background:#00000070;backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px 32px;max-width:640px;width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px #00000030;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h2 style="font-size:1.2rem;font-weight:900;color:#9a3412;margin:0;">🏛 Correspondance des chiffres romains</h2>
+      <button id="btn-rom-close" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1rem;font-weight:700;color:#64748b;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+
+    <div class="rom-sub">Les 7 symboles de base</div>
+    <div class="rom-grid" id="rom-base"></div>
+
+    <div class="rom-sub">Règle d'écriture</div>
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:10px 14px;font-size:.82rem;color:#7c2d12;line-height:1.55;">
+      On écrit les symboles du plus grand au plus petit et on les <strong>additionne</strong> (LXVII = 50+10+5+1+1 = 67).<br>
+      Quand un petit symbole précède un plus grand, on le <strong>soustrait</strong> : seuls <strong>I</strong> devant V ou X, <strong>X</strong> devant L ou C, et <strong>C</strong> devant D ou M sont permis (IV = 4, IX = 9, XL = 40, XC = 90, CD = 400, CM = 900).<br>
+      Un même symbole ne se répète jamais plus de trois fois de suite : 4 s'écrit IV et non IIII.
+    </div>
+
+    <div class="rom-sub">De 1 à 20</div>
+    <div class="rom-grid" id="rom-units"></div>
+
+    <div class="rom-sub">Les dizaines</div>
+    <div class="rom-grid" id="rom-tens"></div>
+
+    <div class="rom-sub">Les centaines et le millier</div>
+    <div class="rom-grid" id="rom-hundreds"></div>
+
+    <div class="rom-sub">Pièges de lecture fréquents</div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <div class="rom-piege"><span>XIV = 14</span><span style="color:#7f1d1d;">≠</span><span>XL = 40</span></div>
+      <div class="rom-piege"><span>XIX = 19</span><span style="color:#7f1d1d;">≠</span><span>XC = 90</span></div>
+      <div class="rom-piege"><span>IV = 4</span><span style="color:#7f1d1d;">≠</span><span>VI = 6</span></div>
+      <div class="rom-piege"><span>IX = 9</span><span style="color:#7f1d1d;">≠</span><span>XI = 11</span></div>
+      <div class="rom-piege"><span>CD = 400</span><span style="color:#7f1d1d;">≠</span><span>DC = 600</span></div>
+    </div>
+
+    <div style="background:#dbeafe;border-radius:8px;padding:9px 14px;font-size:.79rem;color:#1e40af;">
+      💡 Cette table est une aide à la lecture : elle ne coûte aucun point et n'est pas comptée comme une solution vue.
+    </div>
+    <button id="btn-rom-ok" style="align-self:center;height:38px;padding:0 28px;background:#f97316;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">Fermer</button>
+  </div>
+</div>
+
+<!-- OVERLAY VICTOIRE -->
+<div id="overlay">
+  <div class="overlay-card">
+    <h2>🎉 Félicitations !</h2>
+    <div id="ov-record">🏆 Nouveau record !</div>
+    <div class="overlay-stats">
+      <div class="ov-stat"><span class="ov-stat-val" id="ov-time">—</span><span class="ov-stat-lbl">Temps</span></div>
+      <div class="ov-stat"><span class="ov-stat-val" id="ov-tries">—</span><span class="ov-stat-lbl">Essais</span></div>
+      <div class="ov-stat"><span class="ov-stat-val" id="ov-fast">—</span><span class="ov-stat-lbl">Paires rapides</span></div>
+      <div class="ov-stat"><span class="ov-stat-val" id="ov-score">—</span><span class="ov-stat-lbl">Score</span></div>
+      <div class="ov-stat"><span class="ov-stat-val" id="ov-peeks">—</span><span class="ov-stat-lbl">Solutions vues</span></div>
+    </div>
+    <div id="solved-grid-wrap">
+      <div id="solved-grid-title">Paires de la grille</div>
+      <div id="solved-grid"></div>
+    </div>
+    <div class="overlay-buttons">
+      <button class="btn btn-solution" id="btn-show-solved">🗺 Voir toutes les paires</button>
+      <button class="btn primary" id="btn-replay" style="height:40px;padding:0 24px;">🔄 Rejouer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   JEU 6 — MÉMOIRE CALCULÉE
+   Appariement PAR IDENTIFIANT INTERNE de paire (pid), jamais par
+   comparaison du texte affiché.
+   ══════════════════════════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+
+/* ─── Niveaux ─── */
+const LEVELS = {
+  1:{ rows:3, cols:4, pairs:6  },
+  2:{ rows:4, cols:4, pairs:8  },
+  3:{ rows:4, cols:5, pairs:10 }
+};
+
+const THEME_NAMES = {
+  ops:'Opérations & résultats',
+  tables:'Tables de multiplication',
+  doubles:'Doubles & moitiés',
+  complements:'Compléments',
+  romains:'Chiffres romains'
+};
+
+const GAP = 8, MARGE = 12, CARD_MAX_W = 230, CARD_MAX_H = 150, CARD_MIN = 34;
+
+/* ─── Utilitaires ─── */
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* Chiffres romains */
+const ROMAN_MAP = [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],
+                   [50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+function toRoman(n){ let s=''; for(const [v,r] of ROMAN_MAP){ while(n>=v){ s+=r; n-=v; } } return s; }
+
+/* ══════════════ GÉNÉRATEURS DE PAIRES ══════════════
+   Chaque générateur renvoie :
+     { a:{text,kind}, b:{text,kind}, unique:[…], starts:[…], label:'…' }
+   · unique : valeurs qui doivent être uniques dans toute la grille
+   · starts : valeurs de départ (opérandes) ; aucune ne peut être
+              le résultat d'une autre paire (interdiction des chaînes)
+   ══════════════════════════════════════════════════ */
+
+const GEN = {
+
+  /* Thème 1 — Opérations & résultats */
+  ops(level){
+    const op = level===1 ? pick(['+','+','-','×']) : pick(['+','-','×']);
+    let a,b,r;
+    if(op==='+'){
+      if(level===1){ a=rnd(3,12); b=rnd(3,12); }
+      else if(level===2){ a=rnd(15,60); b=rnd(11,45); }
+      else { a=rnd(45,199); b=rnd(26,99); }
+      r=a+b;
+    } else if(op==='-'){
+      if(level===1){ a=rnd(11,20); b=rnd(2,9); }
+      else if(level===2){ a=rnd(35,99); b=rnd(11,29); }
+      else { a=rnd(120,499); b=rnd(35,199); }
+      r=a-b;
+      if(r<2) return null;
+    } else {
+      if(level===1){ a=rnd(2,5); b=rnd(2,9); }
+      else if(level===2){ a=rnd(3,9); b=rnd(3,9); }
+      else { a=rnd(6,19); b=rnd(4,15); }
+      r=a*b;
+    }
+    return {
+      a:{ text:`${a} ${op} ${b}`, kind:'expr' },
+      b:{ text:`${r}`,            kind:'num'  },
+      unique:[r], starts:[a,b],
+      label:`${a} ${op} ${b} = ${r}`
+    };
+  },
+
+  /* Thème 2 — Tables de multiplication (facteurs de 1 à 10) */
+  tables(level){
+    let a,b;
+    if(level===1){ a=rnd(2,5);  b=rnd(2,9); }
+    else if(level===2){ a=rnd(3,9); b=rnd(3,9); }
+    else { a=rnd(4,10); b=rnd(4,10); }
+    const r=a*b;
+    return {
+      a:{ text:`${a} × ${b}`, kind:'expr' },
+      b:{ text:`${r}`,        kind:'num'  },
+      unique:[r], starts:[a,b],
+      label:`${a} × ${b} = ${r}`
+    };
+  },
+
+  /* Thème 3 — Doubles & moitiés */
+  doubles(level){
+    const moitie = level===1 ? false : Math.random()<0.5;
+    if(!moitie){
+      let n;
+      if(level===1) n=rnd(3,25);
+      else if(level===2) n=rnd(12,60);
+      else n=rnd(35,250);
+      return {
+        a:{ text:`Double de ${n}`, kind:'word' },
+        b:{ text:`${2*n}`,         kind:'num'  },
+        unique:[2*n], starts:[n],
+        label:`Double de ${n} = ${2*n}`
+      };
+    } else {
+      let m;
+      if(level===2) m=2*rnd(11,50);
+      else m=2*rnd(31,250);
+      return {
+        a:{ text:`Moitié de ${m}`, kind:'word' },
+        b:{ text:`${m/2}`,         kind:'num'  },
+        unique:[m/2], starts:[m],
+        label:`Moitié de ${m} = ${m/2}`
+      };
+    }
+  },
+
+  /* Thème 4 — Compléments (cartes = nombres seuls) */
+  complements(level, ctx){
+    const T = ctx.cible;
+    let n;
+    if(level===1){ n=rnd(1,T-1); }
+    else if(level===2){ n=5*rnd(1,(T/5)-1); }
+    else { n = T===1000 ? 5*rnd(1,199) : rnd(1,99); }
+    if(n===T-n) return null;
+    const c=T-n;
+    const [x,y] = n<c ? [n,c] : [c,n];
+    return {
+      a:{ text:`${x}`, kind:'num' },
+      b:{ text:`${y}`, kind:'num' },
+      unique:[x,y], starts:[x,y], sym:true,
+      label:`${x} + ${y} = ${T}`
+    };
+  },
+
+  /* Thème 5 — Chiffres romains */
+  romains(level, ctx){
+    const n = ctx.pool.length ? ctx.pool.splice(Math.floor(Math.random()*ctx.pool.length),1)[0] : null;
+    if(n===null) return null;
+    const r=toRoman(n);
+    return {
+      a:{ text:`${n}`, kind:'num'   },
+      b:{ text:r,      kind:'roman' },
+      unique:[n], starts:[n], sym:true,
+      label:`${n} = ${r}`
+    };
+  }
+};
+
+/* Contexte de génération (paramètres tirés une fois par partie) */
+function makeContext(theme, level){
+  if(theme==='complements'){
+    const cible = level===1 ? 20 : level===2 ? 100 : pick([100,100,1000]);
+    return { cible };
+  }
+  if(theme==='romains'){
+    let pool;
+    if(level===1) pool=[1,2,3,4,5,6,7,8,9,10,11,12,13,15,16,17,18,20];
+    else if(level===2) pool=[4,6,9,11,13,14,16,19,21,23,24,27,29,32,34,38,40,42,45,47,50,53,56,59,60,64,68,70,75,80,88,90,95,99];
+    /* Niveau 3 : pièges de lecture volontaires (XIV/XL, XIX/XC, IV/VI, IX/XI…) */
+    else pool=[4,6,9,11,14,16,19,21,24,26,29,40,41,44,46,49,54,56,59,60,61,64,66,69,74,79,84,89,90,91,94,96,99,104,109,111,114,140,144,149,190,194,199,400,404,409,440,444,449,490,494,499,900,904,909,940,944,949,990,994,999];
+    return { pool: pool.slice() };
+  }
+  return {};
+}
+
+/* Construction d'une grille de n paires respectant tous les invariants */
+function buildPairs(theme, level, n){
+  for(let essai=0; essai<120; essai++){
+    const relax = essai>100;                 // dernier recours : on relâche l'anti-chaîne
+    const ctx = makeContext(theme, level);
+    const usedTexts=new Set(), usedUnique=new Set(), usedStarts=new Set();
+    const pairs=[]; let garde=0;
+    while(pairs.length<n){
+      if(garde++>4000) break;
+      const p = GEN[theme](level, ctx);
+      if(!p) continue;
+      const texts=[p.a.text,p.b.text];
+      if(p.a.text===p.b.text) continue;
+      if(texts.some(t=>usedTexts.has(t))) continue;
+      if(p.unique.some(v=>usedUnique.has(v))) continue;
+      /* Une paire ne peut pas non plus se refermer sur elle-meme (14 - 7 = 7) */
+      if(!p.sym && p.starts.some(s=>p.unique.includes(s))) continue;
+      if(!relax){
+        if(p.unique.some(v=>usedStarts.has(v))) continue;   // résultat déjà utilisé comme départ
+        if(p.starts.some(s=>usedUnique.has(s))) continue;   // départ déjà utilisé comme résultat
+      }
+      texts.forEach(t=>usedTexts.add(t));
+      p.unique.forEach(v=>usedUnique.add(v));
+      p.starts.forEach(s=>usedStarts.add(s));
+      p.pid = pairs.length;
+      pairs.push(p);
+    }
+    if(pairs.length===n) return { pairs, ctx };
+  }
+  return null;
+}
+
+function objectifTexte(theme, level, ctx){
+  const L=LEVELS[level];
+  let t = `<b>${THEME_NAMES[theme]}</b> — niveau ${level} (${L.rows}×${L.cols}, ${L.pairs} paires).<br>`;
+  if(theme==='ops')          t+='Associez chaque opération à son résultat.';
+  else if(theme==='tables')  t+='Associez chaque produit « a × b » à son résultat.';
+  else if(theme==='doubles') t+= level===1 ? 'Associez « Double de n » à sa valeur.' : 'Associez « Double de n » ou « Moitié de n » à sa valeur.';
+  else if(theme==='complements') t+=`Cartes numériques seules : formez les paires dont la somme vaut <b>${ctx&&ctx.cible?ctx.cible:'…'}</b>.`;
+  else if(theme==='romains') t+='Associez chaque nombre à son écriture romaine.';
+  return t;
+}
+
+/* ══════════════ ÉTAT ══════════════ */
+let state = {
+  theme:'ops', level:2, layout:null,
+  pairs:[], cards:[], firstCard:null, firstTime:0,
+  waiting:false, tvTimeout:null, timerInterval:null, peekTimeout:null,
+  elapsed:0, tries:0, pairsFound:0, totalPairs:0,
+  fastPairs:0, bonusOn:true,
+  tvSec:3, clickMode:'click', peekCount:0, isPeeking:false, started:false,
+  ctx:{}
+};
+
+const grid=$('grid'), foundList=$('found-list'), overlay=$('overlay'), valMsg=$('val-msg');
+const stTime=$('st-time'), stTries=$('st-tries'), stPairsFull=$('st-pairs-full'), stScore=$('st-score'), stPeek=$('st-peek');
+const spFound=$('sp-found'), spTotal=$('sp-total');
+const ringFill=$('ring-fill'), ringPct=$('ring-pct'), btnPeek=$('btn-peek'), tvVal=$('tv-val'), slTv=$('sl-tv');
+
+document.addEventListener('contextmenu', e=>e.preventDefault());
+
+/* ══════════════ ÉVÉNEMENTS ══════════════ */
+slTv.addEventListener('input',()=>{ tvVal.textContent=slTv.value+'s'; state.tvSec=+slTv.value; });
+$('sel-theme').addEventListener('change',()=>{ refreshRecordBox(); majBoutonRomains(); });
+$('sel-level').addEventListener('change',refreshRecordBox);
+$('btn-bonus').addEventListener('click',()=>{ state.bonusOn=!state.bonusOn; $('btn-bonus').classList.toggle('active',state.bonusOn); });
+$('btn-start').addEventListener('click',startGame);
+$('btn-save').addEventListener('click',saveGame);
+$('btn-load').addEventListener('click',()=>$('inp-load').click());
+$('btn-aide-toggle').addEventListener('click',openAide);
+$('inp-load').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const fr=new FileReader();
+  fr.onload=()=>loadGame(fr.result,file.name);
+  fr.onerror=()=>showError('⚠ Impossible de lire ce fichier.');
+  fr.readAsText(file);
+  e.target.value='';
+});
+$('btn-quit').addEventListener('click',quitGame);
+$('btn-replay').addEventListener('click',()=>{ $('solved-grid-wrap').classList.remove('visible'); overlay.classList.remove('show'); startGame(); });
+btnPeek.addEventListener('click',peekSolution);
+$('btn-show-solved').addEventListener('click',()=>{
+  const wrap=$('solved-grid-wrap');
+  if(wrap.classList.contains('visible')){ wrap.classList.remove('visible'); $('btn-show-solved').textContent='🗺 Voir toutes les paires'; }
+  else { buildSolvedGrid(); wrap.classList.add('visible'); $('btn-show-solved').textContent='🙈 Masquer les paires'; }
+});
+
+/* ══════════════ PARTIE ══════════════ */
+function startGame(){
+  const theme=$('sel-theme').value, level=+$('sel-level').value;
+  valMsg.classList.remove('visible'); valMsg.style.cssText='';
+  const L=LEVELS[level];
+  const res=buildPairs(theme,level,L.pairs);
+  if(!res){ showError('⚠ Impossible de composer une grille valide pour ce thème. Réessayez ou changez de niveau.'); return; }
+
+  clearTimers();
+  state={...state,
+    theme, level, ctx:res.ctx, pairs:res.pairs,
+    cards:[], firstCard:null, firstTime:0, waiting:false,
+    tvTimeout:null, timerInterval:null, peekTimeout:null,
+    elapsed:0, tries:0, pairsFound:0, totalPairs:L.pairs, fastPairs:0,
+    peekCount:0, isPeeking:false, started:true,
+    tvSec:+slTv.value, clickMode:$('sel-click').value
+  };
+
+  /* Deux cartes par paire, mélangées ; l'appariement se fait sur pid */
+  const cartes=[];
+  res.pairs.forEach(p=>{
+    cartes.push({pid:p.pid, text:p.a.text, kind:p.a.kind, label:p.label});
+    cartes.push({pid:p.pid, text:p.b.text, kind:p.b.kind, label:p.label});
+  });
+  state.cards=shuffle(cartes).map((c,i)=>({...c,index:i,found:false,flipped:false,el:null}));
+
+  stTries.textContent='0'; stTime.textContent='00:00'; stPeek.textContent='0'; stScore.textContent='0';
+  foundList.innerHTML=''; btnPeek.classList.remove('active'); overlay.classList.remove('show');
+  $('objectif-box').innerHTML=objectifTexte(theme,level,res.ctx);
+  updateProgress(0,state.totalPairs);
+  refreshRecordBox();
+  majBoutonRomains();
+  renderGrid();
+  startTimer();
+}
+
+function renderGrid(){
+  grid.innerHTML='';
+  const total=state.cards.length;
+  if(!total) return;
+  const L=LEVELS[state.level];
+  const {w,h}=calculerTaille(L.rows,L.cols);
+  state.layout={rows:L.rows,cols:L.cols,w,h};
+  let i=0;
+  for(let r=0;r<L.rows;r++){
+    const ligne=document.createElement('div'); ligne.className='grid-row';
+    for(let c=0;c<L.cols && i<total;c++,i++){
+      const card=state.cards[i];
+      const el=document.createElement('div');
+      el.className='card';
+      el.style.cssText=`width:${w}px;height:${h}px`;
+      el.innerHTML=
+        `<div class="card-inner">`+
+          `<div class="card-face card-back-face"><span class="q" style="font-size:${Math.max(12,Math.round(h*0.32))}px">＋−×</span></div>`+
+          `<div class="card-face card-front-face"><span class="card-text k-${card.kind}">${esc(card.text)}</span></div>`+
+        `</div>`+
+        `<div class="timer-bar" style="width:0"></div>`;
+      ligne.appendChild(el);
+      card.el=el;
+      ajusterTexte(el.querySelector('.card-text'),card.text,w,h);
+      attachCardListener(el,i);
+    }
+    grid.appendChild(ligne);
+  }
+}
+
+/* Taille des cartes : rectangle légèrement plus large que haut pour
+   accueillir des textes comme « Moitié de 148 ». */
+function calculerTaille(rows,cols){
+  const area=$('grid-area');
+  const aw=Math.max(120,area.clientWidth -32-MARGE);
+  const ah=Math.max(100,area.clientHeight-32-MARGE);
+  let w=Math.floor((aw-(cols-1)*GAP)/cols);
+  let h=Math.floor((ah-(rows-1)*GAP)/rows);
+  w=Math.min(w,CARD_MAX_W); h=Math.min(h,CARD_MAX_H);
+  h=Math.min(h,Math.round(w*0.80));
+  w=Math.min(w,Math.round(h*2.10));
+  return { w:Math.max(CARD_MIN,w), h:Math.max(CARD_MIN*0.8,h) };
+}
+
+/* Corps de texte adapté à la longueur du contenu et à la carte */
+function ajusterTexte(span,text,w,h){
+  const len=Math.max(1,text.length);
+  const mots=text.split(' ');
+  let fs;
+  if(len<=3)       fs=Math.min(h*0.52, w*0.44);
+  else if(len<=6)  fs=Math.min(h*0.42, w*0.26);
+  else             fs=Math.min(h*0.34, (w*0.86)/(len*0.60));
+  if(mots.length>=3) fs=Math.min(fs, h*0.26);            // « Double de 128 » : sur 2 lignes
+  span.style.fontSize=Math.max(9,Math.round(fs))+'px';
+}
+
+function attachCardListener(el,index){
+  const mode=state.clickMode;
+  if(mode==='click'){
+    const h=e=>{ e.preventDefault(); handleCardClick(index); };
+    el.addEventListener('click',h); el._memHandler={mode:'click',handler:h};
+  } else if(mode==='dblclick'){
+    let clickTimer=null;
+    const h=e=>{
+      e.preventDefault();
+      if(clickTimer===null){ clickTimer=setTimeout(()=>{clickTimer=null;},400); }
+      else { clearTimeout(clickTimer); clickTimer=null; handleCardClick(index); }
+    };
+    el.addEventListener('click',h); el._memHandler={mode:'click',handler:h};
+  } else {
+    const h=e=>{ e.preventDefault(); handleCardClick(index); };
+    el.addEventListener(mode,h); el._memHandler={mode,handler:h};
+  }
+}
+function removeCardListener(el){
+  if(el._memHandler){ el.removeEventListener(el._memHandler.mode,el._memHandler.handler); el._memHandler=null; }
+}
+
+function handleCardClick(index){
+  if(!state.started||state.isPeeking) return;
+  const card=state.cards[index];
+  if(card.found||card.flipped||state.waiting) return;
+  flipCard(card,true);
+
+  if(!state.firstCard){
+    state.firstCard=card; state.firstTime=Date.now();
+    startTvTimer(card);
+    return;
+  }
+
+  /* 1 essai = 2 cartes retournées */
+  const first=state.firstCard; state.firstCard=null; state.waiting=true;
+  clearTvTimer(first);
+  state.tries++; stTries.textContent=state.tries;
+  const rapide = (Date.now()-state.firstTime) < 5000;
+
+  /* Appariement par identifiant interne de paire */
+  if(first.pid===card.pid){
+    if(rapide) state.fastPairs++;
+    setTimeout(()=>{
+      first.found=card.found=true;
+      first.el.classList.add('found'); card.el.classList.add('found');
+      removeCardListener(first.el); removeCardListener(card.el);
+      state.pairsFound++;
+      updateProgress(state.pairsFound,state.totalPairs);
+      addFoundChip(card.pid,card.label);
+      majScore();
+      state.waiting=false;
+      checkVictory();
+    },260);
+  } else {
+    first.el.classList.add('wrong'); card.el.classList.add('wrong');
+    majScore();
+    setTimeout(()=>{
+      first.el.classList.remove('wrong'); card.el.classList.remove('wrong');
+      flipCard(first,false); flipCard(card,false);
+      state.waiting=false;
+    },Math.max(600,(state.tvSec-1)*1000));
+  }
+}
+
+function flipCard(card,show){ card.flipped=show; card.el.classList.toggle('flipped',show); stopTimerBar(card.el); }
+
+function startTvTimer(card){
+  const bar=card.el.querySelector('.timer-bar'); if(!bar) return;
+  bar.style.transition='none'; bar.style.width='100%'; bar.getBoundingClientRect();
+  bar.style.transition=`width ${state.tvSec}s linear`; bar.style.width='0%';
+  state.tvTimeout=setTimeout(()=>{
+    if(card.flipped&&!card.found){ flipCard(card,false); state.firstCard=null; }
+  },state.tvSec*1000);
+}
+function clearTvTimer(card){ clearTimeout(state.tvTimeout); state.tvTimeout=null; if(card&&card.el) stopTimerBar(card.el); }
+function stopTimerBar(el){ const b=el.querySelector('.timer-bar'); if(b){ b.style.transition='none'; b.style.width='0'; } }
+
+function addFoundChip(pid,label){
+  if($('fc-'+pid)) return;
+  const d=document.createElement('div'); d.className='found-chip'; d.id='fc-'+pid; d.textContent=label;
+  foundList.appendChild(d);
+}
+
+function updateProgress(found,total){
+  spFound.textContent=found; spTotal.textContent=total;
+  stPairsFull.textContent=`${found} / ${total}`;
+  const pct=total>0?Math.round(found/total*100):0;
+  ringPct.textContent=pct+'%'; ringFill.style.width=pct+'%';
+}
+
+/* Score : efficacité (paires/essais) + bonus rapidité optionnel */
+function calcScore(){
+  if(!state.tries) return 0;
+  const base=Math.round(state.pairsFound/state.tries*100);
+  const bonus=state.bonusOn ? state.fastPairs*2 : 0;
+  return Math.max(0, base+bonus - state.peekCount*5);
+}
+function majScore(){ stScore.textContent=calcScore(); }
+
+function peekSolution(){
+  if(!state.started||state.isPeeking) return;
+  state.isPeeking=true; state.peekCount++;
+  stPeek.textContent=state.peekCount; btnPeek.classList.add('active'); majScore();
+  state.cards.forEach(c=>{ if(!c.found) c.el.classList.add('flipped','peeking'); });
+  clearTimeout(state.tvTimeout); clearTimeout(state.peekTimeout);
+  state.peekTimeout=setTimeout(()=>{
+    state.cards.forEach(c=>{
+      if(!c.found&&!c.flipped) c.el.classList.remove('flipped','peeking');
+      else if(!c.found&&c.flipped) c.el.classList.remove('peeking');
+    });
+    state.isPeeking=false; btnPeek.classList.remove('active');
+    if(state.firstCard) startTvTimer(state.firstCard);
+  },5000);
+}
+
+function buildSolvedGrid(){
+  const sg=$('solved-grid'); sg.innerHTML='';
+  state.pairs.forEach(p=>{
+    const d=document.createElement('div'); d.className='s-line'; d.textContent=p.label; sg.appendChild(d);
+  });
+}
+
+function checkVictory(){
+  if(state.pairsFound<state.totalPairs) return;
+  clearTimers(); state.started=false;
+  const score=calcScore();
+  $('ov-time').textContent=fmtTime(state.elapsed);
+  $('ov-tries').textContent=state.tries;
+  $('ov-fast').textContent=state.fastPairs;
+  $('ov-score').textContent=score;
+  $('ov-peeks').textContent=state.peekCount;
+  const record=majRecord({tries:state.tries,time:state.elapsed,score});
+  $('ov-record').classList.toggle('show',record);
+  $('solved-grid-wrap').classList.remove('visible');
+  $('btn-show-solved').textContent='🗺 Voir toutes les paires';
+  overlay.classList.add('show');
+}
+
+function fmtTime(s){ return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+
+function startTimer(){
+  state.elapsed=0; clearInterval(state.timerInterval);
+  state.timerInterval=setInterval(()=>{ state.elapsed++; stTime.textContent=fmtTime(state.elapsed); },1000);
+}
+function clearTimers(){
+  clearInterval(state.timerInterval); clearTimeout(state.tvTimeout); clearTimeout(state.peekTimeout);
+  state.timerInterval=state.tvTimeout=state.peekTimeout=null;
+}
+
+function quitGame(){
+  if(typeof window.quitterApp==='function'){ window.quitterApp(); return; }
+  if(!state.started&&grid.children.length===0){ window.close(); return; }
+  clearTimers(); state.started=false;
+  grid.innerHTML=''; foundList.innerHTML=''; state.cards=[]; state.pairs=[]; state.firstCard=null;
+  stTime.textContent='00:00'; stTries.textContent='0'; stPeek.textContent='0'; stScore.textContent='0';
+  valMsg.classList.remove('visible'); valMsg.style.cssText=''; overlay.classList.remove('show');
+  btnPeek.classList.remove('active');
+  $('objectif-box').innerHTML='Choisissez un thème puis cliquez sur ▶ Lancer.';
+  updateProgress(0,0);
+}
+
+/* ══════════════ RECORDS (par thème ET par niveau) ══════════════ */
+const REC_KEY = (t,l) => `memcalc.record.${t}.${l}`;
+
+function lireRecord(theme,level){
+  try{ const r=localStorage.getItem(REC_KEY(theme,level)); return r?JSON.parse(r):null; }
+  catch(e){ return null; }
+}
+function majRecord(part){
+  const old=lireRecord(state.theme,state.level);
+  const meilleur = !old || part.tries<old.tries || (part.tries===old.tries && part.time<old.time);
+  if(meilleur){
+    try{ localStorage.setItem(REC_KEY(state.theme,state.level),JSON.stringify({...part,date:new Date().toISOString()})); }catch(e){}
+    refreshRecordBox();
+  }
+  return meilleur;
+}
+function refreshRecordBox(){
+  const theme=$('sel-theme').value, level=+$('sel-level').value;
+  const r=lireRecord(theme,level), box=$('record-box');
+  box.innerHTML='';
+  if(!r){ box.innerHTML='<div class="rec-empty">Aucun record pour ce thème et ce niveau.</div>'; return; }
+  const lignes=[['Essais',r.tries],['Temps',fmtTime(r.time)],['Score',r.score]];
+  lignes.forEach(([l,v])=>{
+    const d=document.createElement('div'); d.className='rec-line';
+    d.innerHTML=`<span class="rl-label">${l}</span><span class="rl-val">${v}</span>`;
+    box.appendChild(d);
+  });
+}
+
+/* ══════════════ MESSAGES ══════════════ */
+function showError(msg){
+  valMsg.textContent=msg; valMsg.style.cssText=''; valMsg.classList.add('visible');
+  clearTimeout(showError._t);
+  showError._t=setTimeout(()=>valMsg.classList.remove('visible'),5000);
+}
+function showInfo(msg){
+  valMsg.textContent=msg;
+  valMsg.style.background='#ecfdf5'; valMsg.style.borderBottomColor='#6ee7b7'; valMsg.style.color='#065f46';
+  valMsg.classList.add('visible');
+  clearTimeout(showInfo._t);
+  showInfo._t=setTimeout(()=>{ valMsg.classList.remove('visible'); valMsg.style.cssText=''; },4000);
+}
+
+/* ══════════════ TABLE DES CHIFFRES ROMAINS ══════════════
+   Le bouton n'apparait que lorsque le theme « Chiffres romains »
+   est selectionne ou en cours de partie. */
+function majBoutonRomains(){
+  const actif = $('sel-theme').value==='romains' || (state.started && state.theme==='romains');
+  $('btn-romains').style.display = actif ? 'inline-flex' : 'none';
+  if(!actif) closeRomains();
+}
+function remplirTableRomaine(){
+  if(remplirTableRomaine._fait) return;
+  const bloc=(id,liste)=>{
+    const c=$(id); c.innerHTML='';
+    liste.forEach(n=>{
+      const d=document.createElement('div'); d.className='rom-cell';
+      d.innerHTML=`<span class="rc-num">${n}</span><span class="rc-rom">${toRoman(n)}</span>`;
+      c.appendChild(d);
+    });
+  };
+  bloc('rom-base',[1,5,10,50,100,500,1000]);
+  bloc('rom-units',Array.from({length:20},(_,i)=>i+1));
+  bloc('rom-tens',[10,20,30,40,50,60,70,80,90]);
+  bloc('rom-hundreds',[100,200,300,400,500,600,700,800,900,1000]);
+  remplirTableRomaine._fait=true;
+}
+function openRomains(){
+  remplirTableRomaine();
+  $('romains-modal').style.display='flex';
+  $('btn-romains').classList.add('active');
+}
+function closeRomains(){
+  $('romains-modal').style.display='none';
+  $('btn-romains').classList.remove('active');
+}
+$('btn-romains').addEventListener('click',()=>{
+  $('romains-modal').style.display==='flex' ? closeRomains() : openRomains();
+});
+$('btn-rom-close').addEventListener('click',closeRomains);
+$('btn-rom-ok').addEventListener('click',closeRomains);
+$('romains-modal').addEventListener('click',e=>{ if(e.target===$('romains-modal')) closeRomains(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeRomains(); closeAide(); } });
+
+/* ══════════════ AIDE ══════════════ */
+function openAide(){ $('aide-modal').style.display='flex'; $('btn-aide-toggle').classList.add('active'); }
+function closeAide(){ $('aide-modal').style.display='none'; $('btn-aide-toggle').classList.remove('active'); }
+$('btn-aide-modal-close').addEventListener('click',closeAide);
+$('btn-aide-ok').addEventListener('click',closeAide);
+$('aide-modal').addEventListener('click',e=>{ if(e.target===$('aide-modal')) closeAide(); });
+
+/* ══════════════ SAUVEGARDE / CHARGEMENT ══════════════ */
+function stamp(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return `${p(d.getDate())}${p(d.getMonth()+1)}${d.getFullYear()}_${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+function saveGame(){
+  if(!state.started||!state.cards.length){ showInfo('⚠ Aucune partie en cours à sauvegarder.'); return; }
+  if(state.isPeeking){ showInfo('⏳ Aperçu en cours — réessayez dans quelques secondes.'); return; }
+  const data={
+    app:'memoire-calculee', version:1, savedAt:new Date().toISOString(),
+    theme:state.theme, level:state.level, ctx:state.ctx,
+    tvSec:state.tvSec, clickMode:state.clickMode, bonusOn:state.bonusOn,
+    tries:state.tries, elapsed:state.elapsed, peekCount:state.peekCount,
+    fastPairs:state.fastPairs, pairsFound:state.pairsFound, totalPairs:state.totalPairs,
+    pairs:state.pairs.map(p=>({pid:p.pid,label:p.label})),
+    cards:state.cards.map(c=>({pid:c.pid,text:c.text,kind:c.kind,label:c.label,found:c.found}))
+  };
+  const json=JSON.stringify(data), nom=`${stamp()}_MemoireCalculee.json`;
+  if(typeof Partie!=='undefined'&&Partie.enregistrer){
+    Partie.enregistrer({ json, nomPropose:nom, jeu:'Mémoire calculée' });
+  } else {
+    fallbackDownload(json,nom);
+  }
+}
+
+function fallbackDownload(json,name){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  showInfo(`💾 Partie sauvegardée : « ${name} » dans le dossier Téléchargements.`);
+}
+
+function refuser(nom,raison){
+  if(typeof Partie!=='undefined'&&Partie.refuserReprise) Partie.refuserReprise({nomFichier:nom,raison});
+  else showError(`⚠ ${raison}`);
+}
+
+function loadGame(text,nomFichier){
+  const nom=nomFichier||'sauvegarde';
+  let d;
+  try{ d=JSON.parse(text); }
+  catch(e){ refuser(nom,"Ce fichier n'est pas lisible : son contenu n'est pas au format JSON."); return; }
+  if(!d||d.app!=='memoire-calculee'||!Array.isArray(d.cards)||!Array.isArray(d.pairs)){
+    refuser(nom,"Ce fichier n'est pas une sauvegarde du jeu Mémoire calculée."); return;
+  }
+  const L=LEVELS[d.level];
+  if(!L||d.cards.length!==L.pairs*2){
+    refuser(nom,'La sauvegarde est incomplète ou abîmée : le nombre de cartes ne correspond pas au niveau.'); return;
+  }
+
+  clearTimers();
+  $('sel-theme').value=d.theme; $('sel-level').value=d.level;
+  slTv.value=d.tvSec; tvVal.textContent=d.tvSec+'s';
+  $('sel-click').value=d.clickMode;
+  state.bonusOn=d.bonusOn!==false; $('btn-bonus').classList.toggle('active',state.bonusOn);
+
+  state={...state,
+    theme:d.theme, level:d.level, ctx:d.ctx||{},
+    pairs:d.pairs.slice(), cards:[], firstCard:null, firstTime:0, waiting:false,
+    tvTimeout:null, timerInterval:null, peekTimeout:null,
+    elapsed:d.elapsed||0, tries:d.tries||0,
+    pairsFound:d.pairsFound||0, totalPairs:L.pairs, fastPairs:d.fastPairs||0,
+    tvSec:d.tvSec, clickMode:d.clickMode,
+    peekCount:d.peekCount||0, isPeeking:false, started:true
+  };
+  state.cards=d.cards.map((c,i)=>({...c,index:i,found:!!c.found,flipped:false,el:null}));
+
+  stTries.textContent=state.tries; stTime.textContent=fmtTime(state.elapsed);
+  stPeek.textContent=state.peekCount;
+  foundList.innerHTML=''; btnPeek.classList.remove('active'); overlay.classList.remove('show');
+  valMsg.classList.remove('visible');
+  $('objectif-box').innerHTML=objectifTexte(state.theme,state.level,state.ctx);
+  updateProgress(state.pairsFound,state.totalPairs);
+  refreshRecordBox();
+  majBoutonRomains();
+  renderGrid();
+  majScore();
+
+  state.cards.forEach(c=>{
+    if(c.found){ c.el.classList.add('found','flipped'); removeCardListener(c.el); addFoundChip(c.pid,c.label); }
+  });
+
+  state.timerInterval=setInterval(()=>{ state.elapsed++; stTime.textContent=fmtTime(state.elapsed); },1000);
+
+  showInfo(`✅ Partie restaurée — ${state.pairsFound}/${state.totalPairs} paires trouvées, ${state.tries} essais.`);
+  if(typeof Partie!=='undefined'&&Partie.confirmerReprise){
+    Partie.confirmerReprise({ nomFichier:nom, resume:`${THEME_NAMES[state.theme]} — niveau ${state.level} — ${state.pairsFound}/${state.totalPairs} paire(s) trouvée(s)` });
+  }
+}
+
+/* ══════════════ REDIMENSIONNEMENT ══════════════ */
+let resizeTimer=null;
+window.addEventListener('resize',()=>{
+  if(!state.started||!state.cards.length) return;
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{
+    const old=state.cards.map(c=>({found:c.found,flipped:c.flipped}));
+    renderGrid();
+    state.cards.forEach((c,i)=>{
+      if(old[i].found){ c.found=true; c.el.classList.add('found','flipped'); removeCardListener(c.el); }
+      else if(old[i].flipped){ c.flipped=true; c.el.classList.add('flipped'); }
+    });
+  },120);
+});
+
+/* Initialisation */
+refreshRecordBox();
+majBoutonRomains();
+</script>
+
+<!-- Sortie de jeu harmonisee (facultatif : ignoré si les fichiers sont absents) -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="memoire-calculee" data-base="../"></script>
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#aide-modal > div"
+        data-voile="#aide-modal"
+        data-titre="Comment jouer à la Mémoire calculée"
+        data-fermer="closeAide()"></script>
+<script src="../assets/js/partie.js" data-base="../"></script>
+</body>
+</html>

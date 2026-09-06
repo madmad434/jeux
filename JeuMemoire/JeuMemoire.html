@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mémoire</title>
+<link rel="icon" type="image/png" href="../assets/favicons/sequence.png">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* ── CHARTE GRAPHIQUE (identique a JeuMemoire.html) ── */
+    --brand-light:  #C2F6FF;   /* bleu clair : zone de jeu + body */
+    --brand-dark:   #38B6FF;   /* bleu foncé : header et tout hors zone de jeu */
+
+    --config-bg:    #38B6FF;   /* barre de config = bleu foncé */
+    --config-border:#1e9fe8;
+    --config-text:  #063a52;
+    --config-muted: #0a5b80;
+    --input-bg:     #ffffff;
+    --input-border: #7dd3f0;
+    --game-bg:      #C2F6FF;   /* zone de jeu = bleu clair */
+    --side-bg:      #38B6FF;   /* panneau latéral = bleu foncé */
+    --side-border:  #1e9fe8;
+    --stats-bg:     #38B6FF;   /* barre de stats = bleu foncé */
+    --stats-border: #1e9fe8;
+    --accent:       #0284c7;
+    --accent-light: #e0f6ff;
+    --accent-dark:  #075985;
+    --green:        #10b981;
+    --green-light:  #d1fae5;
+    --green-dark:   #065f46;
+    --red:          #ef4444;
+    --red-light:    #fee2e2;
+    --yellow:       #f59e0b;
+    --yellow-light: #fef3c7;
+    --purple:       #8b5cf6;
+    --card-back:    #1e3a7a;
+    --card-back2:   #152d62;
+    --pad-idle:     #1e3a7a;
+    --text:         #06283d;
+    --text-muted:   #0a5b80;
+    --radius:       12px;
+    --radius-sm:    8px;
+    --t:            0.18s ease;
+  }
+
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--game-bg); color:var(--text); font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; user-select:none; }
+
+  #app { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  /* ── CONFIG ── */
+  #configpanel {
+    background:var(--config-bg);
+    border-bottom:1px solid var(--config-border);
+    padding:10px 16px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex-shrink:0;
+    box-shadow:0 1px 4px #00000010;
+  }
+  .game-title { font-size:1.2rem; font-weight:900; color:#ffffff; letter-spacing:2px; text-transform:uppercase; white-space:nowrap; font-family:'Courier New',Courier,monospace; margin-right:4px; }
+  .separator  { width:1px; height:28px; background:#8adcff; flex-shrink:0; }
+  .cfg-group  { display:flex; align-items:center; gap:6px; }
+  .cfg-label  { font-size:.72rem; font-weight:800; color:#eaffff; text-transform:uppercase; letter-spacing:.8px; white-space:nowrap; }
+
+  select {
+    height:34px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:var(--radius-sm);
+    color:var(--config-text); font-size:.85rem; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; font-weight:700; cursor:pointer;
+    outline:none; transition:border-color var(--t),box-shadow var(--t);
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 8px center; background-color:var(--input-bg);
+    padding:0 26px 0 8px; box-shadow:0 1px 3px #0000000a;
+  }
+  select:hover { border-color:var(--accent); }
+  select:focus { border-color:var(--accent); box-shadow:0 0 0 3px #3b82f630; }
+  select#sel-theme { min-width:150px; }
+  select#sel-level { min-width:165px; }
+
+  .btn {
+    display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 14px;
+    border-radius:var(--radius-sm); border:1px solid var(--input-border);
+    background:var(--input-bg); color:var(--config-text);
+    font-size:.82rem; font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif; font-weight:700;
+    cursor:pointer; transition:all var(--t); white-space:nowrap; box-shadow:0 1px 3px #0000000a;
+  }
+  .btn:hover { border-color:var(--accent); background:var(--accent-light); color:var(--accent-dark); }
+  .btn:focus-visible { outline:3px solid var(--accent-dark); outline-offset:2px; }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-size:.88rem; padding:0 18px; box-shadow:0 2px 8px #3b82f640; }
+  .btn.primary:hover { background:var(--accent-dark); color:#fff; box-shadow:0 3px 12px #3b82f660; }
+  .btn.danger { background:var(--red-light); border-color:#fca5a5; color:#b91c1c; }
+  .btn.danger:hover { background:#fecaca; border-color:var(--red); }
+  .btn.btn-sound { background:#ecfdf5; border-color:#6ee7b7; color:#065f46; }
+  .btn.btn-sound:hover { background:#d1fae5; border-color:#10b981; color:#065f46; }
+  .btn.btn-sound.muted { background:#fee2e2; border-color:#fca5a5; color:#b91c1c; }
+  .btn.btn-save { background:#ecfdf5; border-color:#6ee7b7; color:#065f46; }
+  .btn.btn-save:hover { background:#d1fae5; border-color:#10b981; }
+  .btn.btn-load { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+  .btn.btn-load:hover { background:#dbeafe; border-color:#3b82f6; }
+  .btn.btn-records { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+  .btn.btn-records:hover { background:#dbeafe; border-color:#3b82f6; color:#1d4ed8; }
+  .btn.btn-aide-toggle { background:#fefce8; border-color:#fde68a; color:#92400e; }
+  .btn.btn-aide-toggle:hover { background:#fef9c3; border-color:#f59e0b; color:#92400e; }
+  .btn.btn-aide-toggle.active { background:#fef3c7; border-color:#f59e0b; box-shadow:0 0 0 2px #fde68a; }
+  #btn-quit { margin-left:auto; }
+
+  /* ── VALIDATION / INFO ── */
+  #val-msg { font-size:.75rem; color:#b91c1c; padding:4px 16px; font-weight:700; background:var(--red-light); border-bottom:1px solid #fca5a5; display:none; }
+  #val-msg.visible { display:block; }
+
+  /* ── STATS BAR ── */
+  #statsbar { display:flex; align-items:stretch; background:var(--stats-bg); border-bottom:1px solid var(--stats-border); flex-shrink:0; }
+  .stat-block { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px 20px; flex:1; border-right:1px solid var(--stats-border); transition:background var(--t); cursor:default; }
+  .stat-block:last-child { border-right:none; }
+  .stat-block:hover { background:#1e9fe8; }
+  .stat-label { font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#dff7ff; }
+  .stat-value { font-family:'Courier New',Courier,monospace; font-size:1rem; font-weight:700; color:#ffffff; line-height:1.1; }
+  .stat-value.c-green  { color:#7dffcf; }
+  .stat-value.c-yellow { color:#ffe27a; }
+  .stat-value.c-purple { color:#e5c9ff; }
+
+  /* ── MAIN ── */
+  #main { display:flex; flex:1 1 auto; overflow:hidden; min-height:0; }
+
+  /* ── PANNEAU LATÉRAL ── */
+  #sidepanel { width:195px; min-width:165px; background:var(--side-bg); border-right:1px solid var(--side-border); display:flex; flex-direction:column; padding:14px 12px; overflow-y:auto; flex-shrink:0; gap:16px; box-shadow:2px 0 8px #00000008; }
+  .side-section-title { font-size:.63rem; font-weight:900; color:#ffffff; text-transform:uppercase; letter-spacing:1.5px; padding-bottom:6px; border-bottom:2px solid #1e9fe8; }
+
+  #progress-wrap { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .progress-bar-track { width:100%; height:14px; background:#1e9fe8; border-radius:7px; overflow:hidden; }
+  .progress-bar-fill  { height:100%; background:linear-gradient(90deg,var(--green),#34d399); border-radius:7px; width:0%; transition:width .25s ease; box-shadow:0 1px 4px #10b98140; }
+  .progress-bar-label { display:flex; justify-content:space-between; align-items:baseline; }
+  .prog-pct  { font-family:'Courier New',Courier,monospace; font-size:1rem; font-weight:700; color:#ffffff; }
+  .pairs-text { font-size:.72rem; color:#eaffff; font-weight:700; }
+  .pairs-text span { color:#7dffcf; font-weight:900; }
+
+  /* Chapelet des éléments déjà rejoués dans le tour en cours */
+  #echo-list { display:flex; flex-wrap:wrap; gap:5px; min-height:28px; margin-top:8px; }
+  .echo-dot { width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); font-size:.7rem; font-weight:900; color:#fff; border:1px solid #ffffff40; animation:popIn .25s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+  .rec-line { display:flex; align-items:center; justify-content:space-between; background:#1e9fe8; border:1px solid #7dd3f0; border-radius:var(--radius-sm); padding:5px 9px; margin-top:6px; }
+  .rec-line.current { background:#e0f6ff; border-color:#7dd3f0; }
+  .rec-line .rl-lbl { font-size:.72rem; color:#eaffff; font-weight:700; }
+  .rec-line .rl-val { font-family:'Courier New',Courier,monospace; color:#ffe27a; font-weight:700; font-size:.9rem; }
+  .rec-line.current .rl-lbl { color:#063a52; }
+  .rec-line.current .rl-val { color:#075985; }
+
+  /* ── ZONE DE JEU ── */
+  #game-area { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:16px; overflow:hidden; min-width:0; background:var(--game-bg); }
+
+  #phase-hint {
+    font-size:.95rem; font-weight:800; color:var(--accent-dark);
+    background:#ffffff; border:1px solid var(--input-border); border-radius:999px;
+    padding:7px 20px; box-shadow:0 2px 8px #3b82f620; text-align:center;
+    min-height:36px; display:flex; align-items:center; justify-content:center;
+  }
+  #phase-hint.watch { background:#fef3c7; border-color:#f59e0b; color:#92400e; }
+  #phase-hint.input { background:#d1fae5; border-color:#6ee7b7; color:#065f46; }
+  #phase-hint.over  { background:var(--red-light); border-color:#fca5a5; color:#b91c1c; }
+
+  #pads { display:flex; flex-direction:column; gap:14px; align-items:center; }
+  .pad-row { display:flex; gap:14px; justify-content:center; }
+
+  .pad {
+    border-radius:18px; border:3px solid #00000025;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; color:#ffffff; cursor:pointer;
+    background:var(--pad-c,var(--pad-idle));
+    filter:brightness(.55) saturate(.75);
+    box-shadow:inset 0 -6px 0 #00000030, 0 4px 14px #1e3a7a30;
+    transition:filter .09s linear, transform .09s ease, box-shadow .09s ease;
+    text-shadow:0 2px 4px #00000040;
+    overflow:hidden;
+  }
+  .pad.lit {
+    filter:brightness(1.25) saturate(1.2);
+    transform:translateY(-3px) scale(1.02);
+    box-shadow:inset 0 -6px 0 #00000020, 0 0 0 4px #ffffff90, 0 10px 26px var(--pad-c,var(--pad-idle));
+  }
+  .pad.wrong { filter:brightness(1) saturate(.2) !important; background:var(--red) !important; animation:shake .3s linear; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+  .pad.next-hint { box-shadow:inset 0 -6px 0 #00000030, 0 0 0 4px var(--yellow), 0 4px 14px #1e3a7a30; animation:pulseHint 1s ease-in-out infinite; }
+  @keyframes pulseHint { 0%,100%{filter:brightness(.55) saturate(.75)} 50%{filter:brightness(.85) saturate(1)} }
+  #pads.playing .pad { cursor:default; }
+  .pad-label { pointer-events:none; line-height:1; }
+  .pad-key { position:absolute; }
+
+  /* ── OVERLAY FIN DE PARTIE ── */
+  #overlay { display:none; position:fixed; inset:0; background:#00000070; backdrop-filter:blur(8px); z-index:100; align-items:center; justify-content:center; flex-direction:column; }
+  #overlay.show { display:flex; }
+
+  .overlay-card { background:#fff; border:1px solid var(--side-border); border-radius:20px; padding:32px 42px; display:flex; flex-direction:column; align-items:center; gap:18px; box-shadow:0 30px 80px #00000030; animation:slideUp .4s cubic-bezier(.34,1.56,.64,1); min-width:330px; max-width:90vw; }
+  @keyframes slideUp { from{transform:translateY(30px) scale(.95);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+  .overlay-card h2 { font-size:1.9rem; font-weight:900; color:var(--accent-dark); text-align:center; }
+
+  #ov-newrec { display:none; background:linear-gradient(90deg,#fbbf24,#f59e0b); color:#063a52; font-weight:900; font-size:.85rem; padding:6px 18px; border-radius:999px; box-shadow:0 3px 10px #f59e0b50; }
+  #ov-newrec.show { display:block; }
+
+  .overlay-stats { display:flex; gap:24px; background:var(--stats-bg); border-radius:var(--radius); padding:14px 20px; width:100%; justify-content:center; }
+  .ov-stat { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .ov-stat-val { font-family:'Courier New',Courier,monospace; font-size:1.5rem; font-weight:700; color:#ffffff; }
+  .ov-stat-lbl { font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#dff7ff; }
+
+  #ov-seq-wrap { display:none; flex-direction:column; align-items:center; gap:8px; width:100%; max-height:32vh; overflow-y:auto; }
+  #ov-seq-wrap.visible { display:flex; }
+  #ov-seq-title { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
+  #ov-seq { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; background:var(--game-bg); border:1px solid var(--side-border); border-radius:var(--radius); padding:8px; }
+  .seq-chip { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.7rem; font-weight:900; border:1px solid #00000020; }
+  .seq-chip.miss { outline:2px solid var(--red); outline-offset:1px; }
+
+  .overlay-buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--config-border); border-radius:3px; }
+
+  @media (max-width:600px) {
+    #sidepanel { width:128px; min-width:110px; }
+    .stat-block { padding:5px 6px; }
+    .stat-label { font-size:.52rem; letter-spacing:.6px; }
+    .game-title { font-size:1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pad, .pad.lit { transition:none; }
+    .pad.next-hint { animation:none; }
+    .overlay-card { animation:none; }
+  }
+
+/* Bouton Quitter : même identité rouge dans tous les jeux et éditeurs. */
+html body #btn-quit, html body #btn-quitter, html body #btn-quitter-accueil,
+html body #btn-quit-welcome, html body #btn-quit-game, html body #btn-quit-win,
+html body button[onclick*="quitterApp"], html body button[onclick*="doQuit"],
+html body button[onclick*="quitter()"]{
+  background:#c62828 !important; color:#fff !important; border-color:#c62828 !important;
+  font-weight:700;
+}
+html body #btn-quit:hover, html body #btn-quitter:hover, html body #btn-quitter-accueil:hover,
+html body #btn-quit-welcome:hover, html body #btn-quit-game:hover, html body #btn-quit-win:hover,
+html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit"]:hover,
+html body button[onclick*="quitter()"]:hover{
+  background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- CONFIG -->
+  <div id="configpanel">
+    <span class="game-title">🎵 Séquence</span>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Thème</span>
+      <select id="sel-theme" title="Nature des éléments à mémoriser">
+        <option value="colors">Couleurs 🎨</option>
+        <option value="letters">Lettres A E I</option>
+        <option value="digits">Chiffres 1 2 3</option>
+        <option value="solfege">Solfège 🎵</option>
+      </select>
+    </div>
+    <div class="separator"></div>
+    <div class="cfg-group">
+      <span class="cfg-label">Niveau</span>
+      <select id="sel-level" title="Nombre d'éléments visibles et vitesse">
+        <option value="1">1 · Découverte (2)</option>
+        <option value="2">2 · Confirmé (3)</option>
+        <option value="3">3 · Virtuose (6)</option>
+      </select>
+    </div>
+    <div class="separator"></div>
+    <button class="btn primary"      id="btn-start">▶ Jouer</button>
+    <button class="btn btn-sound"    id="btn-sound">🔊 Son activé</button>
+    <div class="separator"></div>
+    <button class="btn btn-save"        id="btn-save">💾 Sauvegarder partie</button>
+    <button class="btn btn-load"        id="btn-load">📂 Charger partie</button>
+    <input type="file" id="inp-load" accept=".json" style="display:none">
+    <div class="separator"></div>
+    <button class="btn btn-records"     id="btn-reset-records">🗑 Effacer records</button>
+    <button class="btn btn-aide-toggle" id="btn-aide-toggle">❓ Aide</button>
+    <button class="btn danger"          id="btn-quit">✕ Quitter</button>
+  </div>
+
+  <!-- VALIDATION / INFO -->
+  <div id="val-msg"></div>
+
+  <!-- STATS BAR -->
+  <div id="statsbar">
+    <div class="stat-block">
+      <span class="stat-label">Tour</span>
+      <span class="stat-value" id="st-round">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Longueur séquence</span>
+      <span class="stat-value c-yellow" id="st-len">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Score</span>
+      <span class="stat-value c-green" id="st-score">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Record thème × niveau</span>
+      <span class="stat-value c-purple" id="st-best">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Vitesse</span>
+      <span class="stat-value" id="st-speed">—</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- PANNEAU LATÉRAL -->
+    <div id="sidepanel">
+      <div>
+        <div class="side-section-title">Répétition</div>
+        <div id="progress-wrap">
+          <div class="progress-bar-label">
+            <span class="prog-pct" id="rep-pct">0%</span>
+            <span class="pairs-text"><span id="rep-done">0</span> / <span id="rep-total">0</span></span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="rep-fill"></div>
+          </div>
+        </div>
+        <div id="echo-list"></div>
+      </div>
+      <div>
+        <div class="side-section-title">Records du thème</div>
+        <div id="rec-list"></div>
+      </div>
+      <div>
+        <div class="side-section-title">Tous thèmes</div>
+        <div class="rec-line">
+          <span class="rl-lbl">Meilleur</span>
+          <span class="rl-val" id="rec-global">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONE DE JEU -->
+    <div id="game-area">
+      <div id="phase-hint">Choisissez un thème et un niveau, puis cliquez sur « ▶ Jouer ».</div>
+      <div id="pads"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALE AIDE -->
+<div id="aide-modal" style="display:none;position:fixed;inset:0;background:#00000070;backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px 36px;max-width:520px;width:90vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px #00000030;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;gap:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <h2 style="font-size:1.2rem;font-weight:900;color:#1d4ed8;margin:0;">🎮 Comment jouer</h2>
+      <button id="btn-aide-modal-close" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:1rem;font-weight:700;color:#64748b;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px;font-size:.88rem;color:#1e293b;line-height:1.5;">
+      <li>Choisissez le <strong>thème</strong> (couleurs, lettres, chiffres ou solfège) et le <strong>niveau</strong>, puis cliquez <strong>▶ Jouer</strong>.</li>
+      <li><strong>Phase d'écoute</strong> : les cases s'illuminent une à une, chacune avec son son. Regardez et écoutez sans cliquer.</li>
+      <li><strong>Phase de répétition</strong> : rejouez la séquence dans le <strong>même ordre</strong> en cliquant les cases (ou avec les touches <strong>1</strong> à <strong>6</strong> du clavier).</li>
+      <li>Séquence complète et exacte → elle est <strong>rejouée à l'identique</strong> avec <strong>un élément de plus</strong> à la fin, un peu plus vite.</li>
+      <li>Première erreur → <strong>fin de partie</strong>. Le score est la <strong>longueur de la dernière séquence réussie</strong>.</li>
+      <li>Au <strong>niveau 1</strong>, la case attendue est discrètement surlignée pendant la répétition. Aux niveaux 2 et 3, aucune aide.</li>
+      <li>Le bouton <strong>🔊 Son</strong> coupe l'audio : au niveau 3, c'est le mode « mémoire visuelle pure ».</li>
+    </ol>
+    <div style="background:#dbeafe;border-radius:8px;padding:10px 14px;font-size:.8rem;color:#1e40af;">
+      🎵 Le thème solfège joue les vraies fréquences, de Do (261,6 Hz) à La (440 Hz) : l'oreille apprend en même temps que la mémoire.
+    </div>
+    <div style="background:#dbeafe;border-radius:8px;padding:10px 14px;font-size:.8rem;color:#1e40af;">
+      🏆 Un record est conservé pour chacune des <strong>12 combinaisons</strong> thème × niveau, dans ce navigateur.
+    </div>
+    <button id="btn-aide-ok" style="align-self:center;height:38px;padding:0 28px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.88rem;cursor:pointer;">OK</button>
+  </div>
+</div>
+
+<!-- OVERLAY FIN DE PARTIE -->
+<div id="overlay">
+  <div class="overlay-card">
+    <h2 id="ov-title">💥 Fin de partie</h2>
+    <div id="ov-newrec">🏆 Nouveau record !</div>
+    <div class="overlay-stats">
+      <div class="ov-stat">
+        <span class="ov-stat-val" id="ov-score">—</span>
+        <span class="ov-stat-lbl">Score</span>
+      </div>
+      <div class="ov-stat">
+        <span class="ov-stat-val" id="ov-best">—</span>
+        <span class="ov-stat-lbl">Record</span>
+      </div>
+      <div class="ov-stat">
+        <span class="ov-stat-val" id="ov-rounds">—</span>
+        <span class="ov-stat-lbl">Tours réussis</span>
+      </div>
+    </div>
+    <div id="ov-seq-wrap">
+      <div id="ov-seq-title">Séquence à reproduire</div>
+      <div id="ov-seq"></div>
+    </div>
+    <div class="overlay-buttons">
+      <button class="btn btn-records" id="btn-show-seq">🗺 Voir la séquence</button>
+      <button class="btn primary" id="btn-replay" style="height:40px;padding:0 24px;">🔄 Rejouer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   JEU 10 — JEU DE SÉQUENCE
+   Une séquence s'allume avec son ; le joueur la reproduit dans
+   l'ordre exact. Chaque réussite ajoute un élément. Première
+   erreur : fin de partie. Score = longueur de la dernière
+   séquence réussie.
+   ═══════════════════════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+
+/* ── THÈMES ─────────────────────────────────────────────────────
+   Chaque thème donne 6 éléments, dans l'ordre exact de la
+   spécification : les 2 premiers servent au niveau 1, les 3
+   premiers au niveau 2, les 6 au niveau 3. */
+const THEMES = {
+  colors: {
+    nom:'Couleurs',
+    labels:['','','','','',''],
+    colors:['#7c3aed','#22c55e','#f97316','#06b6d4','#ec4899','#eab308'],
+    noms:['Violet','Vert','Orange','Cyan','Rose','Jaune']
+  },
+  letters: {
+    nom:'Lettres',
+    labels:['A','E','I','O','U','N'],
+    colors:null, noms:['A','E','I','O','U','N']
+  },
+  digits: {
+    nom:'Chiffres',
+    labels:['1','2','3','4','5','6'],
+    colors:null, noms:['1','2','3','4','5','6']
+  },
+  solfege: {
+    nom:'Solfège',
+    labels:['Do','Ré','Mi','Fa','Sol','La'],
+    colors:null, noms:['Do','Ré','Mi','Fa','Sol','La']
+  }
+};
+
+/* Palette d'appoint pour les thèmes non colorés : les cases restent
+   d'une même famille violette, la mémoire s'appuie alors sur la
+   position et l'étiquette, pas sur la couleur. */
+const PADS_NEUTRES = ['#1e3a7a','#152d62','#1e3a7a','#152d62','#1e3a7a','#152d62'];
+
+/* ── NIVEAUX ────────────────────────────────────────────────────
+   La séquence démarre à 2 éléments à TOUS les niveaux (règle
+   explicite de la spécification) ; la difficulté vient du nombre
+   d'éléments visibles et de la vitesse. */
+const NIVEAUX = {
+  1:{ cases:2, depart:2, vitesse:800, accel:25, aide:true  },
+  2:{ cases:3, depart:2, vitesse:600, accel:35, aide:false },
+  3:{ cases:6, depart:2, vitesse:450, accel:60, aide:false }
+};
+const PLANCHER_MS = 200;
+
+/* Fréquences réelles Do → La (4e octave), utilisées par tous les
+   thèmes : l'oreille suit la même échelle partout. */
+const FREQS = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00];
+
+const GAP = 14, TAILLE_MAX = 190, TAILLE_MIN = 54;
+
+/* ── ÉTAT ─────────────────────────────────────────────────────── */
+let state = {
+  theme:'colors', niveau:1, cases:2,
+  sequence:[], pos:0, tour:0, score:0,
+  phase:'idle',            // idle | watch | input | pause | over
+  onMs:800, gapMs:240,
+  muet:false, token:0, started:false, timeouts:[]
+};
+
+const padsEl=$('pads'), hintEl=$('phase-hint'), overlay=$('overlay'), valMsg=$('val-msg');
+const selTheme=$('sel-theme'), selLevel=$('sel-level');
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+/* ── AUDIO (Web Audio natif, aucun fichier à héberger) ────────── */
+let actx = null;
+function audioUnlock(){
+  try{
+    if(!actx){ const C = window.AudioContext || window.webkitAudioContext; if(!C) return; actx = new C(); }
+    if(actx.state === 'suspended') actx.resume();
+  }catch(e){ actx = null; }
+}
+function tone(freq, durMs, type){
+  if(state.muet || !actx) return;
+  try{
+    const t0 = actx.currentTime, d = Math.max(0.08, durMs/1000);
+    const osc = actx.createOscillator(), gain = actx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    osc.connect(gain); gain.connect(actx.destination);
+    osc.start(t0); osc.stop(t0 + d + 0.05);
+  }catch(e){}
+}
+function toneErreur(){
+  if(state.muet || !actx) return;
+  try{
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator(), gain = actx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, t0);
+    osc.frequency.exponentialRampToValueAtTime(60, t0 + 0.55);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.22, t0 + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
+    osc.connect(gain); gain.connect(actx.destination);
+    osc.start(t0); osc.stop(t0 + 0.65);
+  }catch(e){}
+}
+function toneReussite(){
+  if(state.muet || !actx) return;
+  [523.25, 659.25, 783.99].forEach((f,i) => setTimeout(() => tone(f, 180, 'triangle'), i*90));
+}
+
+/* ── RECORDS (localStorage : 12 combinaisons thème × niveau) ──── */
+function recKey(t,n){ return 'seq_record_' + t + '_' + n; }
+function getRec(t,n){ try{ return parseInt(localStorage.getItem(recKey(t,n)) || '0', 10) || 0; }catch(e){ return 0; } }
+function setRec(t,n,v){ try{ localStorage.setItem(recKey(t,n), String(v)); }catch(e){} }
+function recGlobal(){
+  let max = 0;
+  Object.keys(THEMES).forEach(t => { for(let n=1;n<=3;n++){ const v = getRec(t,n); if(v>max) max=v; } });
+  return max;
+}
+function renderRecords(){
+  const box = $('rec-list'); box.innerHTML = '';
+  for(let n=1;n<=3;n++){
+    const div = document.createElement('div');
+    div.className = 'rec-line' + (n === state.niveau ? ' current' : '');
+    div.innerHTML = '<span class="rl-lbl">Niveau ' + n + '</span><span class="rl-val">' + getRec(state.theme, n) + '</span>';
+    box.appendChild(div);
+  }
+  $('rec-global').textContent = recGlobal();
+  $('st-best').textContent = getRec(state.theme, state.niveau);
+}
+
+/* ── OUTILS ───────────────────────────────────────────────────── */
+function sleep(ms){ return new Promise(res => { const id = setTimeout(res, ms); state.timeouts.push(id); }); }
+function clearTimers(){ state.timeouts.forEach(clearTimeout); state.timeouts = []; }
+function padColor(i){
+  const th = THEMES[state.theme];
+  return th.colors ? th.colors[i] : PADS_NEUTRES[i];
+}
+function setHint(txt, cls){
+  hintEl.textContent = txt;
+  hintEl.className = cls || '';
+}
+function showInfo(msg){
+  valMsg.textContent = msg;
+  valMsg.style.background = '#ecfdf5';
+  valMsg.style.borderBottomColor = '#6ee7b7';
+  valMsg.style.color = '#065f46';
+  valMsg.classList.add('visible');
+  clearTimeout(showInfo._t);
+  showInfo._t = setTimeout(() => { valMsg.classList.remove('visible'); valMsg.style.cssText = ''; }, 4000);
+}
+
+/* ── GRILLE DE CASES ──────────────────────────────────────────── */
+/* 2 cases côte à côte, 3 en ligne, 6 en 2 rangées de 3. */
+function disposition(n){
+  if(n <= 2) return [n];
+  if(n === 3) return [3];
+  return [3,3];
+}
+function tailleCase(rows, cols){
+  const area = $('game-area');
+  const aw = Math.max(120, area.clientWidth  - 32);
+  const ah = Math.max(120, area.clientHeight - 32 - 60);   // 60 = bandeau de phase
+  return Math.max(TAILLE_MIN, Math.min(
+    Math.floor((aw - (cols-1)*GAP) / cols),
+    Math.floor((ah - (rows-1)*GAP) / rows),
+    TAILLE_MAX));
+}
+function renderPads(){
+  const th = THEMES[state.theme];
+  const lignes = disposition(state.cases);
+  const cols = Math.max.apply(null, lignes);
+  const taille = tailleCase(lignes.length, cols);
+  padsEl.innerHTML = '';
+  let i = 0;
+  lignes.forEach(nb => {
+    const row = document.createElement('div');
+    row.className = 'pad-row';
+    for(let k=0;k<nb;k++,i++){
+      const idx = i;
+      const pad = document.createElement('div');
+      pad.className = 'pad';
+      pad.dataset.i = idx;
+      pad.style.width = taille + 'px';
+      pad.style.height = taille + 'px';
+      pad.style.setProperty('--pad-c', padColor(idx));
+      pad.style.fontSize = Math.round(taille * 0.32) + 'px';
+      pad.setAttribute('role','button');
+      pad.setAttribute('aria-label', th.noms[idx]);
+      if(th.labels[idx]) pad.innerHTML = '<span class="pad-label">' + th.labels[idx] + '</span>';
+      pad.addEventListener('pointerdown', () => jouerCase(idx));
+      row.appendChild(pad);
+    }
+    padsEl.appendChild(row);
+  });
+}
+function padEl(i){ return padsEl.querySelector('.pad[data-i="' + i + '"]'); }
+
+function allumer(i, ms){
+  const el = padEl(i); if(!el) return Promise.resolve();
+  el.classList.add('lit');
+  tone(FREQS[i], ms, 'sine');
+  return sleep(ms).then(() => { el.classList.remove('lit'); });
+}
+function flashCourt(i){
+  const el = padEl(i); if(!el) return;
+  el.classList.add('lit');
+  tone(FREQS[i], 170, 'sine');
+  const id = setTimeout(() => el.classList.remove('lit'), 170);
+  state.timeouts.push(id);
+}
+function clearHintPads(){ padsEl.querySelectorAll('.pad').forEach(p => p.classList.remove('next-hint')); }
+function marquerProchaine(){
+  clearHintPads();
+  if(!NIVEAUX[state.niveau].aide || state.phase !== 'input') return;
+  const el = padEl(state.sequence[state.pos]);
+  if(el) el.classList.add('next-hint');
+}
+
+/* ── AFFICHAGE ────────────────────────────────────────────────── */
+function majStats(){
+  $('st-round').textContent = state.tour;
+  $('st-len').textContent   = state.sequence.length;
+  $('st-score').textContent = state.score;
+  $('st-best').textContent  = getRec(state.theme, state.niveau);
+  $('st-speed').textContent = state.started ? state.onMs + ' ms' : '—';
+}
+function majProgression(){
+  const total = state.sequence.length, fait = state.pos;
+  const pct = total ? Math.round(fait / total * 100) : 0;
+  $('rep-done').textContent = fait;
+  $('rep-total').textContent = total;
+  $('rep-pct').textContent = pct + '%';
+  $('rep-fill').style.width = pct + '%';
+}
+function ajouterEcho(i){
+  const th = THEMES[state.theme];
+  const d = document.createElement('div');
+  d.className = 'echo-dot';
+  d.style.background = padColor(i);
+  d.textContent = th.labels[i] || '';
+  d.title = th.noms[i];
+  $('echo-list').appendChild(d);
+}
+function razEcho(){ $('echo-list').innerHTML = ''; }
+
+/* ── BOUCLE DE JEU ────────────────────────────────────────────── */
+function startGame(){
+  clearTimers();
+  audioUnlock();
+  state.theme  = selTheme.value;
+  state.niveau = parseInt(selLevel.value, 10);
+  const cfg = NIVEAUX[state.niveau];
+  state.cases = cfg.cases;
+  state.sequence = [];
+  state.pos = 0; state.tour = 0; state.score = 0;
+  state.started = true; state.phase = 'pause';
+  state.token++;
+  overlay.classList.remove('show');
+  $('ov-seq-wrap').classList.remove('visible');
+  $('btn-show-seq').textContent = '🗺 Voir la séquence';
+  razEcho();
+  renderPads();
+  renderRecords();
+  for(let k=0;k<cfg.depart;k++) state.sequence.push(elementAleatoire());
+  state.tour = 1;
+  majVitesse();
+  majStats(); majProgression();
+  jouerSequence();
+}
+function elementAleatoire(){ return Math.floor(Math.random() * state.cases); }
+
+function majVitesse(){
+  const cfg = NIVEAUX[state.niveau];
+  state.onMs  = Math.max(PLANCHER_MS, cfg.vitesse - (state.tour - 1) * cfg.accel);
+  state.gapMs = Math.max(70, Math.round(state.onMs * 0.32));
+}
+
+async function jouerSequence(){
+  const token = ++state.token;
+  state.phase = 'watch';
+  state.pos = 0;
+  razEcho();
+  clearHintPads();
+  padsEl.classList.add('playing');
+  setHint('👀 Observez la séquence — ' + state.sequence.length + ' élément' + (state.sequence.length > 1 ? 's' : ''), 'watch');
+  majStats(); majProgression();
+  await sleep(650);
+  for(let k=0;k<state.sequence.length;k++){
+    if(token !== state.token) return;
+    await allumer(state.sequence[k], state.onMs);
+    if(token !== state.token) return;
+    await sleep(state.gapMs);
+  }
+  if(token !== state.token) return;
+  padsEl.classList.remove('playing');
+  state.phase = 'input';
+  setHint('🎯 À vous — rejouez la séquence dans l\'ordre', 'input');
+  marquerProchaine();
+}
+
+function jouerCase(i){
+  if(state.phase !== 'input') return;
+  flashCourt(i);
+  if(i !== state.sequence[state.pos]){ finPartie(i); return; }
+
+  state.pos++;
+  ajouterEcho(i);
+  majProgression();
+
+  if(state.pos < state.sequence.length){
+    marquerProchaine();
+    return;
+  }
+
+  /* Séquence entièrement reproduite : le score est la longueur atteinte. */
+  clearHintPads();
+  state.phase = 'pause';
+  state.score = state.sequence.length;
+  majStats();
+  setHint('✅ Séquence réussie — longueur ' + state.score, 'input');
+  toneReussite();
+  state.sequence.push(elementAleatoire());
+  state.tour++;
+  majVitesse();
+  const id = setTimeout(() => { if(state.started) jouerSequence(); }, 900);
+  state.timeouts.push(id);
+}
+
+function finPartie(caseFausse){
+  clearTimers();
+  state.token++;
+  state.phase = 'over';
+  state.started = false;
+  clearHintPads();
+  padsEl.classList.remove('playing');
+  toneErreur();
+
+  const el = padEl(caseFausse);
+  if(el){ el.classList.add('wrong'); setTimeout(() => el.classList.remove('wrong'), 600); }
+  setHint('💥 Erreur — fin de partie', 'over');
+
+  const ancien = getRec(state.theme, state.niveau);
+  const record = state.score > ancien;
+  if(record) setRec(state.theme, state.niveau, state.score);
+  renderRecords();
+  majStats();
+
+  $('ov-score').textContent  = state.score;
+  $('ov-best').textContent   = getRec(state.theme, state.niveau);
+  $('ov-rounds').textContent = Math.max(0, state.tour - 1);
+  $('ov-newrec').classList.toggle('show', record && state.score > 0);
+  $('ov-title').textContent  = state.score === 0 ? '💥 Fin de partie' : '💥 Fin de partie — score ' + state.score;
+  construireSeqOverlay();
+  setTimeout(() => overlay.classList.add('show'), 700);
+}
+
+function construireSeqOverlay(){
+  const box = $('ov-seq'); box.innerHTML = '';
+  const th = THEMES[state.theme];
+  state.sequence.forEach((idx, k) => {
+    const c = document.createElement('div');
+    c.className = 'seq-chip' + (k === state.pos ? ' miss' : '');
+    c.style.background = padColor(idx);
+    c.textContent = th.labels[idx] || (idx + 1);
+    c.title = (k + 1) + '. ' + th.noms[idx];
+    box.appendChild(c);
+  });
+}
+
+/* ── QUITTER ──────────────────────────────────────────────────── */
+function quitGame(){
+  if(!state.started && padsEl.children.length === 0){
+    if(typeof window.quitterApp === 'function'){ window.quitterApp(); return; }
+    window.close(); return;
+  }
+  clearTimers();
+  state.token++;
+  state.started = false; state.phase = 'idle';
+  state.sequence = []; state.pos = 0; state.tour = 0; state.score = 0;
+  padsEl.innerHTML = ''; razEcho();
+  overlay.classList.remove('show');
+  valMsg.classList.remove('visible'); valMsg.style.cssText = '';
+  setHint('Choisissez un thème et un niveau, puis cliquez sur « ▶ Jouer ».');
+  majStats(); majProgression();
+}
+
+/* ── SAUVEGARDER ET REPRENDRE ─────────────────────────────────────
+   La partie tient dans peu de chose : la suite tiree au sort, le rang du
+   tour et le score. On enregistre aussi le theme et le niveau, pour que la
+   reprise retrouve les memes cases et la meme vitesse.
+   Une partie est toujours reprise en debut de tour : la sequence est
+   rejouee depuis le premier element, ce qui est le seul redemarrage
+   honnete — reprendre au milieu d'une saisie supposerait de se souvenir de
+   ce qu'on venait de voir. */
+function stamp(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return `${p(d.getDate())}${p(d.getMonth()+1)}${d.getFullYear()}_${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+function saveGame(){
+  if(!state.started || !state.sequence.length){
+    showInfo('⚠ Aucune partie en cours à sauvegarder.'); return;
+  }
+  if(state.phase === 'watch'){
+    showInfo('⏳ Séquence en cours de démonstration — réessayez dans un instant.'); return;
+  }
+  const data = {
+    app:'sequence', version:1, savedAt:new Date().toISOString(),
+    theme:state.theme, niveau:state.niveau,
+    sequence:state.sequence.slice(), tour:state.tour, score:state.score,
+    muet:state.muet
+  };
+  Partie.enregistrer({
+    json: JSON.stringify(data),
+    nomPropose: `${stamp()}_Memoire.json`,
+    jeu: 'Mémoire'
+  });
+}
+
+function loadGame(texte, nomFichier){
+  const nom = nomFichier || 'sauvegarde';
+  let d;
+  try { d = JSON.parse(texte); }
+  catch(e){
+    Partie.refuserReprise({nomFichier:nom, raison:"Ce fichier n'est pas lisible : son contenu n'est pas au format JSON."});
+    return;
+  }
+  if(!d || d.app !== 'sequence' || !Array.isArray(d.sequence)){
+    Partie.refuserReprise({nomFichier:nom, raison:'Ce fichier n\'est pas une sauvegarde du jeu de Mémoire.'});
+    return;
+  }
+  if(!THEMES[d.theme] || !NIVEAUX[d.niveau]){
+    Partie.refuserReprise({nomFichier:nom, raison:'Cette sauvegarde indique un thème ou un niveau que ce jeu ne connaît pas.'});
+    return;
+  }
+  const cases = NIVEAUX[d.niveau].cases;
+  if(!d.sequence.length || d.sequence.some(i => !Number.isInteger(i) || i < 0 || i >= cases)){
+    Partie.refuserReprise({nomFichier:nom, raison:'La sauvegarde est incomplète ou abîmée : la séquence ne correspond pas au niveau enregistré.'});
+    return;
+  }
+
+  clearTimers();
+  audioUnlock();
+  selTheme.value = d.theme;
+  selLevel.value = String(d.niveau);
+  state.theme = d.theme;
+  state.niveau = d.niveau;
+  state.cases = cases;
+  state.sequence = d.sequence.slice();
+  state.tour = d.tour || d.sequence.length;
+  state.score = d.score || 0;
+  state.pos = 0;
+  state.started = true;
+  state.phase = 'pause';
+  state.muet = !!d.muet;
+  state.token++;
+
+  $('btn-sound').textContent = state.muet ? '🔇 Son coupé' : '🔊 Son activé';
+  $('btn-sound').classList.toggle('muted', state.muet);
+  overlay.classList.remove('show');
+  $('ov-seq-wrap').classList.remove('visible');
+  $('btn-show-seq').textContent = '🗺 Voir la séquence';
+  valMsg.classList.remove('visible');
+  razEcho();
+  renderPads();
+  renderRecords();
+  majVitesse();
+  majStats(); majProgression();
+
+  Partie.confirmerReprise({
+    nomFichier: nom,
+    resume: `tour ${state.tour} — ${state.sequence.length} élément(s), score ${state.score}`,
+    apres: () => jouerSequence()
+  });
+}
+
+/* ── MODALE AIDE ──────────────────────────────────────────────── */
+function openAide(){ $('aide-modal').style.display = 'flex'; $('btn-aide-toggle').classList.add('active'); }
+function closeAide(){ $('aide-modal').style.display = 'none'; $('btn-aide-toggle').classList.remove('active'); }
+$('btn-aide-modal-close').addEventListener('click', closeAide);
+$('btn-aide-ok').addEventListener('click', closeAide);
+$('aide-modal').addEventListener('click', e => { if(e.target === $('aide-modal')) closeAide(); });
+
+/* ── ÉVÉNEMENTS ───────────────────────────────────────────────── */
+$('btn-start').addEventListener('click', startGame);
+$('btn-save').addEventListener('click', saveGame);
+$('btn-load').addEventListener('click', () => $('inp-load').click());
+$('inp-load').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const fr = new FileReader();
+  fr.onload  = () => loadGame(fr.result, f.name);
+  fr.onerror = () => showInfo('⚠ Impossible de lire ce fichier.');
+  fr.readAsText(f);
+  e.target.value = '';   // pour pouvoir recharger le meme fichier
+});
+$('btn-quit').addEventListener('click', quitGame);
+$('btn-aide-toggle').addEventListener('click', openAide);
+$('btn-replay').addEventListener('click', () => { overlay.classList.remove('show'); startGame(); });
+$('btn-show-seq').addEventListener('click', () => {
+  const w = $('ov-seq-wrap');
+  if(w.classList.contains('visible')){ w.classList.remove('visible'); $('btn-show-seq').textContent = '🗺 Voir la séquence'; }
+  else { w.classList.add('visible'); $('btn-show-seq').textContent = '🙈 Masquer la séquence'; }
+});
+$('btn-sound').addEventListener('click', () => {
+  state.muet = !state.muet;
+  const b = $('btn-sound');
+  b.classList.toggle('muted', state.muet);
+  b.textContent = state.muet ? '🔇 Muet' : '🔊 Son activé';
+  if(!state.muet) audioUnlock();
+});
+$('btn-reset-records').addEventListener('click', () => {
+  if(!confirm('Effacer les records des 12 combinaisons thème × niveau ?')) return;
+  Object.keys(THEMES).forEach(t => { for(let n=1;n<=3;n++){ try{ localStorage.removeItem(recKey(t,n)); }catch(e){} } });
+  renderRecords(); majStats();
+  showInfo('🗑 Tous les records ont été effacés.');
+});
+
+selTheme.addEventListener('change', () => {
+  state.theme = selTheme.value;
+  renderRecords(); majStats();
+  if(!state.started) renderPads();
+  else showInfo('ℹ Le changement de thème s\'appliquera à la prochaine partie.');
+});
+selLevel.addEventListener('change', () => {
+  state.niveau = parseInt(selLevel.value, 10);
+  renderRecords(); majStats();
+  if(!state.started){ state.cases = NIVEAUX[state.niveau].cases; renderPads(); }
+  else showInfo('ℹ Le changement de niveau s\'appliquera à la prochaine partie.');
+});
+
+/* Clavier : touches 1 à 6 (pratique sur portable avec pavé). */
+document.addEventListener('keydown', e => {
+  if($('aide-modal').style.display === 'flex') return;
+  if(e.key === 'Enter' && !state.started){ startGame(); return; }
+  const n = parseInt(e.key, 10);
+  if(!isNaN(n) && n >= 1 && n <= state.cases) jouerCase(n - 1);
+});
+
+window.addEventListener('resize', () => { if(padsEl.children.length) renderPads(); });
+
+/* ── DÉMARRAGE ────────────────────────────────────────────────── */
+state.theme  = selTheme.value;
+state.niveau = parseInt(selLevel.value, 10);
+state.cases  = NIVEAUX[state.niveau].cases;
+renderPads();
+renderRecords();
+majStats();
+majProgression();
+</script>
+
+<!-- Sortie de jeu harmonisee -->
+<script src="../assets/js/quitter.js" data-base="../"></script>
+<script src="../assets/js/aide-mode.js" data-jeu="sequence" data-base="../"></script>
+<!-- Presentation commune des fenetres d'aide : panneau a gauche,
+     une seule croix en haut, un seul bouton « Fermer » en bas. -->
+<script src="../assets/js/partie.js" data-base="../"></script>
+<script src="../assets/js/aide-uniforme.js"
+        data-panneau="#aide-modal > div"
+        data-voile="#aide-modal"
+        data-titre="Comment jouer au Jeu de séquence"
+        data-fermer="closeAide()"></script>
+</body>
+</html>
