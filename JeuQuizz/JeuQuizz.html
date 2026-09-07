@@ -537,6 +537,112 @@ html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit
 html body button[onclick*="quitter()"]:hover{
   background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
 }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     CHARTE GRAPHIQUE — écran d'accueil et de configuration du quiz
+     Valeurs reprises de assets/css/charte.css. Trois écarts corrigés :
+     le fond de page passait le bleu franc, réservé aux bandeaux et aux
+     boutons ; la carte était bleu pâle au lieu de blanche ; le bouton
+     principal était vert, alors que le vert est une couleur d'état.
+     Bloc limité à #scr-load : le quiz lui-même n'est pas touché.
+     ═══════════════════════════════════════════════════════════════════ */
+  #scr-load { background: #C2F6FF; }
+  /* Trois dégradés radiaux se superposaient au fond : la charte prévoit un
+     aplat de bleu clair, sans effet. */
+  #scr-load::before { background: none; }
+  #scr-load .load-card {
+    background: #ffffff;
+    border: 1px solid #8FDCFF;
+    border-radius: 22px;
+    box-shadow: 0 10px 26px rgba(0, 70, 120, .24);
+  }
+  #scr-load .load-title { color: #0B4E75; }
+  #scr-load .load-sub, #scr-load .load-hint, #scr-load label { color: #2A6E96; }
+  #scr-load .btn { border-radius: 9px; font-weight: 700; }
+  #scr-load .btn-success, #scr-load .btn-primary {
+    background: #38B6FF; color: #ffffff; border: 1px solid #38B6FF;
+  }
+  #scr-load .btn-success:hover, #scr-load .btn-primary:hover {
+    background: #1E9BE0; border-color: #1E9BE0;
+  }
+  /* Les boutons secondaires prenaient le gris par défaut du navigateur. */
+  #scr-load .btn:not(.btn-success):not(.btn-primary):not(.btn-danger) {
+    background: #E1F4FF; color: #0B4E75; border: 1px solid #8FDCFF;
+  }
+  #scr-load .btn:not(.btn-success):not(.btn-primary):not(.btn-danger):hover {
+    background: #C2F6FF; border-color: #38B6FF;
+  }
+  #scr-load input[type=text], #scr-load select {
+    border: 1.5px solid #8FDCFF; border-radius: 9px; color: #0B4E75; background: #ffffff;
+  }
+  #scr-load input[type=text]:focus, #scr-load select:focus { border-color: #38B6FF; outline: none; }
+  /* ── Apparence reprise de l'accueil du Jeu de Mot ──────────────────
+     Carte plus étroite, titre en capitales espacées, sous-titre aéré, et
+     surtout une colonne d'actions pleine largeur au lieu d'une rangée de
+     quatre boutons serrés. */
+  #scr-load .load-card {
+    width: 520px;
+    padding: clamp(16px, 3vh, 30px) clamp(20px, 3.4vw, 40px);
+  }
+  #scr-load .load-logo  { font-size: clamp(24px, 4.4vh, 36px); margin-bottom: 2px; filter: none; }
+  #scr-load .load-title {
+    font-size: clamp(1.4rem, 3.4vh, 2.3rem); font-weight: 900;
+    letter-spacing: 4px; text-transform: uppercase; margin-bottom: 2px;
+  }
+  #scr-load .load-sub { font-size: clamp(.74rem, 1.5vh, .9rem); margin-bottom: clamp(10px, 2.2vh, 20px); }
+
+  #scr-load .load-actions { flex-direction: column; gap: 8px; margin-top: clamp(8px, 1.8vh, 14px); }
+  #scr-load .load-actions .btn { flex: none; width: 100%; padding: clamp(8px, 1.6vh, 12px); font-size: clamp(.8rem, 1.6vh, .92rem); }
+  #scr-load .load-divider { border: none; border-top: 1px solid #8FDCFF; margin: clamp(8px, 1.8vh, 14px) 0; }
+  #scr-load .load-footer  { display: flex; gap: 8px; justify-content: center; }
+  #scr-load .load-footer .btn {
+    flex: 0 0 auto; padding: clamp(5px, 1.2vh, 8px) clamp(14px, 2vw, 22px);
+    font-size: clamp(.74rem, 1.5vh, .82rem);
+  }
+  #scr-load .load-actions .btn, #scr-load .load-footer .btn { justify-content: center; }
+  /* L'écran d'accueil se déroulait en deux temps : une première carte ne
+     servait qu'à charger le questionnaire, et les réglages n'apparaissaient
+     qu'ensuite. Tout est visible d'emblée, comme dans le Jeu de Mot : on voit
+     du premier coup d'œil ce que l'on va devoir renseigner. Le bouton de
+     lancement reste inactif tant qu'aucun questionnaire n'est chargé. */
+  #scr-load #id-section { display: flex !important; }
+  #scr-load #load-status.vide { color: #2A6E96; font-weight: 600; }
+  #scr-load .btn[disabled] {
+    background: #E1F4FF; color: #7FA8C0; border-color: #cfe9f7;
+    cursor: not-allowed; box-shadow: none;
+  }
+  #scr-load .btn[disabled]:hover { background: #E1F4FF; border-color: #cfe9f7; }
+  /* Les intitulés des options passaient en capitales — la règle visait le
+     libellé « Identifiant » et attrapait aussi les cases à cocher, qui
+     se coupaient alors en trois lignes. */
+  #scr-load .load-opt-radio, #scr-load .load-opt-radio span { text-transform: none; letter-spacing: 0; }
+  #scr-load .load-opt-sep { margin: 0 8px; }
+  #scr-load .btn-secondary { background: #E1F4FF; color: #0B4E75; border: 1px solid #8FDCFF; }
+  #scr-load .btn-secondary:hover { background: #C2F6FF; border-color: #38B6FF; }
+  /* La zone de dépôt de fichier prend le pointillé bleu des autres jeux. */
+  #scr-load .load-file-btn {
+    border: 2px dashed #8FDCFF; border-radius: 9px; background: #ffffff; color: #2A6E96;
+  }
+  #scr-load .load-file-btn:hover { border-color: #38B6FF; background: #E1F4FF; color: #0B4E75; transform: none; }
+  /* Sur une fenêtre peu haute, et surtout en mode « en ligne » où la
+     bibliothèque du site ajoute deux commandes, la carte dépassait par le bas
+     et emportait « Règles du jeu » et « Quitter » hors de vue. L'écran fait
+     exactement la hauteur de la fenêtre, la carte s'y ajuste, et sous 560 px
+     le logo et le sous-titre s'effacent : mieux vaut perdre un ornement qu'un
+     bouton. */
+  #scr-load { height: 100vh; overflow: hidden; padding: clamp(6px, 1.6vh, 16px) 12px; }
+  #scr-load .load-card { max-height: 100%; overflow-y: auto; }
+  @media (max-height: 560px) {
+    #scr-load .load-logo { display: none; }
+    #scr-load .load-sub  { display: none; }
+    #scr-load .load-card { padding: 10px 18px; }
+    #scr-load .load-title { letter-spacing: 2px; margin-bottom: 4px; }
+    #scr-load .load-options { padding: 8px 10px; margin-top: 6px; }
+    #scr-load .load-actions { margin-top: 6px; gap: 5px; }
+    #scr-load .load-divider { margin: 6px 0; }
+    #scr-load #id-section { margin-top: 6px; gap: 4px; }
+  }
+  /* Le bouton Quitter reste rouge dans toute la collection : voulu. */
 </style>
 </head>
 <body>
@@ -554,7 +660,7 @@ html body button[onclick*="quitter()"]:hover{
       onclick="document.getElementById('xml-input').click()">
       📂 Charger le fichier Questions.xml
     </button>
-    <div id="load-status"></div>
+    <div id="load-status" class="vide">Aucun questionnaire chargé pour l'instant.</div>
     <div id="id-section">
       <label for="input-id">Identifiant :</label>
       <input type="text" id="input-id" placeholder="Saisissez votre identifiant" autocomplete="off">
@@ -592,20 +698,20 @@ html body button[onclick*="quitter()"]:hover{
                      padding:3px 14px;cursor:pointer;line-height:1.4;width:100%;">🔊</button>
           </div>
         </div>
-        <button onclick="showHelp()"
-          style="width:100%;margin-top:8px;font-size:12px;font-weight:700;font-family:inherit;
-                 border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;
-                 background:var(--bd-pale);color:var(--bd-hover);">
-          Aide — Règles du jeu
-        </button>
       </div>
     </div><!-- fin id-section -->
+    <!-- Colonne d'actions, puis filet, puis « Règles du jeu » et « Quitter »
+         côte à côte : la disposition de l'accueil du Jeu de Mot. Le second
+         bouton d'aide, qui doublait celui du bas, a été retiré. -->
     <div class="load-actions">
-      <button class="btn btn-success" onclick="startQuiz()">▶ Démarrer le Quiz</button>
-      <button class="btn" onclick="document.getElementById('inp-load').click()">💾 Reprendre</button>
+      <button class="btn btn-primary" id="btn-start-quiz" onclick="startQuiz()" disabled>▶ Démarrer le Quiz</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('inp-load').click()">💾 Reprendre une partie sauvegardée</button>
       <input type="file" id="inp-load" accept=".json" style="display:none">
-      <button class="btn" id="btn-help-load" onclick="showHelp()">❓ Aide</button>
-      <button class="btn btn-danger" onclick="doQuit()">✖ Quitter</button>
+    </div>
+    <hr class="load-divider">
+    <div class="load-footer">
+      <button class="btn btn-secondary btn-sm" id="btn-help-load" onclick="showHelp()">📖 Règles du jeu</button>
+      <button class="btn btn-danger btn-sm" onclick="doQuit()">✕ Quitter</button>
     </div>
   </div>
 </div>
@@ -795,10 +901,12 @@ document.getElementById('xml-input').addEventListener('change',function(e){
       const st=document.getElementById('load-status');
       st.textContent='✔ Chargé : '+quiz.questions.length+' question(s) — "'+quiz.config.title+'"';
       st.className='';
-      document.getElementById('id-section').style.display='flex';
+      // Les réglages sont déjà à l'écran ; il ne reste qu'à débloquer le départ.
+      document.getElementById('btn-start-quiz').disabled=false;
     }catch(err){
       const st=document.getElementById('load-status');
       st.textContent='✘ Erreur : '+err.message; st.className='err';
+      document.getElementById('btn-start-quiz').disabled=true;
     }
   };
   r.readAsText(file,'UTF-8'); e.target.value='';

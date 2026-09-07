@@ -705,6 +705,100 @@ html body button[onclick*="quitter()"]:hover{
 }
 .game-title{display:flex;align-items:center;gap:9px}
 .game-title .titre-icone{height:30px; width:30px; border-radius:6px; box-shadow:none}
+
+  /* ═══════════════════════════════════════════════════════════════════
+     CHARTE GRAPHIQUE — écran d'accueil
+     Valeurs reprises de assets/css/charte.css. Le fond de page passe du
+     bleu franc au bleu clair, et la carte du bleu pâle au blanc : dans la
+     charte, le bleu franc est réservé aux bandeaux et aux boutons.
+     Bloc limité à #home-screen : le jeu lui-même n'est pas touché.
+     ═══════════════════════════════════════════════════════════════════ */
+  #home-screen { background: #C2F6FF; }
+  #home-screen .home-card {
+    background: #ffffff;
+    border: 1px solid #8FDCFF;
+    border-radius: 22px;
+    box-shadow: 0 10px 26px rgba(0, 70, 120, .24);
+  }
+  #home-screen .home-title, #home-screen h1, #home-screen h2 { color: #0B4E75; }
+  #home-screen .home-sub, #home-screen .home-kicker, #home-screen p { color: #2A6E96; }
+  #home-screen .btn { border-radius: 9px; font-weight: 700; }
+  #home-screen .btn-primary { background: #38B6FF; color: #ffffff; border: 1px solid #38B6FF; }
+  #home-screen .btn-primary:hover { background: #1E9BE0; border-color: #1E9BE0; }
+  #home-screen .btn-outline { background: #E1F4FF; color: #0B4E75; border: 1px solid #8FDCFF; }
+  #home-screen .btn-outline:hover { background: #C2F6FF; border-color: #38B6FF; }
+  /* Le bouton Quitter reste rouge dans toute la collection : voulu. */
+  #home-screen #btn-quitter-accueil { background: #c62828; color: #fff; border-color: #c62828; }
+  #home-screen .home-note, #home-screen .home-info {
+    background: #E1F4FF; border: 1px solid #8FDCFF; border-radius: 14px; color: #2A6E96;
+  }
+  /* La carte dépassait le bas de la fenêtre, et davantage encore en mode
+     « en ligne » où la bibliothèque du site ajoute deux commandes. Comme
+     l'écran était en « min-height: 100vh », la page s'allongeait au lieu de
+     laisser défiler et le bouton Quitter devenait inatteignable.
+     L'écran fait maintenant exactement la hauteur de la fenêtre, et toutes
+     les hauteurs de la carte sont indexées dessus par « clamp() » : la carte
+     se resserre au lieu de déborder, sans jamais devenir illisible.
+     « Règles du jeu » et « Quitter » partagent une ligne, comme dans le Jeu
+     de Mot, ce qui économise une hauteur de bouton. */
+  #home-screen {
+    height: 100vh; min-height: 0; overflow: hidden;
+    justify-content: center; padding: clamp(6px, 1.6vh, 16px) 12px;
+  }
+  #home-screen .home-card {
+    padding: clamp(10px, 2vh, 20px) clamp(16px, 3vw, 30px);
+    max-height: 100%; overflow-y: auto;
+  }
+  #home-screen .home-logo   { font-size: clamp(.72rem, 1.5vh, 1rem); margin-bottom: 2px; }
+  #home-screen .home-title  { font-size: clamp(1.1rem, 3vh, 2rem); margin-bottom: clamp(2px, .8vh, 8px); gap: clamp(6px, 1.2vw, 12px); }
+  #home-screen .titre-icone { height: clamp(26px, 4.6vh, 48px); width: clamp(26px, 4.6vh, 48px); }
+  #home-screen .home-sub    { font-size: clamp(.72rem, 1.5vh, .95rem); margin-bottom: clamp(4px, 1.2vh, 14px); }
+  #home-screen .score-badge { font-size: clamp(.76rem, 1.6vh, 1rem); padding: clamp(3px, .7vh, 6px) 18px; margin-bottom: clamp(4px, 1.2vh, 12px); }
+  #home-screen .load-status { font-size: clamp(.7rem, 1.4vh, .9rem); padding: clamp(4px, 1vh, 8px) 14px; margin-bottom: clamp(4px, 1.2vh, 12px); }
+  #home-screen .home-actions { gap: clamp(4px, 1vh, 9px); }
+  #home-screen .home-actions .btn { padding: clamp(6px, 1.3vh, 11px) 20px; font-size: clamp(.76rem, 1.6vh, .95rem); }
+  #home-screen .divider { margin: clamp(5px, 1.2vh, 12px) 0; }
+  /* Les deux commandes de la bibliothèque du site, ajoutées en mode « en ligne ». */
+  #home-screen .bib-btn   { padding: clamp(6px, 1.3vh, 11px) 20px; font-size: clamp(.76rem, 1.6vh, .95rem); }
+  #home-screen .bib-local { padding: clamp(4px, 1vh, 8px) 14px; font-size: clamp(.68rem, 1.4vh, .82rem); }
+
+  /* Compte rendu du chargement, dans la carte. */
+  #home-screen .file-name {
+    margin-top: clamp(4px, 1vh, 10px);
+    padding: clamp(5px, 1.1vh, 9px) 12px;
+    border-radius: 9px;
+    font-size: clamp(.7rem, 1.4vh, .85rem);
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  #home-screen .file-name.ok { background: #E1F4FF; border: 1px solid #8FDCFF; color: #0B4E75; }
+  #home-screen .file-name.ko { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+  #home-screen .file-name[hidden] { display: none; }
+
+  /* ── Apparence reprise de l'accueil du Jeu de Mot ──────────────────
+     Même largeur de carte, même titre en capitales espacées sur fond
+     blanc, même sous-titre discret. Le badge de score et l'encadré
+     d'information passent en bleu pâle : sur l'accueil du Jeu de Mot,
+     seul le bouton d'action porte du bleu franc. */
+  #home-screen .home-card { max-width: 480px; }
+  #home-screen .home-logo {
+    color: #2A6E96; letter-spacing: .18em; font-weight: 800;
+    font-size: clamp(.62rem, 1.3vh, .78rem);
+  }
+  #home-screen .home-title {
+    text-transform: uppercase; letter-spacing: 3px; font-weight: 900;
+    font-size: clamp(1.05rem, 2.8vh, 1.8rem);
+  }
+  #home-screen .score-badge {
+    background: #E1F4FF; border: 1px solid #8FDCFF; color: #0B4E75;
+  }
+  #home-screen .load-status {
+    background: #E1F4FF; border: 1px solid #8FDCFF; color: #2A6E96; font-weight: 600;
+  }
+
+  /* Ligne du bas : les deux boutons côte à côte, largeurs égales. */
+  #home-screen .home-footer { display: flex; gap: 8px; justify-content: center; }
+  #home-screen .home-footer .btn { flex: 1 1 0; padding: clamp(5px, 1.2vh, 9px) 10px; font-size: clamp(.72rem, 1.5vh, .88rem); }
 </style>
 </head>
 <body>
@@ -721,13 +815,19 @@ html body button[onclick*="quitter()"]:hover{
       ou charger un fichier manuellement.<br>
       <strong id="home-nmax">La partie comportera 0 phrase.</strong>
     </div>
+    <!-- Compte rendu du chargement, affiché dans la carte : le jeu n'ouvre
+         plus de fenêtre du navigateur. Même principe que les Anagrammes. -->
+    <div id="file-name" class="file-name" hidden></div>
     <div class="home-actions">
       <button class="btn btn-primary" onclick="startGame()">▶ Commencer le jeu</button>
       <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">📁 Choisir un fichier XML manuellement</button>
       <button class="btn btn-outline" onclick="document.getElementById('inp-load').click()">💾 Reprendre une partie sauvegardée</button>
       <input type="file" id="inp-load" accept=".json" style="display:none">
-      <button class="btn btn-outline" onclick="showRules()">📜 Comment jouer ?</button>
-      <button class="btn btn-outline" id="btn-quitter-accueil" style="color:#c62828;border-color:#e57373">✕ Quitter</button>
+    </div>
+    <hr class="divider">
+    <div class="home-footer">
+      <button class="btn btn-outline btn-sm" onclick="showRules()">📖 Règles du jeu</button>
+      <button class="btn btn-outline btn-sm" id="btn-quitter-accueil">✕ Quitter</button>
     </div>
   </div>
 </div>
@@ -1043,7 +1143,7 @@ function majAccueil(){
 
 function startGame(){
   Nmax = allTexts.length;
-  if (Nmax === 0) { alert('❌ Aucune phrase disponible. Chargez un fichier XML.'); return; }
+  if (Nmax === 0) { messageAccueil('⚠ Aucune phrase disponible. Chargez d\'abord un fichier.', 'ko'); return; }
   showScreen('game-screen');
   score = 0;
   currentIdx = 0;
@@ -1668,7 +1768,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const f = e.target.files[0]; if (!f) return;
     const fr = new FileReader();
     fr.onload  = () => reprendrePartie(fr.result, f.name);
-    fr.onerror = () => alert('Impossible de lire ce fichier.');
+    fr.onerror = () => messageAccueil('⚠ Impossible de lire ce fichier.', 'ko');
     fr.readAsText(f);
     e.target.value = '';   // pour pouvoir recharger le meme fichier
   });
@@ -1871,6 +1971,19 @@ function parseXML(xmlStr){
   });
   return result;
 }
+/* Compte rendu affiché dans la carte d'accueil plutôt que dans une fenêtre
+   du navigateur : c'est le principe retenu dans le jeu d'anagrammes, où le
+   nom du fichier chargé s'inscrit sous les boutons. Hors de l'écran
+   d'accueil, on retombe sur l'alerte, faute d'endroit où écrire. */
+function messageAccueil(texte, type){
+  const el = document.getElementById('file-name');
+  const surAccueil = document.getElementById('home-screen').classList.contains('active');
+  if (!el || !surAccueil) { alert(texte); return; }
+  el.textContent = texte;
+  el.className = 'file-name ' + (type || 'ok');
+  el.hidden = false;
+}
+
 function loadXMLFile(e){
   const file=e.target.files[0];
   if(!file) return;
@@ -1882,11 +1995,13 @@ function loadXMLFile(e){
         allTexts=entries;
         Nmax=allTexts.length;
         majAccueil();
-        alert(`✅ ${allTexts.length} texte(s) chargé(s) avec succès !\nLa partie comportera ${Nmax} phrase(s).`);
+        messageAccueil(`✔ ${file.name} — ${entries.length} texte(s) chargé(s), ${Nmax} phrase(s)`, 'ok');
       } else {
-        alert('❌ Format XML non reconnu. Vérifiez le format dans "Comment jouer ?".');
+        messageAccueil("⚠ Format non reconnu dans « " + file.name + " ». Le format attendu est décrit dans les Règles du jeu.", 'ko');
       }
-    }catch(err){ alert('❌ Erreur lors du chargement du fichier XML.'); }
+    }catch(err){
+      messageAccueil("⚠ Impossible de lire « " + file.name + " » : le fichier est illisible ou abîmé.", 'ko');
+    }
     e.target.value='';
   };
   reader.readAsText(file,'UTF-8');

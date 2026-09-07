@@ -380,6 +380,67 @@ html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit
 html body button[onclick*="quitter()"]:hover{
   background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
 }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     CHARTE GRAPHIQUE — écrans d'accueil et de configuration
+     Valeurs reprises de assets/css/charte.css. Le bloc est volontairement
+     placé en fin de feuille et limité aux deux écrans d'accueil et de
+     configuration : le jeu lui-même n'est pas touché.
+       fond de page  #C2F6FF   bleu franc   #38B6FF   survol   #1E9BE0
+       bleu pâle     #E1F4FF   bleu profond #0B4E75   adouci   #2A6E96
+       bordure       #8FDCFF   blanc        #ffffff
+     ═══════════════════════════════════════════════════════════════════ */
+  #screen-accueil, #screen-config {
+    font-family: 'Nunito', 'Varela Round', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
+    background: #C2F6FF;
+  }
+  #screen-accueil .welcome-card,
+  #screen-config  .config-card {
+    background: #ffffff;
+    border: 1px solid #8FDCFF;
+    border-radius: 22px;
+    box-shadow: 0 10px 26px rgba(0, 70, 120, .24);
+  }
+  /* Le titre était bicolore ; la charte ne prévoit qu'un bleu de titre. */
+  #screen-accueil .welcome-title,
+  #screen-accueil .welcome-title span { color: #0B4E75; }
+  #screen-accueil .welcome-sub { color: #2A6E96; }
+  #screen-config  .config-card h2 { color: #0B4E75; }
+  #screen-config  .config-item label { color: #2A6E96; }
+  #screen-config  .config-item select,
+  #screen-config  .config-item input[type=range] {
+    border: 1.5px solid #8FDCFF; border-radius: 9px; color: #0B4E75; background: #ffffff;
+  }
+  #screen-config  .config-item select:focus { border-color: #38B6FF; }
+
+  #screen-accueil .btn, #screen-config .btn { border-radius: 9px; font-weight: 700; }
+  #screen-accueil .btn-primary,   #screen-config .btn-primary   { background: #38B6FF; color: #ffffff; border: 1px solid #38B6FF; }
+  #screen-accueil .btn-primary:hover,   #screen-config .btn-primary:hover   { background: #1E9BE0; border-color: #1E9BE0; }
+  #screen-accueil .btn-secondary, #screen-config .btn-secondary { background: #E1F4FF; color: #0B4E75; border: 1px solid #8FDCFF; }
+  #screen-accueil .btn-secondary:hover, #screen-config .btn-secondary:hover { background: #C2F6FF; border-color: #38B6FF; }
+  /* Le bouton Quitter reste rouge dans toute la collection : c'est le seul
+     bouton dont la couleur ne suit pas la charte, et c'est voulu. */
+  #screen-accueil #btn-quitter-accueil, #screen-config #btn-quitter-config { background: #c62828; color: #fff; border-color: #c62828; }
+
+  #screen-accueil .file-label, #screen-config .file-label {
+    border: 2px dashed #8FDCFF; border-radius: 9px; color: #2A6E96; background: #ffffff;
+  }
+  #screen-accueil .file-label:hover, #screen-config .file-label:hover {
+    border-color: #38B6FF; color: #0B4E75; background: #E1F4FF;
+  }
+  #screen-accueil .divider, #screen-config .divider { border-top: 1px solid #8FDCFF; }
+  /* Boutons neutres et bandeau « Source » : gris du navigateur et lilas
+     hors charte, ramenés au bleu pâle. */
+  #screen-accueil .btn-neutral, #screen-config .btn-neutral {
+    background: #E1F4FF; color: #0B4E75; border: 1px solid #8FDCFF;
+  }
+  #screen-accueil .btn-neutral:hover, #screen-config .btn-neutral:hover {
+    background: #C2F6FF; border-color: #38B6FF;
+  }
+  #screen-accueil .source-info, #screen-config .source-info {
+    background: #E1F4FF; color: #0B4E75; border: 1px solid #8FDCFF; border-radius: 9px;
+  }
+  #screen-config .checkbox-row label, #screen-config .cfg-check label { color: #2A6E96; }
 </style>
 </head>
 <body>

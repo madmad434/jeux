@@ -225,6 +225,24 @@ la saisie en cours, qui n'aurait pas de sens une fois la grille reconstruite.
 Un fichier qui ne correspond pas au jeu, ou dont le contenu est incohérent, est
 refusé avec une explication plutôt qu'une erreur.
 
+## Charte graphique
+
+`assets/css/charte.css` fixe la palette de la collection : fond de page
+`#C2F6FF`, bleu franc `#38B6FF` pour les bandeaux et les boutons d'action,
+bleu pâle `#E1F4FF` pour les boutons secondaires, bleu profond `#0B4E75` pour
+les titres, `#2A6E96` pour le texte secondaire, `#8FDCFF` pour les bordures.
+Le vert et le rouge y sont des **couleurs d'état**, pas des couleurs d'action.
+
+Les **écrans d'accueil et de configuration** des six jeux qui en ont s'y
+conforment : carte blanche à angles arrondis sur fond bleu clair, titre en
+bleu profond, police Nunito, bouton principal en bleu franc, boutons
+secondaires en bleu pâle. Chaque jeu porte le bloc correspondant en fin de
+feuille de style, sous un en-tête *Charte graphique*, limité par sélecteur aux
+écrans concernés — le jeu lui-même garde ses couleurs propres.
+
+Seule exception assumée : le bouton **Quitter** reste rouge partout, pour
+rester repérable d'un coup d'œil.
+
 ## Aide en ligne
 
 Chaque jeu, chaque éditeur et **le menu lui-même** portent un bouton d'aide.

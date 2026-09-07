@@ -378,6 +378,99 @@ html body button[onclick*="quitterApp"]:hover, html body button[onclick*="doQuit
 html body button[onclick*="quitter()"]:hover{
   background:#8d1a1a !important; border-color:#8d1a1a !important; color:#fff !important;
 }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     CHARTE GRAPHIQUE — écran d'accueil et de configuration
+     Valeurs reprises de assets/css/charte.css. Deux écarts corrigés :
+     l'écran s'ouvrait sur un voile noir translucide, alors que la charte
+     prévoit un fond bleu clair ; le titre et le bouton de lancement
+     étaient verts, or le vert y est une couleur d'état, pas une couleur
+     d'action. Bloc limité à #welcome-overlay : le puzzle lui-même n'est
+     pas touché.
+     ═══════════════════════════════════════════════════════════════════ */
+  #welcome-overlay { background: #C2F6FF; backdrop-filter: none; }
+  #welcome-overlay #welcome-box {
+    background: #ffffff;
+    border: 1px solid #8FDCFF;
+    border-radius: 22px;
+    box-shadow: 0 10px 26px rgba(0, 70, 120, .24);
+  }
+  #welcome-overlay #welcome-box h1 { color: #0B4E75; }
+  #welcome-overlay .step-label { color: #2A6E96; }
+  #welcome-overlay .step-label .choice { color: #38B6FF; }
+  #welcome-overlay #btn-start { background: #38B6FF; border-radius: 9px; }
+  #welcome-overlay #btn-start:hover:not(:disabled) { background: #1E9BE0; }
+  /* Présentation reprise de l'accueil du Jeu de Mot : titre, sous-titre,
+     colonne d'actions pleine largeur, filet, puis « Règles du jeu » et
+     « Quitter » côte à côte sur la dernière ligne. */
+  /* Carte resserrée à 600 px et intérieur plus aéré : on se rapproche des
+     480 px du Jeu de Mot sans casser les deux colonnes de réglages, qui ne
+     tiendraient pas plus bas. */
+  #welcome-overlay #welcome-box {
+    width: min(600px, 96vw);
+    padding: clamp(16px, 2.8vh, 30px) clamp(20px, 3.4vw, 38px);
+  }
+  /* Titre au même rythme que celui du Jeu de Mot : capitales, 4 px
+     d'interlettrage, graisse maximale, bleu profond. */
+  #welcome-overlay #welcome-box h1 {
+    font-size: clamp(1.4rem, 3.4vh, 2.3rem); font-weight: 900; letter-spacing: 4px;
+    text-transform: uppercase; margin-bottom: 2px;
+  }
+  #welcome-overlay #welcome-sub {
+    text-align: center; color: #2A6E96; font-size: clamp(.74rem, 1.5vh, .9rem);
+    margin-bottom: clamp(10px, 2.4vh, 24px);
+  }
+  /* Le bouton de lancement prend le rayon de la charte, et un peu d'air le
+     sépare des réglages, comme dans le Jeu de Mot. */
+  #welcome-overlay #btn-start { border-radius: 9px; margin-top: clamp(10px, 2.2vh, 20px); }
+  /* Dernière ligne : deux boutons compacts et centrés, non étirés. */
+  #welcome-overlay #welcome-actions { justify-content: center; }
+  #welcome-overlay #welcome-actions > button {
+    flex: 0 0 auto; padding: clamp(5px, 1.2vh, 8px) clamp(14px, 2vw, 22px);
+    font-size: clamp(.74rem, 1.5vh, .82rem);
+  }
+  #welcome-overlay #btn-load-welcome {
+    display: block; width: 100%; margin-top: 8px; padding: clamp(7px, 1.4vh, 11px);
+    border-radius: 9px; font-family: var(--font); font-size: .85rem; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+  }
+  #welcome-overlay .welcome-divider {
+    border: none; border-top: 1px solid #8FDCFF; margin: clamp(7px, 1.5vh, 13px) 0;
+  }
+  #welcome-overlay #welcome-actions { margin-top: 0; }
+  /* Le sous-titre et la ligne du bas ajoutent deux hauteurs. Sous 560 px de
+     fenêtre, et surtout en mode « en ligne » où la bibliothèque du site ajoute
+     deux commandes, les blocs de réglage se resserrent pour que le bouton
+     Quitter reste visible sans défilement. */
+  #welcome-overlay .step-block { margin-bottom: clamp(4px, 1vh, 10px); }
+  #welcome-overlay #row-options { gap: clamp(10px, 1.6vw, 18px); }
+  #welcome-overlay #btn-open { padding: clamp(7px, 1.5vh, 12px) 16px; }
+  #welcome-overlay #preview-thumb { width: clamp(64px, 12vh, 110px); height: clamp(46px, 8.6vh, 80px); }
+  #welcome-overlay .shape-btn { padding: clamp(6px, 1.3vh, 11px) 8px clamp(6px, 1.3vh, 11px) 30px; }
+  #welcome-overlay #diff-slider { margin: clamp(2px, .6vh, 6px) 0; }
+  #welcome-overlay #diff-hint { min-height: 0; }
+  #welcome-overlay #btn-start { padding: clamp(7px, 1.5vh, 14px); }
+  #welcome-overlay .bib-btn   { padding: clamp(6px, 1.3vh, 11px) 18px; }
+  #welcome-overlay .bib-local { padding: clamp(4px, 1vh, 8px) 14px; }
+  /* Sous 560 px de fenêtre, l'aération gagnée plus haut ne tient plus : le
+     sous-titre s'efface et les marges reviennent au minimum. Mieux vaut
+     perdre une ligne décorative qu'un bouton. */
+  @media (max-height: 560px) {
+    #welcome-overlay #welcome-sub { display: none; }
+    #welcome-overlay #welcome-box { padding: 10px 18px; }
+    #welcome-overlay #welcome-box h1 { letter-spacing: 2px; margin-bottom: 4px; }
+    #welcome-overlay #btn-start { margin-top: 6px; }
+    #welcome-overlay #btn-load-welcome { margin-top: 5px; }
+    #welcome-overlay .welcome-divider { margin: 6px 0; }
+  }
+  #welcome-overlay #btn-load-welcome { color: #0B4E75; border-color: #8FDCFF; background: #E1F4FF; }
+  #welcome-overlay #btn-load-welcome:hover { background: #C2F6FF; border-color: #38B6FF; }
+  #welcome-overlay #btn-help-welcome { color: #0B4E75; border-color: #8FDCFF; background: #E1F4FF; }
+  #welcome-overlay #btn-help-welcome:hover { background: #C2F6FF; border-color: #38B6FF; }
+  /* Le bouton Quitter reste rouge dans toute la collection : voulu. */
+  #welcome-overlay #upload-hint, #welcome-overlay #diff-hint, #welcome-overlay #diff-labels { color: #2A6E96; }
+  #welcome-overlay .shape-btn { border-color: #8FDCFF; color: #0B4E75; }
+  #welcome-overlay .shape-btn.active { background: #38B6FF; border-color: #38B6FF; color: #ffffff; }
 </style>
 </head>
 <body>
@@ -386,6 +479,7 @@ html body button[onclick*="quitter()"]:hover{
 <div class="overlay" id="welcome-overlay">
   <div id="welcome-box">
     <h1><span>🧩</span> Mon Puzzle</h1>
+    <div id="welcome-sub">Reconstituez une photo découpée en pièces</div>
 
     <!-- ① Photo -->
     <div class="step-block">
@@ -434,10 +528,11 @@ html body button[onclick*="quitter()"]:hover{
     </div>
 
     <button id="btn-start" disabled>▶ Commencer le puzzle !</button>
+    <button id="btn-load-welcome">💾 Reprendre une partie sauvegardée</button>
+    <hr class="welcome-divider">
     <div id="welcome-actions">
-      <button id="btn-load-welcome">📂 Reprendre une partie</button>
-      <button id="btn-help-welcome">❓ Aide</button>
-      <button id="btn-quit-welcome">✖ Quitter</button>
+      <button id="btn-help-welcome">📖 Règles du jeu</button>
+      <button id="btn-quit-welcome">✕ Quitter</button>
     </div>
   </div>
 </div>
